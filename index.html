@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grant OS</title>
+<style>
+:root{
+  --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
+  --muted:#a9c3df;--blue:#38bdf8;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#020617,#0f172a);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+header{padding:24px 28px;border-bottom:1px solid var(--border);background:#020617;position:sticky;top:0;z-index:3}
+h1{margin:0;font-size:30px}.sub{color:var(--muted);margin-top:6px}
+main{padding:24px;max-width:1500px;margin:auto}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+button{padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:#1f2937;color:var(--text);font-weight:bold;cursor:pointer}
+button.active,button.primary{background:var(--blue);color:#00111a}
+button.danger{background:#7f1d1d;color:#fff}
+.section{display:none}.section.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{background:rgba(30,42,56,.96);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.card h3{margin:0 0 10px;color:var(--muted);font-size:15px;letter-spacing:.08em;text-transform:uppercase}
+.full{grid-column:1/-1}.wide{grid-column:span 2}
+.big{font-size:36px;font-weight:bold}.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}.blue{color:var(--blue)}
+.note{color:var(--muted);font-size:14px;line-height:1.5}
+table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#020617;color:var(--text)}
+.bar{height:13px;background:#020617;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px}
+.fill{height:100%;background:var(--green);width:0%}
+.pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#020617;border:1px solid var(--border);font-size:12px;color:var(--muted)}
+.alert{border-left:5px solid var(--amber);padding:12px;margin:10px 0;background:#020617;border-radius:12px}
+.status-badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:bold;font-size:12px}.status-green{background:#052e16;color:#86efac;border:1px solid #166534}.status-amber{background:#451a03;color:#fcd34d;border:1px solid #92400e}.status-red{background:#450a0a;color:#fca5a5;border:1px solid #991b1b}
+.alert.red{border-left-color:var(--red)}.alert.green{border-left-color:var(--green)}
+.step{padding:12px;border:1px solid var(--border);border-radius:14px;background:#020617;margin:10px 0}
+.step strong{color:var(--blue)}
+.minirow{display:grid;grid-template-columns:180px 1fr 110px;gap:10px;align-items:center;margin:12px 0}
+.chartbar{height:18px;background:#020617;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+.chartfill{height:100%;background:var(--blue);width:0%}
+.small{font-size:12px;color:var(--muted)}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.command-grid{grid-template-columns:1fr}}
+</style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
+}
+</script>
+</head>
+<body>
+<header>
+  <h1>Grant OS <span class="pill">v1.2 Refinement</span></h1>
+  <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
+</header>
+<main>
+  <div class="tabs">
+    <button class="tab active" onclick="UI.show('dashboard', this)">Dashboard</button>
+    <button class="tab" onclick="UI.show('budget', this)">Budget Setup</button>
+    <button class="tab" onclick="UI.show('debts', this)">Debt Tracker</button>
+    <button class="tab" onclick="UI.show('holidays', this)">Holiday Pots</button>
+    <button class="tab" onclick="UI.show('relocation', this)">Relocation</button>
+    <button class="tab" onclick="UI.show('career', this)">Career</button>
+    <button class="tab" onclick="UI.show('settings', this)">Settings</button>
+  </div>
+
+  <section id="dashboard" class="section active">
+    <div class="grid">
+      <div class="card full"><h3>Immediate Alerts</h3><div id="alertsBox"></div></div>
+      <div class="card"><h3>Overall Bank Position</h3><div id="bankPosition" class="big">£0</div><div class="note">First Direct + Monzo balances minus overdrafts.</div></div>
+      <div class="card"><h3>Total Overdraft Used</h3><div id="totalOverdraft" class="big red">£0</div><div class="note">First Direct OD + Monzo OD.</div></div>
+      <div class="card"><h3>Safe To Spend Today</h3><div id="safeToday" class="big green">£0</div><div class="note">Calculated from Monzo daily spend pot.</div></div>
+      <div class="card"><h3>Safe This Week</h3><div id="safeWeek" class="big blue">£0</div><div class="note">Monzo only. First Direct ignored.</div></div>
+      <div class="card"><h3>Days Until Payday</h3><div id="daysPayday" class="big amber">0</div><div class="note">Payday assumed 26th monthly.</div></div>
+      <div class="card wide"><h3>Debt Remaining</h3><div id="debtRemaining" class="big red">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
+      <div class="card wide"><h3>Relocation Fund</h3><div id="relocationProgress" class="big green">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
+      <div class="card"><h3>Emergency Fund</h3><div id="emergencyProgress" class="big green">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
+      <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note">Overdraft, debt and emergency fund score.</div></div>
+      <div class="card wide"><h3>Next Priority</h3><div id="nextPriority" class="big blue">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
+      <div class="card full"><h3>Progress Indicators</h3><div id="progressIndicators"></div></div>
+      <div class="card full"><h3>Payday-to-Payday Forecast</h3><table id="forecastTable"></table></div>
+    </div>
+  </section>
+
+  <section id="budget" class="section">
+    <div class="grid">
+      <div class="card wide">
+        <h3>Core Figures</h3>
+        <table>
+          <tr><td>Monthly wage</td><td><input id="wage" type="number"></td></tr>
+          <tr><td>First Direct balance</td><td><input id="firstDirectBalance" type="number"></td></tr>
+          <tr><td>First Direct overdraft used</td><td><input id="firstDirectOverdraft" type="number"></td></tr>
+          <tr><td>Monzo balance</td><td><input id="monzoBalance" type="number"></td></tr>
+          <tr><td>Monzo overdraft used</td><td><input id="monzoOverdraft" type="number"></td></tr>
+          <tr><td>Monzo overdraft limit</td><td><input id="monzoOverdraftLimit" type="number"></td></tr>
+          <tr><td>Include Monzo overdraft in spend?</td><td><select id="includeMonzoOverdraftForSpend"><option value="yes">Yes - include remaining Monzo overdraft</option><option value="no">No - Monzo balance only</option></select></td></tr>
+          <tr><td>Weekly living budget</td><td><input id="weeklyBudget" type="number"></td></tr>
+          <tr><td>Payday day of month</td><td><input id="payday" type="number"></td></tr>
+          <tr><td>Emergency fund saved</td><td><input id="emergencyFund" type="number"></td></tr>
+          <tr><td>Emergency fund target</td><td><input id="emergencyTarget" type="number"></td></tr>
+        </table>
+        <button class="primary" onclick="Budget.save()">Save figures</button>
+      </div>
+      <div class="card wide">
+        <h3>Payday Update Mode</h3>
+        <p class="note">Use this on the 26th before spending anything.</p>
+        <div class="step"><strong>Step 1:</strong> Update First Direct and Monzo balances.</div>
+        <div class="step"><strong>Step 2:</strong> Update overdrafts used.</div>
+        <div class="step"><strong>Step 3:</strong> Update emergency fund, debt and holiday pots if changed.</div>
+        <div class="step"><strong>Step 4:</strong> Press save and return to Dashboard.</div>
+        <button class="primary" onclick="Budget.save()">Save payday update</button>
+        <div id="paydayResult" style="margin-top:12px"></div>
+      </div>
+      <div class="card full">
+        <h3>Monthly Fixed Costs</h3>
+        <table id="fixedCostsTable"></table>
+        <button onclick="Budget.addFixed()">Add bill</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="debts" class="section">
+    <div class="grid">
+      <div class="card full">
+        <h3>Debt Tracker</h3>
+        <p class="note">Regular = normal monthly payment. One-off = due once. Flexible = repay at your pace.</p>
+        <table id="debtTable"></table>
+        <button class="primary" onclick="App.saveAndRender()">Save debt figures</button> <button onclick="Debt.add()">Add debt</button>
+      </div>
+      <div class="card wide"><h3>Priority Queue</h3><div id="priorityQueue"></div></div>
+      <div class="card wide"><h3>Debt Progress</h3><div id="debtProgressList"></div></div>
+      <div class="card full">
+        <h3>Smarter Overpayment Simulator</h3>
+        <p class="note">Regular debts only. One-off BNPL payments do not distort the estimate.</p>
+        <table>
+          <tr><td>Extra monthly overpayment</td><td><input id="extraOverpayment" type="number" oninput="Debt.saveOverpay()"></td></tr>
+          <tr><td>Apply overpayment to</td><td><select id="overpayTarget" onchange="Debt.saveOverpay()"></select></td></tr>
+          <tr><td>Regular loan repayment estimate</td><td id="monthsRemainingNow">0</td></tr>
+          <tr><td>With overpayment estimate</td><td id="monthsRemainingOverpay">0</td></tr>
+          <tr><td>Estimated months saved</td><td id="monthsSaved">0</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="holidays" class="section">
+    <div class="grid">
+      <div class="card full">
+        <h3>Holiday Pots</h3>
+        <table id="holidayTable"></table>
+        <button class="primary" onclick="App.saveAndRender()">Save holiday pots</button> <button onclick="Holidays.add()">Add holiday</button>
+      </div>
+      <div class="card full"><h3>Holiday Summary</h3><table id="holidayControlTable"></table></div>
+    </div>
+  </section>
+
+  <section id="relocation" class="section">
+    <div class="grid">
+      <div class="card wide"><h3>Thailand Fund</h3><table id="thaiTable"></table></div>
+      <div class="card wide"><h3>New Zealand Fund</h3><table id="nzTable"></table></div>
+    </div>
+  </section>
+
+  <section id="career" class="section">
+    <div class="card full">
+      <h3>Job Applications</h3>
+      <table id="jobTable"></table>
+      <button onclick="Career.add()">Add application</button>
+    </div>
+  </section>
+
+  <section id="settings" class="section">
+    <div class="card full">
+      <h3>Settings and backups</h3>
+      <p class="note">Data is saved in this browser using local storage. Export a backup before moving to a new version.</p>
+      <button onclick="Settings.exportData()">Export backup</button>
+      <button onclick="Settings.restoreDefaults()">Restore Grant Defaults</button>
+      <button class="danger" onclick="Settings.reset()">Reset all data</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const Defaults = {
+  wage:2200, firstDirectBalance:0, firstDirectOverdraft:100, monzoBalance:0, monzoOverdraft:200,
+  monzoOverdraftLimit:200, includeMonzoOverdraftForSpend:"yes", weeklyBudget:60, payday:26,
+  emergencyFund:0, emergencyTarget:1000, extraOverpayment:0, overpayTarget:"Auto Priority",
+  fixed:[
+    ["Admiral",485],["Lendable",154],["Oakbrook",125],["Currys",45],["Phone",80],["Electric to parents",80],
+    ["Perfect Pet",35],["Union",18],["Ionity",10],["Athletic",8],["Patreon",4.8],["Microsoft",1.99],
+    ["Prime",8.99],["Disney",5.99],["Monzo Max",17]
+  ],
+  debts:[
+    ["Admiral",7762,485,"Oct 2027","Regular","27-Oct-2027",4],
+    ["Lendable",1849,154,"Aug 2027","Regular","27-Aug-2027",3],
+    ["Oakbrook",742,125,"Jan 2027","Regular","27-Jan-2027",2],
+    ["Currys BNPL",440,0,"10 Sep 2026","One-off","10-Sep-2026",1],
+    ["Friend - Barcelona",600,50,"Flexible","Flexible","",5]
+  ],
+  holidays:[
+    ["Barcelona","Funded by friend loan",600,600,"11-Jul-2026"],
+    ["Turkey","Spending target",900,400,"27-Jul-2026"],
+    ["Amsterdam","Stag spending pot",800,0,"28-Oct-2026"],
+    ["Amsterdam flights","Due 28 Sept",330,0,"28-Sep-2026"]
+  ],
+  thai:[["Flights",800,0],["Visa/admin",300,0],["Initial accommodation",1500,0],["Emergency fund",3000,0]],
+  nz:[["Flights",1200,0],["Visa/admin",1000,0],["Initial accommodation",2500,0],["Emergency fund",5000,0]],
+  jobs:[["St Andrews","DT Technician","Applied","Thailand"],["NZ Councils","Maintenance Supervisor","Researching","New Zealand"]]
+};
+let state = JSON.parse(localStorage.getItem("grantOS_v1")) || structuredClone(Defaults);
+const today = new Date();
+const money = n => "£" + Number(n||0).toLocaleString("en-GB",{maximumFractionDigits:2});
+
+const Data = {
+  save(){ localStorage.setItem("grantOS_v1", JSON.stringify(state)); },
+  resetDefaults(){ state = structuredClone(Defaults); this.save(); App.render(); },
+  ensure(){
+    const d=structuredClone(Defaults);
+    state={...d,...state};
+    ["fixed","debts","holidays","thai","nz","jobs"].forEach(k=>{ if(!Array.isArray(state[k])) state[k]=d[k]; });
+    state.debts=state.debts.map((x,i)=> x.length>=7 ? x : [x[0],Number(x[1]||0),Number(x[2]||0),x[3]||"", String(x[0]).toLowerCase().includes("currys")?"One-off":"Regular","",i+1]);
+    state.holidays=state.holidays.map(h=> h.length>=5 ? h : [h[0],h[1],Number(h[2]||0),Number(h[3]||0),""]);
+  }
+};
+
+const Calc = {
+  nextPayday(){
+    let d=new Date(today.getFullYear(), today.getMonth(), Number(state.payday||26));
+    if(today.getDate()>=Number(state.payday||26)) d=new Date(today.getFullYear(), today.getMonth()+1, Number(state.payday||26));
+    return d;
+  },
+  daysBetween(a,b){ return Math.ceil((b-a)/(1000*60*60*24)); },
+  daysToPayday(){ return Math.max(0,this.daysBetween(today,this.nextPayday())); },
+  weeksToPayday(){ return Math.max(1,Math.ceil(this.daysToPayday()/7)); },
+  totalFixed(){ return state.fixed.reduce((s,x)=>s+Number(x[1]||0),0); },
+  totalDebt(){ return state.debts.reduce((s,x)=>s+Number(x[1]||0),0); },
+  totalRelocation(){ return [...state.thai,...state.nz].reduce((s,x)=>s+Number(x[2]||0),0); },
+  totalOverdraft(){ return Number(state.firstDirectOverdraft||0)+Number(state.monzoOverdraft||0); },
+  bankPosition(){ return Number(state.firstDirectBalance||0)+Number(state.monzoBalance||0)-this.totalOverdraft(); },
+  monzoSpendPot(){
+    const remainingOD=Math.max(0,Number(state.monzoOverdraftLimit||0)-Number(state.monzoOverdraft||0));
+    const include=state.includeMonzoOverdraftForSpend==="yes";
+    return Math.max(0,Number(state.monzoBalance||0)+(include?remainingOD:0));
+  },
+  safeWeek(){ return Math.min(Number(state.weeklyBudget||60), this.monzoSpendPot()/this.weeksToPayday()); },
+  safeToday(){ return this.safeWeek()/7; },
+  debtType(d){ return d[4]||"Regular"; },
+  debtDue(d){ return d[5]||d[3]||""; },
+  debtPriority(d){ return Number(d[6]||99); },
+  debtBalance(name){ const d=state.debts.find(x=>String(x[0]).toLowerCase().includes(name.toLowerCase())); return d?Number(d[1]||0):0; },
+  debtMonthly(name){ const d=state.debts.find(x=>String(x[0]).toLowerCase().includes(name.toLowerCase())); return d?Number(d[2]||0):0; },
+  holiday(name){ return state.holidays.find(h=>String(h[0]).toLowerCase()===name.toLowerCase()) || state.holidays.find(h=>String(h[0]).toLowerCase().includes(name.toLowerCase())); },
+  holidayRemaining(name){ const h=this.holiday(name); return h?Math.max(0,Number(h[2]||0)-Number(h[3]||0)):0; },
+  parseDate(v){ if(!v) return null; const d=new Date(v); return isNaN(d.getTime())?null:d; },
+  holidayCountdown(name){ const h=this.holiday(name); const d=h?this.parseDate(h[4]):null; return d?Math.max(0,this.daysBetween(today,d))+" days":""; },
+  paydaysBefore(date){
+    const d=this.parseDate(date);
+    if(!d) return 0;
+    let count=0;
+    let cursor=new Date(today.getFullYear(), today.getMonth(), Number(state.payday||26));
+    if(today.getDate()>=Number(state.payday||26)) cursor=new Date(today.getFullYear(), today.getMonth()+1, Number(state.payday||26));
+    while(cursor <= d){
+      count++;
+      cursor=new Date(cursor.getFullYear(), cursor.getMonth()+1, Number(state.payday||26));
+    }
+    return count;
+  },
+  sparePerPayday(){
+    const fixed=this.totalFixed() + Number(state.weeklyBudget||60)*4;
+    return Math.max(0, Number(state.wage||0) - fixed);
+  },
+  holidayStatus(h){
+    const remaining=Math.max(0, Number(h[2]||0)-Number(h[3]||0));
+    if(remaining<=0) return {label:"Fully Funded", cls:"status-green", icon:"🟢", detail:"Saved/ringfenced covers the target."};
+    const paydays=this.paydaysBefore(h[4]);
+    const available=paydays*this.sparePerPayday();
+    if(available>=remaining) return {label:"Covered by Wage", cls:"status-amber", icon:"🟠", detail:`${paydays} payday(s) before date. Forecast spare: ${money(available)}.`};
+    return {label:"Extra Income Needed", cls:"status-red", icon:"🔴", detail:`Forecast spare before date: ${money(available)}. Short by ${money(remaining-available)}.`};
+  },
+  nextPriority(){
+    const one=state.debts.filter(d=>this.debtType(d)==="One-off" && Number(d[1]||0)>0).sort((a,b)=>this.debtPriority(a)-this.debtPriority(b));
+    if(one.length) return "Clear "+one[0][0];
+    if(this.holidayRemaining("Amsterdam flights")>0) return "Pay Amsterdam flights";
+    if(this.totalOverdraft()>0) return "Reduce overdraft reliance";
+    if(Number(state.emergencyFund||0)<Number(state.emergencyTarget||1000)) return "Build emergency fund";
+    return "Build relocation fund";
+  },
+  alerts(){
+    const out=[];
+    const currys=this.debtBalance("Currys BNPL");
+    if(currys>0) out.push(["red",`Currys BNPL still has ${money(currys)} remaining.`]);
+    const flights=this.holidayRemaining("Amsterdam flights");
+    if(flights>0) out.push(["red",`Amsterdam flights still need ${money(flights)} ringfenced.`]);
+    if(this.safeWeek()<Number(state.weeklyBudget||60)) out.push(["red",`Safe weekly spend is ${money(this.safeWeek())}, below your usual ${money(state.weeklyBudget||60)} target.`]);
+    if(this.totalOverdraft()>0) out.push(["amber",`You are using ${money(this.totalOverdraft())} of overdraft across First Direct and Monzo.`]);
+    if(Number(state.emergencyFund||0)<Number(state.emergencyTarget||1000)) out.push(["amber",`Emergency fund is ${money(state.emergencyFund)} / ${money(state.emergencyTarget)}.`]);
+    if(!out.length) out.push(["green","No immediate finance alerts. Keep following the weekly spend plan."]);
+    return out;
+  }
+};
+
+const UI = {
+  show(id,btn){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    if(btn) btn.classList.add("active");
+  },
+  table(id,heads,rows,fn){
+    const t=document.getElementById(id); t.innerHTML="<tr>"+heads.map(h=>`<th>${h}</th>`).join("")+"</tr>";
+    rows.forEach((r,i)=>t.innerHTML+="<tr>"+fn(r,i)+"</tr>");
+  },
+  set(id,val){ const el=document.getElementById(id); if(el) el.textContent=val; },
+  setVal(id,val){ const el=document.getElementById(id); if(el) el.value=val; }
+};
+
+const Dashboard = {
+  render(){
+    UI.set("bankPosition",money(Calc.bankPosition()));
+    UI.set("totalOverdraft",money(Calc.totalOverdraft()));
+    UI.set("safeToday",money(Calc.safeToday()));
+    UI.set("safeWeek",money(Calc.safeWeek()));
+    UI.set("daysPayday",Calc.daysToPayday());
+    UI.set("debtRemaining",money(Calc.totalDebt()));
+    UI.set("relocationProgress",money(Calc.totalRelocation())+" / £10,000");
+    UI.set("emergencyProgress",money(state.emergencyFund)+" / "+money(state.emergencyTarget));
+    UI.set("nextPriority",Calc.nextPriority());
+    const debtPct=Math.max(0,Math.min(100,100-(Calc.totalDebt()/11000*100)));
+    const relPct=Math.min(100,Calc.totalRelocation()/10000*100);
+    const emerPct=Math.min(100,Number(state.emergencyFund||0)/Math.max(Number(state.emergencyTarget||1000),1)*100);
+    document.getElementById("debtBar").style.width=debtPct+"%";
+    document.getElementById("relocationBar").style.width=relPct+"%";
+    document.getElementById("emergencyBar").style.width=emerPct+"%";
+    const health=Math.round(Math.max(0,30-(Calc.totalOverdraft()/300*30))+Math.min(30,emerPct*.3)+Math.max(0,40-(Calc.totalDebt()/11000*40)));
+    const fh=document.getElementById("financeHealth"); fh.textContent=health+"/100"; fh.className="big "+(health>=70?"green":health>=40?"amber":"red");
+    document.getElementById("alertsBox").innerHTML=Calc.alerts().map(a=>`<div class="alert ${a[0]}">${a[1]}</div>`).join("");
+    this.progress(); this.forecast();
+  },
+  progress(){
+    const ams=Calc.holiday("Amsterdam");
+    const amsPct=ams?Math.min(100,Number(ams[3]||0)/Math.max(Number(ams[2]||1),1)*100):0;
+    const items=[
+      ["Emergency fund", Number(state.emergencyFund||0)/Math.max(Number(state.emergencyTarget||1000),1)*100],
+      ["Debt paid progress", 100-(Calc.totalDebt()/11000*100)],
+      ["Relocation fund", Calc.totalRelocation()/10000*100]
+    ];
+    document.getElementById("progressIndicators").innerHTML=items.map(x=>`<div class="minirow"><strong>${x[0]}</strong><div class="chartbar"><div class="chartfill" style="width:${Math.max(0,Math.min(100,x[1]))}%"></div></div><span>${Math.round(Math.max(0,Math.min(100,x[1])))}%</span></div>`).join("");
+  },
+  forecast(){
+    const fixed=Calc.totalFixed()+Number(state.weeklyBudget||60)*4;
+    let bal=Calc.bankPosition();
+    const rows=[];
+    ["26 Jul 2026","26 Aug 2026","26 Sep 2026","26 Oct 2026","26 Nov 2026","26 Dec 2026","26 Jan 2027"].forEach((p,i)=>{
+      bal+=Number(state.wage||0);
+      let one=0,note="";
+      if(i===0){one=Calc.holidayRemaining("Turkey");note="Turkey remaining based on Holiday Pots";}
+      else if(i===1){one=Calc.debtMonthly("Friend")+Calc.debtBalance("Currys BNPL")+Calc.holidayRemaining("Amsterdam flights");note="Friend + Currys BNPL + Amsterdam flights";}
+      else if(i===2){one=Calc.debtMonthly("Friend")+Calc.holidayRemaining("Amsterdam");note="Friend + Amsterdam spend remaining";}
+      else {one=Calc.debtMonthly("Friend");note="Friend repayment only; surplus can become emergency/relocation fund";}
+      bal-=(fixed+one);
+      rows.push([p,money(state.wage),money(fixed),money(one),money(bal),note]);
+    });
+    UI.table("forecastTable",["Payday","Income","Normal Outgoings","One-offs","Forecast Balance","Notes"],rows,r=>r.map(x=>`<td>${x}</td>`).join(""));
+  }
+};
+
+const Budget = {
+  render(){
+    ["wage","firstDirectBalance","firstDirectOverdraft","monzoBalance","monzoOverdraft","monzoOverdraftLimit","weeklyBudget","payday","emergencyFund","emergencyTarget"].forEach(k=>UI.setVal(k,state[k]));
+    UI.setVal("includeMonzoOverdraftForSpend",state.includeMonzoOverdraftForSpend);
+    UI.table("fixedCostsTable",["Bill","Amount"],state.fixed,(r,i)=>`<td><input value="${r[0]}" oninput="state.fixed[${i}][0]=this.value;App.saveAndRender()"></td><td><input type="number" value="${r[1]}" oninput="state.fixed[${i}][1]=Number(this.value);App.saveAndRender()"></td>`);
+    document.getElementById("paydayResult").innerHTML=`<div class="alert green">Current next priority: <strong>${Calc.nextPriority()}</strong></div>`;
+  },
+  save(){
+    ["wage","firstDirectBalance","firstDirectOverdraft","monzoBalance","monzoOverdraft","monzoOverdraftLimit","weeklyBudget","payday","emergencyFund","emergencyTarget"].forEach(k=>state[k]=Number(document.getElementById(k).value||0));
+    state.includeMonzoOverdraftForSpend=document.getElementById("includeMonzoOverdraftForSpend").value;
+    App.saveAndRender();
+  },
+  addFixed(){ state.fixed.push(["New bill",0]); App.saveAndRender(); }
+};
+
+const Debt = {
+  render(){
+    UI.table("debtTable",["Debt","Balance","Monthly","Finish","Type","Due Date","Priority"],state.debts,(r,i)=>`
+      <td><input value="${r[0]}" oninput="state.debts[${i}][0]=this.value;App.saveAndRender()"></td>
+      <td><input type="number" value="${r[1]}" oninput="state.debts[${i}][1]=Number(this.value);App.saveAndRender()"></td>
+      <td><input type="number" value="${r[2]}" oninput="state.debts[${i}][2]=Number(this.value);App.saveAndRender()"></td>
+      <td><input value="${r[3]}" oninput="state.debts[${i}][3]=this.value;App.saveAndRender()"></td>
+      <td><select onchange="state.debts[${i}][4]=this.value;App.saveAndRender()"><option ${r[4]==="Regular"?"selected":""}>Regular</option><option ${r[4]==="One-off"?"selected":""}>One-off</option><option ${r[4]==="Flexible"?"selected":""}>Flexible</option></select></td>
+      <td><input value="${r[5]||""}" oninput="state.debts[${i}][5]=this.value;App.saveAndRender()"></td>
+      <td><input type="number" value="${r[6]||i+1}" oninput="state.debts[${i}][6]=Number(this.value);App.saveAndRender()"></td>`);
+    this.progress(); this.priority(); this.simulator();
+  },
+  add(){ state.debts.push(["New debt",0,0,"","Regular","",state.debts.length+1]); App.saveAndRender(); },
+  saveOverpay(){ state.extraOverpayment=Number(document.getElementById("extraOverpayment").value||0); state.overpayTarget=document.getElementById("overpayTarget").value; App.saveAndRender(); },
+  progress(){
+    document.getElementById("debtProgressList").innerHTML=state.debts.map(d=>{
+      const bal=Number(d[1]||0), monthly=Number(d[2]||0), type=Calc.debtType(d);
+      const pct=Math.max(0,Math.min(100,100-(bal/11000*100)));
+      const detail=(type==="Regular"||type==="Flexible")&&monthly>0?Math.ceil(bal/monthly)+" months est.":(type==="One-off"?"Due: "+Calc.debtDue(d):"n/a");
+      return `<div style="margin:14px 0"><strong>${d[0]}</strong> <span class="pill">${type}</span> <span class="pill">${money(bal)} remaining</span> <span class="pill">${detail}</span><div class="bar"><div class="fill" style="width:${pct}%"></div></div></div>`;
+    }).join("");
+  },
+  priority(){
+    const items=[];
+    const one=state.debts.filter(d=>Calc.debtType(d)==="One-off"&&Number(d[1]||0)>0).sort((a,b)=>Calc.debtPriority(a)-Calc.debtPriority(b));
+    one.forEach(d=>items.push(["Clear "+d[0],money(d[1])+" due "+Calc.debtDue(d),Calc.debtPriority(d)]));
+    if(Calc.holidayRemaining("Amsterdam flights")>0)items.push(["Pay Amsterdam flights",money(Calc.holidayRemaining("Amsterdam flights"))+" remaining",20]);
+    if(Calc.totalOverdraft()>0)items.push(["Reduce overdraft reliance",money(Calc.totalOverdraft())+" currently used",30]);
+    state.debts.filter(d=>Calc.debtType(d)==="Flexible"&&Number(d[1]||0)>0).forEach(d=>items.push(["Repay "+d[0],money(d[1])+" flexible balance",40+Calc.debtPriority(d)]));
+    if(Number(state.emergencyFund)<Number(state.emergencyTarget))items.push(["Build emergency fund",money(state.emergencyFund)+" / "+money(state.emergencyTarget),80]);
+    items.sort((a,b)=>a[2]-b[2]);
+    document.getElementById("priorityQueue").innerHTML=items.slice(0,6).map((x,i)=>`<div style="margin:10px 0"><span class="pill">#${i+1}</span> <strong>${x[0]}</strong><br><span class="note">${x[1]}</span></div>`).join("");
+  },
+  simulator(){
+    const regs=state.debts.filter(d=>Calc.debtType(d)==="Regular"&&Number(d[1])>0);
+    const bal=regs.reduce((s,d)=>s+Number(d[1]||0),0), pay=regs.reduce((s,d)=>s+Number(d[2]||0),0), extra=Number(state.extraOverpayment||0);
+    const now=pay>0?Math.ceil(bal/pay):0, over=(pay+extra)>0?Math.ceil(bal/(pay+extra)):0;
+    UI.set("monthsRemainingNow","Regular loan repayment estimate: "+now+" months");
+    UI.set("monthsRemainingOverpay","With overpayment: "+over+" months");
+    UI.set("monthsSaved",Math.max(0,now-over)+" months");
+    const sel=document.getElementById("overpayTarget");
+    sel.innerHTML="<option>Auto Priority</option>"+regs.map(d=>`<option>${d[0]}</option>`).join("");
+    sel.value=state.overpayTarget||"Auto Priority";
+    UI.setVal("extraOverpayment",state.extraOverpayment||0);
+  }
+};
+
+const Holidays = {
+  render(){
+    UI.table("holidayTable",["Holiday","Note","Target","Saved/Ringfenced","Date/Due Date"],state.holidays,(r,i)=>`
+      <td><input value="${r[0]}" oninput="state.holidays[${i}][0]=this.value;App.saveAndRender()"></td>
+      <td><input value="${r[1]}" oninput="state.holidays[${i}][1]=this.value;App.saveAndRender()"></td>
+      <td><input type="number" value="${r[2]}" oninput="state.holidays[${i}][2]=Number(this.value);App.saveAndRender()"></td>
+      <td><input type="number" value="${r[3]}" oninput="state.holidays[${i}][3]=Number(this.value);App.saveAndRender()"></td>
+      <td><input value="${r[4]||""}" oninput="state.holidays[${i}][4]=this.value;App.saveAndRender()"></td>`);
+    const sortedHolidays = [...state.holidays].sort((a,b)=>{
+      const da=Calc.parseDate(a[4]), db=Calc.parseDate(b[4]);
+      if(da && db) return da-db;
+      if(da && !db) return -1;
+      if(!da && db) return 1;
+      return String(a[0]).localeCompare(String(b[0]));
+    });
+    UI.table("holidayControlTable",["Holiday","Date","Target","Saved","Remaining","Status","Status Detail"],sortedHolidays,(h)=>{
+      const rem=Math.max(0,Number(h[2]||0)-Number(h[3]||0));
+      const status=Calc.holidayStatus(h);
+      return `<td>${h[0]}</td><td>${h[4]||""}</td><td>${money(h[2])}</td><td>${money(h[3])}</td><td>${money(rem)}</td><td><span class="status-badge ${status.cls}">${status.icon} ${status.label}</span></td><td class="note">${status.detail}</td>`;
+    });
+  },
+  add(){ state.holidays.push(["New holiday","",0,0,""]); App.saveAndRender(); }
+};
+
+const Relocation = {
+  render(){
+    UI.table("thaiTable",["Item","Target","Saved"],state.thai,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" oninput="state.thai[${i}][2]=Number(this.value);App.saveAndRender()"></td>`);
+    UI.table("nzTable",["Item","Target","Saved"],state.nz,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" oninput="state.nz[${i}][2]=Number(this.value);App.saveAndRender()"></td>`);
+  }
+};
+
+const Career = {
+  render(){ UI.table("jobTable",["Employer","Role","Status","Country"],state.jobs,(r,i)=>`<td><input value="${r[0]}" oninput="state.jobs[${i}][0]=this.value;App.saveAndRender()"></td><td><input value="${r[1]}" oninput="state.jobs[${i}][1]=this.value;App.saveAndRender()"></td><td><input value="${r[2]}" oninput="state.jobs[${i}][2]=this.value;App.saveAndRender()"></td><td><input value="${r[3]}" oninput="state.jobs[${i}][3]=this.value;App.saveAndRender()"></td>`); },
+  add(){ state.jobs.push(["","","Applied",""]); App.saveAndRender(); }
+};
+
+const Settings = {
+  exportData(){ const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="grant-os-v1-backup.json"; a.click(); },
+  restoreDefaults(){ if(confirm("Restore Grant's default values?")) Data.resetDefaults(); },
+  reset(){ if(confirm("Reset all Grant OS data?")){ localStorage.removeItem("grantOS_v1"); state=structuredClone(Defaults); App.render(); } }
+};
+
+const App = {
+  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Data.save(); },
+  saveAndRender(){ Data.save(); this.render(); }
+};
+App.render();
+</script>
+</body>
+</html>
