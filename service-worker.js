@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-v262-accounts-input-focus-fix';
+const CACHE_NAME = 'grant-os-v25517-audited-baseline';
 const FILES = [
   './',
   './index.html?v=201',
