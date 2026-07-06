@@ -1,21 +1,25 @@
 {
   "name": "Grant OS",
   "short_name": "Grant OS",
-  "description": "Grant's finance, debt, holidays and relocation dashboard.",
+  "description": "Grant's personal finance, debt, holiday, relocation and career operating system.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#020617",
   "theme_color": "#020617",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
