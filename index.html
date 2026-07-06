@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.5.19 Forecast Table Clean</title>
+<title>Grant OS v2.5.5.27 Accounts Tab Real Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -422,15 +422,381 @@ header{position:relative}
 }
 </style>
 
+
+<style>
+/* v2.5.5.21: Payday forecast column restored to Balance */
+#dashboard .forecast-dashboard-card th,
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(5),
+#dashboard .forecast-dashboard-card td:nth-child(5){
+  width:18%!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(6),
+#dashboard .forecast-dashboard-card td:nth-child(6){
+  width:19%!important;
+}
+@media(max-width:900px){
+  #dashboard .forecast-dashboard-card th,
+  #dashboard .forecast-dashboard-card td{
+    padding:8px 4px!important;
+    line-height:1.25!important;
+  }
+  #dashboard .forecast-dashboard-card th:nth-child(5),
+  #dashboard .forecast-dashboard-card td:nth-child(5){
+    width:18%!important;
+  }
+  #dashboard .forecast-dashboard-card th:nth-child(6),
+  #dashboard .forecast-dashboard-card td:nth-child(6){
+    width:18%!important;
+  }
+}
+</style>
+
+
+<style>
+/* v2.5.5.22 smart forecast notes */
+#dashboard .forecast-dashboard-card table{
+  width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+}
+#dashboard .forecast-dashboard-card th,
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(1),
+#dashboard .forecast-dashboard-card td:nth-child(1){width:14%!important}
+#dashboard .forecast-dashboard-card th:nth-child(2),
+#dashboard .forecast-dashboard-card td:nth-child(2){width:20%!important}
+#dashboard .forecast-dashboard-card th:nth-child(3),
+#dashboard .forecast-dashboard-card td:nth-child(3){width:18%!important}
+#dashboard .forecast-dashboard-card th:nth-child(4),
+#dashboard .forecast-dashboard-card td:nth-child(4){width:13%!important}
+#dashboard .forecast-dashboard-card th:nth-child(5),
+#dashboard .forecast-dashboard-card td:nth-child(5){width:17%!important}
+#dashboard .forecast-dashboard-card th:nth-child(6),
+#dashboard .forecast-dashboard-card td:nth-child(6){width:18%!important}
+@media(max-width:900px){
+  #dashboard .forecast-dashboard-card th,
+  #dashboard .forecast-dashboard-card td{
+    padding:8px 4px!important;
+    line-height:1.25!important;
+  }
+  #dashboard .forecast-dashboard-card table{
+    font-size:clamp(9px,1.85vw,13px)!important;
+  }
+}
+</style>
+
+
+<style>
+/* v2.5.5.23 forecast fixes */
+#dashboard .forecast-dashboard-card table{
+  width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+}
+#dashboard .forecast-dashboard-card th,
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(1),
+#dashboard .forecast-dashboard-card td:nth-child(1){width:14%!important}
+#dashboard .forecast-dashboard-card th:nth-child(2),
+#dashboard .forecast-dashboard-card td:nth-child(2){width:16%!important}
+#dashboard .forecast-dashboard-card th:nth-child(3),
+#dashboard .forecast-dashboard-card td:nth-child(3){width:20%!important}
+#dashboard .forecast-dashboard-card th:nth-child(4),
+#dashboard .forecast-dashboard-card td:nth-child(4){width:14%!important}
+#dashboard .forecast-dashboard-card th:nth-child(5),
+#dashboard .forecast-dashboard-card td:nth-child(5){width:14%!important}
+#dashboard .forecast-dashboard-card th:nth-child(6),
+#dashboard .forecast-dashboard-card td:nth-child(6){width:22%!important}
+@media(max-width:900px){
+  #dashboard .forecast-dashboard-card th,
+  #dashboard .forecast-dashboard-card td{
+    padding:8px 4px!important;
+    line-height:1.25!important;
+  }
+  #dashboard .forecast-dashboard-card table{
+    font-size:clamp(9px,1.85vw,13px)!important;
+  }
+}
+</style>
+
+
+<style>
+/* v2.5.5.24 Accounts restored and forecast table cleaned */
+.v25524-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin:18px 0 16px;
+}
+.v25524-summary-card{
+  background:#0b1220;
+  border:1px solid var(--border,#334155);
+  border-radius:18px;
+  padding:22px;
+  min-height:130px;
+}
+.v25524-summary-card h3{
+  margin:0 0 16px;
+  color:#bfdbfe;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+.v25524-accounts-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  margin-top:16px;
+}
+.v25524-account-card{
+  background:#020617;
+  border:1px solid var(--border,#334155);
+  border-radius:18px;
+  padding:18px;
+}
+.v25524-account-card h3{
+  margin:0 0 16px;
+  color:#bfdbfe;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+.v25524-form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.v25524-account-card label{
+  display:block;
+  color:#bfdbfe;
+  margin-bottom:6px;
+}
+.v25524-account-card input,
+.v25524-account-card select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  background:#020617;
+  color:#fff;
+  border:1px solid var(--border,#334155);
+  font-weight:700;
+}
+.v25524-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.v25524-add{margin-top:16px}
+
+#dashboard .forecast-dashboard-card table{
+  width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+}
+#dashboard .forecast-dashboard-card th{
+  white-space:nowrap!important;
+  font-size:clamp(7.5px,1.45vw,10.5px)!important;
+  letter-spacing:.025em!important;
+}
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(1),
+#dashboard .forecast-dashboard-card td:nth-child(1){width:15%!important}
+#dashboard .forecast-dashboard-card th:nth-child(2),
+#dashboard .forecast-dashboard-card td:nth-child(2){width:20%!important}
+#dashboard .forecast-dashboard-card th:nth-child(3),
+#dashboard .forecast-dashboard-card td:nth-child(3){width:15%!important}
+#dashboard .forecast-dashboard-card th:nth-child(4),
+#dashboard .forecast-dashboard-card td:nth-child(4){width:16%!important}
+#dashboard .forecast-dashboard-card th:nth-child(5),
+#dashboard .forecast-dashboard-card td:nth-child(5){width:34%!important}
+@media(max-width:900px){
+  .v25524-summary-grid,.v25524-accounts-grid,.v25524-form-grid{grid-template-columns:1fr!important}
+  #dashboard .forecast-dashboard-card th,
+  #dashboard .forecast-dashboard-card td{padding:8px 4px!important;line-height:1.25!important}
+  #dashboard .forecast-dashboard-card td{font-size:clamp(9px,1.85vw,13px)!important}
+}
+</style>
+
+
+<style>
+/* v2.5.5.25 final forecast/accounts fixes */
+.v25524-summary-grid,.v2554-summary-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:16px!important;
+  margin:18px 0 16px!important;
+}
+.v25524-accounts-grid,.v2554-accounts-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:16px!important;
+  margin-top:16px!important;
+}
+.v25524-account-card,.v2554-account-card{
+  background:#020617!important;
+  border:1px solid var(--border,#334155)!important;
+  border-radius:18px!important;
+  padding:18px!important;
+}
+.v25524-form-grid,.v2554-form-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:14px!important;
+}
+.v25524-account-card label,.v2554-account-card label{
+  display:block!important;
+  color:#bfdbfe!important;
+  margin-bottom:6px!important;
+}
+.v25524-account-card input,.v25524-account-card select,
+.v2554-account-card input,.v2554-account-card select{
+  width:100%!important;
+  padding:12px!important;
+  border-radius:12px!important;
+  background:#020617!important;
+  color:#fff!important;
+  border:1px solid var(--border,#334155)!important;
+  font-weight:700!important;
+}
+
+#dashboard .forecast-dashboard-card{overflow:hidden!important}
+#dashboard .forecast-dashboard-card table{
+  width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+}
+#dashboard .forecast-dashboard-card th{
+  white-space:nowrap!important;
+  font-size:clamp(7px,1.25vw,10px)!important;
+  letter-spacing:.015em!important;
+  line-height:1.1!important;
+}
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(1),
+#dashboard .forecast-dashboard-card td:nth-child(1){width:15%!important}
+#dashboard .forecast-dashboard-card th:nth-child(2),
+#dashboard .forecast-dashboard-card td:nth-child(2){width:20%!important}
+#dashboard .forecast-dashboard-card th:nth-child(3),
+#dashboard .forecast-dashboard-card td:nth-child(3){width:15%!important}
+#dashboard .forecast-dashboard-card th:nth-child(4),
+#dashboard .forecast-dashboard-card td:nth-child(4){width:16%!important}
+#dashboard .forecast-dashboard-card th:nth-child(5),
+#dashboard .forecast-dashboard-card td:nth-child(5){width:34%!important}
+@media(max-width:900px){
+  .v25524-summary-grid,.v2554-summary-grid,
+  .v25524-accounts-grid,.v2554-accounts-grid,
+  .v25524-form-grid,.v2554-form-grid{grid-template-columns:1fr!important}
+  #dashboard .forecast-dashboard-card th,
+  #dashboard .forecast-dashboard-card td{padding:8px 4px!important}
+  #dashboard .forecast-dashboard-card td{
+    font-size:clamp(9px,1.85vw,13px)!important;
+    line-height:1.25!important;
+  }
+}
+</style>
+
+
+<style>
+/* v2.5.5.26 proper accounts and forecast table fix */
+.v25527-summary-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:16px!important;
+  margin:18px 0 16px!important;
+}
+.v25527-summary-card{
+  background:#0b1220!important;
+  border:1px solid var(--border,#334155)!important;
+  border-radius:18px!important;
+  padding:22px!important;
+  min-height:130px!important;
+}
+.v25527-accounts-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:16px!important;
+  margin-top:16px!important;
+}
+.v25527-account-card{
+  background:#020617!important;
+  border:1px solid var(--border,#334155)!important;
+  border-radius:18px!important;
+  padding:18px!important;
+}
+.v25527-account-card h3{margin:0 0 16px!important;color:#bfdbfe!important;text-transform:uppercase!important;letter-spacing:.1em!important}
+.v25527-form-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+.v25527-account-card label{display:block!important;color:#bfdbfe!important;margin-bottom:6px!important}
+.v25527-account-card input,.v25527-account-card select{
+  width:100%!important;padding:12px!important;border-radius:12px!important;background:#020617!important;color:#fff!important;border:1px solid var(--border,#334155)!important;font-weight:700!important
+}
+.v25527-actions{display:flex!important;gap:10px!important;flex-wrap:wrap!important;margin-top:16px!important}
+
+#dashboard .forecast-dashboard-card{overflow:hidden!important}
+#dashboard .forecast-dashboard-card table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+#dashboard .forecast-dashboard-card th{
+  white-space:nowrap!important;
+  font-size:clamp(7px,1.2vw,10px)!important;
+  letter-spacing:0!important;
+  line-height:1!important;
+}
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(1),#dashboard .forecast-dashboard-card td:nth-child(1){width:15%!important}
+#dashboard .forecast-dashboard-card th:nth-child(2),#dashboard .forecast-dashboard-card td:nth-child(2){width:20%!important}
+#dashboard .forecast-dashboard-card th:nth-child(3),#dashboard .forecast-dashboard-card td:nth-child(3){width:15%!important}
+#dashboard .forecast-dashboard-card th:nth-child(4),#dashboard .forecast-dashboard-card td:nth-child(4){width:16%!important}
+#dashboard .forecast-dashboard-card th:nth-child(5),#dashboard .forecast-dashboard-card td:nth-child(5){width:34%!important}
+@media(max-width:900px){
+  .v25527-summary-grid,.v25527-accounts-grid,.v25527-form-grid{grid-template-columns:1fr!important}
+  #dashboard .forecast-dashboard-card th,#dashboard .forecast-dashboard-card td{padding:8px 4px!important}
+  #dashboard .forecast-dashboard-card td{font-size:clamp(9px,1.85vw,13px)!important;line-height:1.25!important}
+}
+</style>
+
+
+<style>
+/* v2.5.5.27 accounts tab actual fix */
+.v25527-summary-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;margin:18px 0 16px!important}
+.v25527-summary-card{background:#0b1220!important;border:1px solid var(--border,#334155)!important;border-radius:18px!important;padding:22px!important;min-height:130px!important}
+.v25527-summary-card h3{margin:0 0 16px!important;color:#bfdbfe!important;text-transform:uppercase!important;letter-spacing:.09em!important}
+.v25527-accounts-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important;margin-top:16px!important}
+.v25527-account-card{background:#020617!important;border:1px solid var(--border,#334155)!important;border-radius:18px!important;padding:18px!important}
+.v25527-account-card h3{margin:0 0 16px!important;color:#bfdbfe!important;text-transform:uppercase!important;letter-spacing:.1em!important}
+.v25527-form-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+.v25527-account-card label{display:block!important;color:#bfdbfe!important;margin-bottom:6px!important}
+.v25527-account-card input,.v25527-account-card select{width:100%!important;padding:12px!important;border-radius:12px!important;background:#020617!important;color:#fff!important;border:1px solid var(--border,#334155)!important;font-weight:700!important}
+.v25527-actions{display:flex!important;gap:10px!important;flex-wrap:wrap!important;margin-top:16px!important}
+@media(max-width:900px){.v25527-summary-grid,.v25527-accounts-grid,.v25527-form-grid{grid-template-columns:1fr!important}}
+</style>
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.5.19 Forecast Table Clean</span></h1>
+  <h1>Grant OS <span class="pill">v2.5.5.27 Accounts Tab Real Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
   <div class="tabs">
     <button class="tab active" onclick="UI.show('dashboard', this)">Dashboard</button>
+    <button class="tab" onclick="UI.show('accounts', this)">🏦 Accounts</button>
     <button class="tab" onclick="UI.show('budget', this)">Budget Setup</button>
     <button class="tab" onclick="UI.show('debts', this)">Debt Tracker</button>
     <button class="tab" onclick="UI.show('holidays', this)">Holiday Pots</button>
@@ -613,29 +979,29 @@ header{position:relative}
 
 <section id="accounts" class="section">
   <div class="card">
-    <h2>Accounts</h2>
-    <p class="muted">Manage the actual accounts here. The spend and overdraft selections are controlled from Budget Setup.</p>
+    <h3>Accounts</h3>
+    <p class="note">Manage the actual accounts here. Spend and overdraft inclusion remain controlled from Budget Setup.</p>
 
-    <div class="v2554-summary-grid">
-      <div class="v2554-summary-card">
+    <div class="v25527-summary-grid">
+      <div class="v25527-summary-card">
         <h3>Total Bank Balance</h3>
-        <div id="v2554TotalBalance" class="big red">£0</div>
-        <p class="muted">All accounts combined.</p>
+        <div id="v25527TotalBalance" class="big red">£0</div>
+        <p class="note">All accounts combined.</p>
       </div>
-      <div class="v2554-summary-card">
+      <div class="v25527-summary-card">
         <h3>Available Spend</h3>
-        <div id="v2554AvailableSpend" class="big green">£0</div>
-        <p class="muted">Selected accounts and overdrafts.</p>
+        <div id="v25527AvailableSpend" class="big green">£0</div>
+        <p class="note">Selected accounts and overdrafts.</p>
       </div>
-      <div class="v2554-summary-card">
+      <div class="v25527-summary-card">
         <h3>Accounts</h3>
-        <div id="v2554AccountCount" class="big blue">0</div>
-        <p class="muted">Accounts tracked.</p>
+        <div id="v25527AccountCount" class="big blue">0</div>
+        <p class="note">Accounts tracked.</p>
       </div>
     </div>
 
-    <div id="accountsList" class="v2554-accounts-grid"></div>
-    <button type="button" class="v2554-add" id="v2554AddAccount">+ Add Bank Account</button>
+    <div id="accountsList" class="v25527-accounts-grid"></div>
+    <button type="button" class="primary v25527-add" onclick="AccountsUIV25527.add()">+ Add Bank Account</button>
   </div>
 </section>
 
@@ -772,11 +1138,14 @@ const UI = {
   show(id,btn){
     document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
     document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+    const section=document.getElementById(id);
+    if(section) section.classList.add("active");
     if(btn) btn.classList.add("active");
+    if(id==="accounts") setTimeout(()=>{try{AccountsUIV25527.render();}catch(e){}},0);
   },
   table(id,heads,rows,fn){
-    const t=document.getElementById(id); t.innerHTML="<tr>"+heads.map(h=>`<th>${h}</th>`).join("")+"</tr>";
+    const t=document.getElementById(id); if(!t) return;
+    t.innerHTML="<tr>"+heads.map(h=>`<th>${h}</th>`).join("")+"</tr>";
     rows.forEach((r,i)=>t.innerHTML+="<tr>"+fn(r,i)+"</tr>");
   },
   set(id,val){ const el=document.getElementById(id); if(el) el.textContent=val; },
@@ -829,7 +1198,7 @@ const Dashboard = {
       bal-=(fixed+one);
       rows.push([p,money(state.wage),money(fixed),money(one),money(bal),note]);
     });
-    UI.table("forecastTable",["Payday","Income","Normal Outgoings","One-offs","Forecast Balance","Notes"],rows,r=>r.map(x=>`<td>${x}</td>`).join(""));
+    UI.table("forecastTable",["Payday","Income","Normal Outgoings","One-offs","Balance","Notes"],rows,r=>r.map(x=>`<td>${x}</td>`).join(""));
   }
 };
 
@@ -1177,49 +1546,88 @@ const ForecastV21 = {
     const rows=[];
     let bank = Calc.bankPosition ? Calc.bankPosition() : 0;
     let debt = Calc.totalDebt ? Calc.totalDebt() : 0;
-    let emergency = Number(state.emergencyFund||0);
+
     const fixed = Calc.totalFixed ? Calc.totalFixed() : 0;
     const living = Number(state.weeklyBudget||60)*4;
-    const monthlyDebtPay = (state.debts||[]).filter(d=>(Calc.debtType?Calc.debtType(d):d[4])==="Regular").reduce((s,d)=>s+Number(d[2]||0),0);
-    const flexPay = Calc.debtMonthly ? Calc.debtMonthly("Friend") : 0;
+    const normalOutgoings = fixed + living;
+
+    const monthlyDebtPay = (state.debts||[])
+      .filter(d=>(Calc.debtType?Calc.debtType(d):d[4])==="Regular")
+      .reduce((s,d)=>s+Number(d[2]||0),0);
+
+    let friendRemaining = (state.debts||[])
+      .filter(d=>(Calc.debtType?Calc.debtType(d):d[4])==="Flexible")
+      .reduce((s,d)=>s+Number(d[1]||0),0);
+
+    const friendPay = (state.debts||[])
+      .filter(d=>(Calc.debtType?Calc.debtType(d):d[4])==="Flexible")
+      .reduce((s,d)=>s+Number(d[2]||0),0);
 
     const now=new Date();
+
     for(let i=0;i<months;i++){
       const d=new Date(now.getFullYear(), now.getMonth()+i, Number(state.payday||26));
-      let income=Number(state.wage||0);
-      let out=fixed+living;
-      let oneOff=0;
+      const income=Number(state.wage||0);
 
-      // dated one-off debts due in this month
+      let oneOff=0;
+      let notes=[];
+      let debtExtraPaid=0;
+
+      if(friendRemaining>0 && friendPay>0){
+        const pay=Math.min(friendPay, friendRemaining);
+        oneOff += pay;
+        debtExtraPaid += pay;
+        friendRemaining -= pay;
+        notes.push("Friend repayment");
+      }
+
       (state.debts||[]).forEach(debtRow=>{
         const type=Calc.debtType?Calc.debtType(debtRow):(debtRow[4]||"Regular");
         const due=Timeline && Timeline.toDate ? Timeline.toDate(debtRow[5]) : new Date(debtRow[5]);
         if(type==="One-off" && due && due.getMonth()===d.getMonth() && due.getFullYear()===d.getFullYear()){
-          oneOff += Number(debtRow[1]||0);
+          const amt=Number(debtRow[1]||0);
+          oneOff += amt;
+          debtExtraPaid += amt;
+          notes.push(String(debtRow[0]||"One-off debt"));
         }
       });
 
-      // holiday remaining due in this month
       (state.holidays||[]).forEach(h=>{
         const hd=Timeline && Timeline.toDate ? Timeline.toDate(h[4]) : new Date(h[4]);
         if(hd && hd.getMonth()===d.getMonth() && hd.getFullYear()===d.getFullYear()){
-          oneOff += Math.max(0,Number(h[2]||0)-Number(h[3]||0));
+          const remaining=Math.max(0,Number(h[2]||0)-Number(h[3]||0));
+          if(remaining>0){
+            oneOff += remaining;
+            notes.push(String(h[0]||"Holiday"));
+          }else{
+            notes.push(String(h[0]||"Holiday")+" fully funded");
+          }
         }
       });
 
-      bank += income - out - oneOff;
-      debt = Math.max(0, debt - monthlyDebtPay - flexPay - oneOff);
-      if(bank>0 && emergency<Number(state.emergencyTarget||1000)){
-        const save = Math.min(bank*0.15, Number(state.emergencyTarget||1000)-emergency);
-        emergency += Math.max(0,save);
+      const forecast = bank + income - normalOutgoings;
+      const balance = forecast - oneOff;
+      bank = balance;
+
+      debt = Math.max(0, debt - monthlyDebtPay - debtExtraPaid);
+
+      let note = notes.length ? notes.join(" + ") : "Normal month estimate";
+      if(!notes.length && balance>0 && friendRemaining<=0){
+        note = "Surplus can become emergency/relocation fund";
+      } else if(notes.length===1 && notes[0]==="Friend repayment" && balance>0) {
+        note = "Friend repayment only; surplus can become emergency/relocation fund";
       }
 
       rows.push({
         month:d.toLocaleDateString("en-GB",{month:"short",year:"2-digit"}),
-        bank:Math.round(bank),
+        forecast:Math.round(forecast),
+        balance:Math.round(balance),
+        bank:Math.round(forecast),
+        forecastBalance:Math.round(balance),
         debt:Math.round(debt),
-        emergency:Math.round(emergency),
-        oneOff:Math.round(oneOff)
+        emergency:Math.round(balance),
+        oneOff:Math.round(oneOff),
+        note
       });
     }
     return rows;
@@ -1227,11 +1635,12 @@ const ForecastV21 = {
   renderForecastTable(){
     const t=document.getElementById("forecastTable");
     if(!t) return false;
-    const rows=this.monthlySeries(7);
-    t.innerHTML="<tr><th>Month</th><th>Forecast bank position</th><th>Total debt estimate</th><th>One-offs due</th><th>Emergency fund est.</th><th>Notes</th></tr>";
+    const months = (typeof ForecastRangeV24!=="undefined" && ForecastRangeV24.get) ? ForecastRangeV24.get() : 12;
+    const rows=this.monthlySeries(months);
+    t.innerHTML="<tr><th>Month</th><th>Total Debt</th><th>One-offs</th><th>Forecast</th><th>Notes</th></tr>";
     rows.forEach(r=>{
-      const note = r.oneOff>0 ? "One-off costs included" : "Normal month estimate";
-      t.innerHTML += `<tr><td>${r.month}</td><td>${money(r.bank)}</td><td>${money(r.debt)}</td><td>${money(r.oneOff)}</td><td>${money(r.emergency)}</td><td>${note}</td></tr>`;
+      const forecastValue = (r.balance!==undefined) ? r.balance : ((r.forecastBalance!==undefined) ? r.forecastBalance : ((r.forecast!==undefined) ? r.forecast : r.bank));
+      t.innerHTML += `<tr><td>${r.month}</td><td>${money(r.debt)}</td><td>${money(r.oneOff)}</td><td>${money(forecastValue)}</td><td>${r.note}</td></tr>`;
     });
     return true;
   }
@@ -1305,21 +1714,6 @@ const ForecastRangeV24 = {
     el.innerHTML=[3,6,12].map(m=>`<button class="${current===m?'active':''}" onclick="ForecastRangeV24.set(${m})">${m} months</button>`).join("");
   }
 };
-
-if(typeof ForecastV21 !== "undefined"){
-  ForecastV21.renderForecastTable = function(){
-    const t=document.getElementById("forecastTable");
-    if(!t) return false;
-    ForecastRangeV24.renderToggle();
-    const rows=this.monthlySeries(ForecastRangeV24.get());
-    t.innerHTML="<tr><th>Month</th><th>Forecast bank position</th><th>Total debt estimate</th><th>One-offs due</th><th>Emergency fund est.</th><th>Notes</th></tr>";
-    rows.forEach(r=>{
-      const note = r.oneOff>0 ? "One-off costs included" : "Normal month estimate";
-      t.innerHTML += `<tr><td>${r.month}</td><td>${money(r.bank)}</td><td>${money(r.debt)}</td><td>${money(r.oneOff)}</td><td>${money(r.emergency)}</td><td>${note}</td></tr>`;
-    });
-    return true;
-  };
-}
 
 const GraphsV24 = {
   line(id, rows, key, prefix="£"){
@@ -1477,7 +1871,7 @@ const EnhancedGraphsV242 = {
     `;
   },
   table(rows){
-    return `<div class="graph-table-wrap"><table><tr><th>Month</th><th>Debt</th><th>Bank</th><th>Emergency</th><th>One-offs</th></tr>${rows.map(r=>`<tr><td>${r.month}</td><td>${money(r.debt)}</td><td>${money(r.bank)}</td><td>${money(r.emergency)}</td><td>${money(r.oneOff)}</td></tr>`).join("")}</table></div>`;
+    return `<div class="graph-table-wrap"><table><tr><th>Month</th><th>Debt</th><th>Bank</th><th>Forecast</th><th>One-offs</th></tr>${rows.map(r=>`<tr><td>${r.month}</td><td>${money(r.debt)}</td><td>${money(r.bank)}</td><td>${money(r.bank)}</td><td>${money(r.oneOff)}</td></tr>`).join("")}</table></div>`;
   },
   render(){
     if(typeof ForecastV21==="undefined") return;
@@ -1768,51 +2162,17 @@ const LiveForecastV25 = {
   buildRows(){
     const months=this.forecastMonths();
     const baseRows=ForecastV21.monthlySeries(months);
-    const start=this.startDate();
-    const debtFinish=this.latestDebtFinish();
-
-    const startDebt=Number((state.debts||[]).reduce((s,d)=>s+Number(d[1]||0),0));
-    const endDebtDate=debtFinish.date || this.addMonths(start,months-1);
-    const debtMonths=Math.max(1,this.monthDiff(start,endDebtDate)+1);
-
-    const currentBank=Calc.bankPosition?Calc.bankPosition():0;
-    const wage=Number(state.wage||0);
-    const fixed=Calc.totalFixed?Calc.totalFixed():0;
-    const weekly=Number(state.weeklyBudget||60)*4;
-    const emergencyTarget=Number(state.emergencyTarget||1000);
-    const emergencyStart=Number(state.emergencyFund||0);
-    const emergencyMonthly=Math.max(0, Math.round((wage-fixed-weekly)*0.15));
-
-    const rows=[];
-    let emergency=emergencyStart;
-    let bank=currentBank;
-
-    for(let i=0;i<months;i++){
-      const monthDate=this.addMonths(start,i);
-      const progress = i>=debtMonths-1 ? 1 : i/(debtMonths-1);
-      const debt = i>=debtMonths-1 ? 0 : Math.max(0, Math.round(startDebt*(1-progress)));
-
-      const base=baseRows[i] || {};
-      const oneOff=Number(base.oneOff||0);
-
-      if(i===0){
-        bank=Number(base.bank||currentBank);
-        emergency=Number(base.emergency||emergencyStart);
-      } else {
-        emergency=Math.min(emergencyTarget, emergency + emergencyMonthly);
-        const monthlyDebtDrop=Math.max(0,(rows[i-1]?.debt||startDebt)-debt);
-        bank=Math.round((rows[i-1]?.bank||currentBank) + Math.max(0,wage-fixed-weekly-oneOff-monthlyDebtDrop));
-      }
-
-      rows.push({
-        month:this.fmt(monthDate),
-        debt,
-        bank,
-        emergency,
-        oneOff
-      });
-    }
-    return rows;
+    return baseRows.map(r=>{
+      const forecastValue = (r.balance!==undefined) ? r.balance : ((r.forecastBalance!==undefined) ? r.forecastBalance : ((r.forecast!==undefined) ? r.forecast : r.bank));
+      return {
+        month:r.month,
+        debt:r.debt,
+        bank:forecastValue,
+        forecast:forecastValue,
+        emergency:forecastValue,
+        oneOff:r.oneOff
+      };
+    });
   },
   render(){
     if(typeof EnhancedGraphsV242==="undefined" || typeof ForecastV21==="undefined") return;
@@ -2012,8 +2372,148 @@ const AccountSyncV25516 = {
   }
 };
 
+
+
+
+
+
+
+
+const AccountsUIV25527 = {
+  storeKey:"grantOS.accounts.v2554",
+  defaults(){
+    return [
+      {name:"First Direct",type:"Current",balance:Number(state.firstDirectBalance||0)-Number(state.firstDirectOverdraft||0),limit:Number(state.firstDirectOverdraftLimit||650)},
+      {name:"Monzo",type:"Current",balance:Number(state.monzoBalance||0)-Number(state.monzoOverdraft||0),limit:Number(state.monzoOverdraftLimit||200)}
+    ];
+  },
+  accounts(){
+    let data=[];
+    try{ data=JSON.parse(localStorage.getItem(this.storeKey)||"[]"); }catch(e){ data=[]; }
+    if(!Array.isArray(data) || !data.length) data=this.defaults();
+    if(!data.find(a=>/first\s*direct/i.test(a.name||""))) data.unshift(this.defaults()[0]);
+    if(!data.find(a=>/monzo/i.test(a.name||""))) data.push(this.defaults()[1]);
+    localStorage.setItem(this.storeKey,JSON.stringify(data));
+    return data;
+  },
+  find(accounts,name){ return accounts.find(a=>String(a.name||"").toLowerCase()===name.toLowerCase()); },
+  split(balance){ const b=Number(balance||0); return {balance:Math.max(0,b),overdraft:Math.max(0,-b)}; },
+  syncToState(accounts=this.accounts()){
+    const fd=this.find(accounts,"First Direct");
+    const monzo=this.find(accounts,"Monzo");
+    if(fd){
+      const s=this.split(fd.balance);
+      state.firstDirectBalance=s.balance;
+      state.firstDirectOverdraft=s.overdraft;
+      state.firstDirectOverdraftLimit=Number(fd.limit||650);
+    }
+    if(monzo){
+      const s=this.split(monzo.balance);
+      state.monzoBalance=s.balance;
+      state.monzoOverdraft=s.overdraft;
+      state.monzoOverdraftLimit=Number(monzo.limit||200);
+    }
+    try{ if(typeof AccountSyncV25516!=="undefined") AccountSyncV25516.writeAccounts(accounts); }catch(e){}
+  },
+  write(accounts){
+    localStorage.setItem(this.storeKey,JSON.stringify(accounts));
+    this.syncToState(accounts);
+    Data.save();
+  },
+  totalBalance(accounts){ return accounts.reduce((s,a)=>s+Number(a.balance||0),0); },
+  availableSpend(accounts){
+    let total=0;
+    const fd=this.find(accounts,"First Direct");
+    const monzo=this.find(accounts,"Monzo");
+    if(fd){
+      const bal=Number(fd.balance||0);
+      const rem=Math.max(0,Number(fd.limit||0)+Math.min(0,bal));
+      total += bal + (state.includeFirstDirectOverdraftForSpend==="yes" ? rem : 0);
+    }
+    if(monzo){
+      const bal=Number(monzo.balance||0);
+      const rem=Math.max(0,Number(monzo.limit||0)+Math.min(0,bal));
+      total += bal + (state.includeMonzoOverdraftForSpend==="yes" ? rem : 0);
+    }
+    accounts.forEach(a=>{
+      if(!/first\s*direct/i.test(a.name||"") && !/monzo/i.test(a.name||"")) total += Number(a.balance||0);
+    });
+    return total;
+  },
+  update(i,k,v){
+    const accounts=this.accounts();
+    if(k==="balance" || k==="limit") v=Number(v||0);
+    accounts[i][k]=v;
+    this.write(accounts);
+    this.render();
+    try{ Dashboard.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
+  },
+  add(){
+    const accounts=this.accounts();
+    accounts.push({name:"New Account",type:"Current",balance:0,limit:0});
+    this.write(accounts);
+    this.render();
+  },
+  del(i){
+    const accounts=this.accounts();
+    accounts.splice(i,1);
+    this.write(accounts);
+    this.render();
+  },
+  render(){
+    const accounts=this.accounts();
+    this.syncToState(accounts);
+
+    const total=document.getElementById("v25527TotalBalance") || document.getElementById("v2554TotalBalance");
+    if(total) total.textContent=money(this.totalBalance(accounts));
+
+    const spend=document.getElementById("v25527AvailableSpend") || document.getElementById("v2554AvailableSpend");
+    if(spend) spend.textContent=money(this.availableSpend(accounts));
+
+    const count=document.getElementById("v25527AccountCount") || document.getElementById("v2554AccountCount");
+    if(count) count.textContent=String(accounts.length);
+
+    const list=document.getElementById("accountsList");
+    if(!list) return false;
+    list.innerHTML=accounts.map((a,i)=>`
+      <div class="v25527-account-card">
+        <h3>🏦 ${(a.name||"Account").toUpperCase()}</h3>
+        <div class="v25527-form-grid">
+          <label>Account name<input value="${a.name||""}" oninput="AccountsUIV25527.update(${i},'name',this.value)"></label>
+          <label>Type<select onchange="AccountsUIV25527.update(${i},'type',this.value)">
+            <option ${a.type==="Current"?"selected":""}>Current</option>
+            <option ${a.type==="Savings"?"selected":""}>Savings</option>
+            <option ${a.type==="Credit"?"selected":""}>Credit</option>
+          </select></label>
+          <label>Balance<input type="number" value="${Number(a.balance||0)}" oninput="AccountsUIV25527.update(${i},'balance',this.value)"></label>
+          <label>Overdraft limit<input type="number" value="${Number(a.limit||0)}" oninput="AccountsUIV25527.update(${i},'limit',this.value)"></label>
+        </div>
+        <div class="v25527-actions"><button type="button" class="danger" onclick="AccountsUIV25527.del(${i})">Delete</button></div>
+      </div>
+    `).join("");
+    return true;
+  }
+};
+
 const App = {
-  render(){ Data.ensure(); AccountSyncV25516.syncAccountsToState(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); HealthV21.render(); SnapshotV24.render(); ForecastRangeV24.renderToggle(); ForecastV21.renderForecastTable(); GraphsV21.render(); Data.save(); },
+  render(){
+    Data.ensure();
+    try{ AccountsUIV25527.render(); }catch(e){}
+    try{ AccountSyncV25516.syncAccountsToState(); }catch(e){}
+    Dashboard.render();
+    Budget.render();
+    Debt.render();
+    Holidays.render();
+    Relocation.render();
+    Career.render();
+    Timeline.render();
+    HealthV21.render();
+    SnapshotV24.render();
+    ForecastRangeV24.renderToggle();
+    ForecastV21.renderForecastTable();
+    GraphsV21.render();
+    Data.save();
+  },
   saveAndRender(){ Data.save(); this.render(); }
 };
 App.render();
@@ -2191,6 +2691,50 @@ StableInputV254.patch();
       if(localStorage.getItem(k)==="9") localStorage.setItem(k,"6");
     });
   }catch(e){}
+})();
+</script>
+
+
+<script>
+/* v2.5.5.26 final runtime guard: accounts + 5-col forecast only */
+(function(){
+  function apply(){
+    try{ if(window.AccountsUIV25527) AccountsUIV25527.render(); }catch(e){}
+    try{
+      if(window.ForecastV21 && ForecastV21.monthlySeries){
+        ForecastV21.renderForecastTable = function(){
+          const t=document.getElementById("forecastTable");
+          if(!t) return false;
+          const months=(window.ForecastRangeV24&&ForecastRangeV24.get)?ForecastRangeV24.get():12;
+          const rows=this.monthlySeries(months);
+          t.innerHTML="<tr><th>Month</th><th>Total Debt</th><th>One-offs</th><th>Forecast</th><th>Notes</th></tr>";
+          rows.forEach(r=>{
+            const forecastValue=(r.balance!==undefined)?r.balance:((r.forecastBalance!==undefined)?r.forecastBalance:((r.forecast!==undefined)?r.forecast:r.bank));
+            t.innerHTML += `<tr><td>${r.month}</td><td>${money(r.debt)}</td><td>${money(r.oneOff)}</td><td>${money(forecastValue)}</td><td>${r.note}</td></tr>`;
+          });
+          return true;
+        };
+        ForecastV21.renderForecastTable();
+      }
+    }catch(e){}
+    try{ if(window.GraphsV21) GraphsV21.render(); }catch(e){}
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",apply); else apply();
+  setTimeout(apply,250);
+})();
+</script>
+
+
+<script>
+(function(){
+  function bootAccounts(){
+    try{ if(window.AccountsUIV25527) AccountsUIV25527.render(); }catch(e){}
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bootAccounts); else bootAccounts();
+  document.addEventListener("click",function(e){
+    const btn=e.target.closest && e.target.closest("button");
+    if(btn && (btn.textContent||"").toLowerCase().includes("accounts")) setTimeout(bootAccounts,50);
+  },true);
 })();
 </script>
 
