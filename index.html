@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.5.30 Visual Polish Pass 2</title>
+<title>Grant OS v2.5.5.32 Accounts Input & Badge Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -228,16 +228,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=204">
+<link rel="manifest" href="manifest.json?v=206">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=204">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=204">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=204">
-<link rel="shortcut icon" href="favicon.ico?v=204">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=206">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=206">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=206">
+<link rel="shortcut icon" href="favicon.ico?v=206">
 
 
 <style>
@@ -979,10 +979,31 @@ tr:hover td{background:rgba(56,189,248,.045);}
 }
 </style>
 
+
+<style>
+/* v2.5.5.32 accounts input and badge fix */
+.v25531-linked-card{border-color:rgba(56,189,248,.24)!important;background:linear-gradient(135deg,rgba(30,42,56,.95),rgba(15,23,42,.95))!important;}
+.v25531-linked-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.v25531-linked-head h3{margin:0!important;}
+.v25531-linked-head .note{max-width:760px;margin:6px 0 0;}
+.v25531-table-wrap{overflow:auto;border:1px solid rgba(148,163,184,.16);border-radius:16px;background:rgba(2,6,23,.28);}
+#dynamicBudgetAccountsTable{margin:0;min-width:860px;}
+#dynamicBudgetAccountsTable th{background:rgba(2,6,23,.45);position:sticky;top:0;z-index:1;}
+#dynamicBudgetAccountsTable td{vertical-align:middle;}
+#dynamicBudgetAccountsTable .v25531-account-name{font-weight:900;color:#bfdbfe;letter-spacing:.03em;}
+#dynamicBudgetAccountsTable .v25531-account-type{display:block;margin-top:4px;color:var(--muted);font-size:12px;}
+.v25531-account-limit-note{display:block;margin-top:4px;color:var(--muted);font-size:12px;}
+.v25531-budget-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;}
+.v25531-max-note{font-size:12px;color:var(--muted);}
+.v25531-hidden-row{display:none!important;}
+.v25531-add-disabled{opacity:.52;cursor:not-allowed!important;}
+@media(max-width:900px){#dynamicBudgetAccountsTable{min-width:760px}.v25531-linked-head{display:block}.v25531-budget-actions{display:block}.v25531-budget-actions button{margin-top:10px}}
+</style>
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.5.30 Visual Polish Pass 2</span></h1>
+  <h1>Grant OS <span class="pill">v2.5.5.32 Accounts Input & Badge Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -2978,7 +2999,7 @@ StableInputV254.patch();
   function setCardBadges(valueId,badges){
     var value=document.getElementById(valueId);
     if(!value) return;
-    var card=value.closest('.card') || value.parentElement;
+    var card=value.closest('.v25527-summary-card,.v2554-summary-card,.v25524-summary-card,.forecast-dashboard-card,.stat-card,.snapshot-card,.score-box,.card') || value.parentElement;
     if(!card) return;
     var row=card.querySelector(':scope > .v25530-badge-row');
     if(!row){ row=document.createElement('div'); row.className='v25530-badge-row'; card.appendChild(row); }
@@ -3036,11 +3057,11 @@ StableInputV254.patch();
         var bal=Number(a.balance||0), limit=Number(a.limit||0);
         var remaining=Math.max(0,limit+Math.min(0,bal));
         var name=String(a.name||'').toLowerCase();
-        var included=(/monzo/.test(name) && state.includeMonzoOverdraftForSpend==='yes') || (/first\s*direct/.test(name) && state.includeFirstDirectOverdraftForSpend==='yes');
+        var included=(a.includeOverdraftForSpend==='yes') || (/monzo/.test(name) && state.includeMonzoOverdraftForSpend==='yes') || (/first\s*direct/.test(name) && state.includeFirstDirectOverdraftForSpend==='yes');
         var badges=[];
         if(bal<0) badges.push({text:'Overdraft active',type:'red'});
         if(limit>0 && included) badges.push({text:'Overdraft included',type:'amber'});
-        if(limit>0 && !included && (/monzo/.test(name)||/first\s*direct/.test(name))) badges.push({text:'Balance only',type:'blue'});
+        if(limit>0 && !included) badges.push({text:'Balance only',type:'blue'});
         if(limit>0 && remaining>0 && remaining<=50) badges.push({text:'Low buffer',type:'amber'});
         if(bal>=0 && limit===0) badges.push({text:'Positive balance',type:'green'});
         row.innerHTML=badges.map(badgeHtml).join('');
@@ -3049,6 +3070,7 @@ StableInputV254.patch();
     }catch(e){}
   }
   function apply(){ applyDashboardBadges(); applyAccountBadges(); }
+  window.GrantOSVisualBadgesApply = apply;
   try{
     if(typeof Dashboard!=='undefined' && Dashboard.render && !Dashboard.render.__v25530Badges){
       var oldDash=Dashboard.render;
@@ -3064,6 +3086,326 @@ StableInputV254.patch();
     }
   }catch(e){}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(apply,80);}); else setTimeout(apply,80);
+})();
+</script>
+
+
+<script>
+/* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
+(function(){
+  const VERSION='v2.5.5.32 Accounts Input & Badge Fix';
+  const MAX_ACCOUNTS=5;
+
+  function num(v){ return Number(v||0); }
+  function normName(v){ return String(v||'').trim(); }
+  function isFD(name){ return /first\s*direct/i.test(String(name||'')); }
+  function isMonzo(name){ return /monzo/i.test(String(name||'')); }
+  function splitNet(balance){ const b=num(balance); return {balance:Math.max(0,b), overdraft:Math.max(0,-b)}; }
+  function remainingOD(a){ return Math.max(0,num(a.limit)+Math.min(0,num(a.balance))); }
+  function includeFlagFor(a){
+    if(!a) return 'no';
+    if(a.includeOverdraftForSpend==='yes' || a.includeOverdraftForSpend==='no') return a.includeOverdraftForSpend;
+    const name=String(a.name||'');
+    if(isFD(name)) return (state.includeFirstDirectOverdraftForSpend||'no');
+    if(isMonzo(name)) return (state.includeMonzoOverdraftForSpend||'no');
+    return 'no';
+  }
+  function normalizeAccounts(accounts){
+    let out=Array.isArray(accounts)?accounts.filter(Boolean):[];
+    out=out.map((a,idx)=>({
+      name:normName(a.name)||('Account '+(idx+1)),
+      type:a.type||'Current',
+      balance:num(a.balance),
+      limit:num(a.limit),
+      includeOverdraftForSpend:(a.includeOverdraftForSpend==='yes'||a.includeOverdraftForSpend==='no')?a.includeOverdraftForSpend:undefined
+    }));
+    const defaults=(typeof AccountsUIV25527!=='undefined'&&AccountsUIV25527.defaults)?AccountsUIV25527.defaults():[
+      {name:'First Direct',type:'Current',balance:num(state.firstDirectBalance)-num(state.firstDirectOverdraft),limit:num(state.firstDirectOverdraftLimit||650)},
+      {name:'Monzo',type:'Current',balance:num(state.monzoBalance)-num(state.monzoOverdraft),limit:num(state.monzoOverdraftLimit||200)}
+    ];
+    if(!out.some(a=>isFD(a.name))) out.unshift({...defaults[0]});
+    if(!out.some(a=>isMonzo(a.name))) out.push({...defaults[1]});
+    out=out.slice(0,MAX_ACCOUNTS);
+    out.forEach(a=>{ a.includeOverdraftForSpend=includeFlagFor(a); });
+    return out;
+  }
+  function readAccounts(){
+    try{
+      if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.storeKey){
+        const raw=JSON.parse(localStorage.getItem(AccountsUIV25527.storeKey)||'[]');
+        return normalizeAccounts(raw);
+      }
+    }catch(e){}
+    try{ if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.accounts) return normalizeAccounts(AccountsUIV25527.accounts()); }catch(e){}
+    return normalizeAccounts([]);
+  }
+  function writeAccounts(accounts){
+    const data=normalizeAccounts(accounts);
+    try{ localStorage.setItem((typeof AccountsUIV25527!=='undefined'&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554',JSON.stringify(data)); }catch(e){}
+    syncLegacyState(data);
+    try{ Data.save(); }catch(e){}
+    return data;
+  }
+  function syncLegacyState(accounts){
+    const fd=accounts.find(a=>isFD(a.name));
+    const monzo=accounts.find(a=>isMonzo(a.name));
+    if(fd){
+      const s=splitNet(fd.balance);
+      state.firstDirectBalance=s.balance;
+      state.firstDirectOverdraft=s.overdraft;
+      state.firstDirectOverdraftLimit=num(fd.limit||650);
+      state.includeFirstDirectOverdraftForSpend=includeFlagFor(fd);
+    }
+    if(monzo){
+      const s=splitNet(monzo.balance);
+      state.monzoBalance=s.balance;
+      state.monzoOverdraft=s.overdraft;
+      state.monzoOverdraftLimit=num(monzo.limit||200);
+      state.includeMonzoOverdraftForSpend=includeFlagFor(monzo);
+    }
+  }
+  function ensureBudgetCard(){
+    const budget=document.getElementById('budget');
+    if(!budget || document.getElementById('v25531BudgetAccountsCard')) return;
+    const grid=budget.querySelector('.grid');
+    if(!grid) return;
+    const card=document.createElement('div');
+    card.className='card full v25531-linked-card';
+    card.id='v25531BudgetAccountsCard';
+    card.innerHTML=`
+      <div class="v25531-linked-head">
+        <div>
+          <h3>Linked Account Figures</h3>
+          <p class="note">Pulled live from the Accounts tab. Add an account there and a new budget row appears here automatically, up to 5 accounts.</p>
+        </div>
+        <span class="v25530-badge blue">Max ${MAX_ACCOUNTS} accounts</span>
+      </div>
+      <div class="v25531-table-wrap"><table id="dynamicBudgetAccountsTable"></table></div>
+      <div class="v25531-budget-actions">
+        <span class="v25531-max-note" id="v25531BudgetAccountNote"></span>
+        <button class="primary" type="button" onclick="Budget.save()">Save linked account figures</button>
+      </div>`;
+    const fixed=[...grid.children].find(el=>el.querySelector && el.querySelector('#fixedCostsTable'));
+    grid.insertBefore(card,fixed||null);
+  }
+  function hideLegacyRows(){
+    const labels=['First Direct balance','First Direct overdraft used','Monzo balance','Monzo overdraft used','Monzo overdraft limit','Include Monzo overdraft in spend?','Include First Direct overdraft in spend?'];
+    labels.forEach(label=>{
+      document.querySelectorAll('#budget table tr').forEach(tr=>{
+        const txt=(tr.cells&&tr.cells[0])?tr.cells[0].textContent.trim():'';
+        if(txt===label) tr.classList.add('v25531-hidden-row');
+      });
+    });
+  }
+  function renderBudgetAccountsTable(){
+    ensureBudgetCard();
+    hideLegacyRows();
+    const t=document.getElementById('dynamicBudgetAccountsTable');
+    if(!t) return;
+    const accounts=writeAccounts(readAccounts());
+    t.innerHTML=`<tr>
+      <th>Account</th>
+      <th>Balance</th>
+      <th>Overdraft used</th>
+      <th>Overdraft limit</th>
+      <th>Safe-spend overdraft rule</th>
+    </tr>`;
+    accounts.forEach((a,i)=>{
+      const split=splitNet(a.balance);
+      const inc=includeFlagFor(a);
+      const rem=remainingOD(a);
+      const canOD=num(a.limit)>0;
+      t.innerHTML += `<tr data-account-index="${i}">
+        <td><span class="v25531-account-name">${escapeHtml(a.name)}</span><span class="v25531-account-type">${escapeHtml(a.type||'Current')}</span></td>
+        <td><input id="v25531AccBal_${i}" type="number" value="${split.balance}" oninput="Budget.v25531SaveDraft && Budget.v25531SaveDraft()"></td>
+        <td><input id="v25531AccOd_${i}" type="number" value="${split.overdraft}" oninput="Budget.v25531SaveDraft && Budget.v25531SaveDraft()"></td>
+        <td><input id="v25531AccLimit_${i}" type="number" value="${num(a.limit)}" oninput="Budget.v25531SaveDraft && Budget.v25531SaveDraft()"><span class="v25531-account-limit-note">Remaining buffer now: ${money(rem)}</span></td>
+        <td><select id="v25531AccInclude_${i}" onchange="Budget.v25531SaveDraft && Budget.v25531SaveDraft()">
+          <option value="no" ${inc==='no'?'selected':''}>No - balance only</option>
+          <option value="yes" ${inc==='yes'?'selected':''} ${canOD?'':'disabled'}>Yes - include remaining overdraft</option>
+        </select></td>
+      </tr>`;
+    });
+    const note=document.getElementById('v25531BudgetAccountNote');
+    if(note) note.textContent=`${accounts.length}/${MAX_ACCOUNTS} account spaces used. New accounts are added from the Accounts tab.`;
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function saveBudgetAccountsFromTable(){
+    const current=readAccounts();
+    const rows=[...document.querySelectorAll('#dynamicBudgetAccountsTable tr[data-account-index]')];
+    if(!rows.length) return writeAccounts(current);
+    rows.forEach(row=>{
+      const i=Number(row.getAttribute('data-account-index'));
+      if(!current[i]) return;
+      const balEl=document.getElementById('v25531AccBal_'+i);
+      const odEl=document.getElementById('v25531AccOd_'+i);
+      const limitEl=document.getElementById('v25531AccLimit_'+i);
+      const includeEl=document.getElementById('v25531AccInclude_'+i);
+      const positive=Math.max(0,num(balEl&&balEl.value));
+      const odUsed=Math.max(0,num(odEl&&odEl.value));
+      current[i].balance=positive-odUsed;
+      current[i].limit=Math.max(0,num(limitEl&&limitEl.value));
+      current[i].includeOverdraftForSpend=(includeEl&&includeEl.value==='yes'&&current[i].limit>0)?'yes':'no';
+    });
+    return writeAccounts(current);
+  }
+
+  function patchAccountsUI(){
+    if(typeof AccountsUIV25527==='undefined' || AccountsUIV25527.__v25531DynamicLinked) return;
+    const oldAccounts=AccountsUIV25527.accounts.bind(AccountsUIV25527);
+    AccountsUIV25527.maxAccounts=MAX_ACCOUNTS;
+    AccountsUIV25527.accounts=function(){
+      let data=[];
+      try{ data=oldAccounts(); }catch(e){ data=[]; }
+      return writeAccounts(data);
+    };
+    AccountsUIV25527.selectedOverdraftBuffer=function(accounts){
+      return normalizeAccounts(accounts||this.accounts()).reduce((s,a)=>s+(includeFlagFor(a)==='yes'?remainingOD(a):0),0);
+    };
+    AccountsUIV25527.availableSpend=function(accounts){
+      return normalizeAccounts(accounts||this.accounts()).reduce((s,a)=>s+num(a.balance)+(includeFlagFor(a)==='yes'?remainingOD(a):0),0);
+    };
+    AccountsUIV25527.totalBalance=function(accounts){ return normalizeAccounts(accounts||this.accounts()).reduce((s,a)=>s+num(a.balance),0); };
+    const oldAdd=AccountsUIV25527.add.bind(AccountsUIV25527);
+    AccountsUIV25527.add=function(){
+      const accounts=this.accounts();
+      if(accounts.length>=MAX_ACCOUNTS){
+        alert('Maximum of '+MAX_ACCOUNTS+' accounts for now. Delete an account before adding another.');
+        return false;
+      }
+      accounts.push({name:'New Account '+(accounts.length+1),type:'Current',balance:0,limit:0,includeOverdraftForSpend:'no'});
+      writeAccounts(accounts);
+      this.render();
+      try{ Budget.render(); Dashboard.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
+      return true;
+    };
+    const oldDel=AccountsUIV25527.del.bind(AccountsUIV25527);
+    AccountsUIV25527.del=function(i){
+      const accounts=this.accounts();
+      if(accounts.length<=2 && (isFD(accounts[i]&&accounts[i].name)||isMonzo(accounts[i]&&accounts[i].name))){
+        alert('Keep at least your First Direct and Monzo base accounts. Rename or edit them instead.');
+        return false;
+      }
+      accounts.splice(i,1);
+      writeAccounts(accounts);
+      this.render();
+      try{ Budget.render(); Dashboard.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
+      return true;
+    };
+    const oldUpdate=AccountsUIV25527.update.bind(AccountsUIV25527);
+    AccountsUIV25527.update=function(i,k,v){
+      const accounts=this.accounts();
+      if(!accounts[i]) return false;
+      if(k==='balance'||k==='limit') v=num(v);
+      accounts[i][k]=v;
+      if(k==='limit' && num(v)<=0) accounts[i].includeOverdraftForSpend='no';
+      writeAccounts(accounts);
+
+      // Do not re-render the Accounts tab while typing; it was replacing the input
+      // after every single digit and kicking focus out of the field.
+      try{
+        const totalValue=this.totalBalance(accounts);
+        const total=document.getElementById('v25527TotalBalance') || document.getElementById('v2554TotalBalance');
+        if(total){ total.textContent=money(totalValue); total.className='big value-soft '+(totalValue>=0?'value-positive':'value-negative'); }
+        const bufferValue=this.selectedOverdraftBuffer(accounts);
+        const buffer=document.getElementById('v25528OverdraftBuffer') || document.getElementById('v25527AvailableSpend') || document.getElementById('v2554AvailableSpend');
+        if(buffer){ buffer.textContent=money(bufferValue); buffer.className='big value-soft '+(bufferValue>0?'value-positive':bufferValue<0?'value-negative':'value-warning'); }
+        const count=document.getElementById('v25527AccountCount') || document.getElementById('v2554AccountCount');
+        if(count){ count.textContent=String(accounts.length); count.className='big value-soft value-info'; }
+        if(k==='name'){
+          const card=document.querySelectorAll('#accountsList .v25527-account-card')[i];
+          const title=card&&card.querySelector('h3');
+          if(title) title.textContent='🏦 '+String(v||'Account').toUpperCase();
+        }
+      }catch(e){}
+      try{ Budget.render(); Dashboard.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
+      try{ if(window.GrantOSVisualBadgesApply) window.GrantOSVisualBadgesApply(); }catch(e){}
+      return true;
+    };
+    const oldRender=AccountsUIV25527.render.bind(AccountsUIV25527);
+    AccountsUIV25527.render=function(){
+      const r=oldRender();
+      try{
+        const accounts=this.accounts();
+        const addBtn=document.querySelector('#accounts .v25527-add');
+        if(addBtn){
+          addBtn.textContent=accounts.length>=MAX_ACCOUNTS?'+ Maximum 5 accounts reached':'+ Add Bank Account';
+          addBtn.disabled=accounts.length>=MAX_ACCOUNTS;
+          addBtn.classList.toggle('v25531-add-disabled',accounts.length>=MAX_ACCOUNTS);
+          addBtn.title=accounts.length>=MAX_ACCOUNTS?'Maximum 5 accounts for now':'Add another account';
+        }
+      }catch(e){}
+      return r;
+    };
+    AccountsUIV25527.__v25531DynamicLinked=true;
+  }
+  function patchAccountSync(){
+    if(typeof AccountSyncV25516==='undefined' || AccountSyncV25516.__v25531DynamicLinked) return;
+    AccountSyncV25516.readAccounts=function(){ return readAccounts(); };
+    AccountSyncV25516.writeAccounts=function(accounts){ writeAccounts(accounts); };
+    AccountSyncV25516.syncAccountsToState=function(){ syncLegacyState(readAccounts()); };
+    AccountSyncV25516.syncStateToAccounts=function(){
+      const accounts=readAccounts();
+      const fd=accounts.find(a=>isFD(a.name));
+      const monzo=accounts.find(a=>isMonzo(a.name));
+      if(fd){ fd.balance=num(state.firstDirectBalance)-num(state.firstDirectOverdraft); fd.limit=num(state.firstDirectOverdraftLimit||fd.limit||650); fd.includeOverdraftForSpend=state.includeFirstDirectOverdraftForSpend||includeFlagFor(fd); }
+      if(monzo){ monzo.balance=num(state.monzoBalance)-num(state.monzoOverdraft); monzo.limit=num(state.monzoOverdraftLimit||monzo.limit||200); monzo.includeOverdraftForSpend=state.includeMonzoOverdraftForSpend||includeFlagFor(monzo); }
+      writeAccounts(accounts);
+    };
+    AccountSyncV25516.__v25531DynamicLinked=true;
+  }
+  function patchCalc(){
+    if(typeof Calc==='undefined' || Calc.__v25531DynamicLinked) return;
+    Calc.accountList=function(){ return readAccounts(); };
+    Calc.totalOverdraft=function(){ return this.accountList().reduce((s,a)=>s+Math.max(0,-num(a.balance)),0); };
+    Calc.bankPosition=function(){ return this.accountList().reduce((s,a)=>s+num(a.balance),0); };
+    Calc.selectedSpendPot=function(){
+      const total=this.accountList().reduce((s,a)=>s+num(a.balance)+(includeFlagFor(a)==='yes'?remainingOD(a):0),0);
+      return Math.max(0,total);
+    };
+    Calc.monzoSpendPot=function(){ return this.selectedSpendPot(); };
+    Calc.__v25531DynamicLinked=true;
+  }
+  function patchBudget(){
+    if(typeof Budget==='undefined' || Budget.__v25531DynamicLinked) return;
+    const oldRender=Budget.render.bind(Budget);
+    Budget.render=function(){
+      oldRender();
+      renderBudgetAccountsTable();
+      try{
+        const dashNote=document.querySelector('#bankPosition')?.nextElementSibling;
+        if(dashNote) dashNote.textContent='All linked account balances.';
+        const odNote=document.querySelector('#totalOverdraft')?.nextElementSibling;
+        if(odNote) odNote.textContent='All active linked overdrafts.';
+      }catch(e){}
+    };
+    Budget.v25531SaveDraft=function(){
+      saveBudgetAccountsFromTable();
+      try{ Dashboard.render(); AccountsUIV25527.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
+    };
+    Budget.save=function(){
+      ['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'].forEach(k=>{
+        const el=document.getElementById(k); if(el) state[k]=num(el.value);
+      });
+      saveBudgetAccountsFromTable();
+      try{ Data.save(); }catch(e){}
+      try{ App.saveAndRender(); }catch(e){ try{ Dashboard.render(); Budget.render(); }catch(err){} }
+    };
+    Budget.__v25531DynamicLinked=true;
+  }
+  function updateLabels(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{
+      const pill=document.querySelector('header .pill');
+      if(pill) pill.textContent=VERSION;
+    }catch(e){}
+  }
+  function boot(){
+    try{ patchAccountSync(); patchAccountsUI(); patchCalc(); patchBudget(); updateLabels(); ensureBudgetCard(); hideLegacyRows(); renderBudgetAccountsTable(); syncLegacyState(readAccounts()); }catch(e){ console.warn('v25531 boot',e); }
+    try{ Dashboard.render(); AccountsUIV25527.render(); Budget.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,80);}); else setTimeout(boot,80);
+  setTimeout(boot,450);
 })();
 </script>
 
