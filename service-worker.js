@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-v242-enhanced-graphs';
+const CACHE_NAME = 'grant-os-v243-debt-date-fix';
 const FILES = [
   './',
   './index.html?v=201',
