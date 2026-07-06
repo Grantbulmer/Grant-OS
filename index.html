@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS</title>
+<title>Grant OS v1.3 Timeline Preview 3</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -41,25 +41,29 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .chartfill{height:100%;background:var(--blue);width:0%}
 .small{font-size:12px;color:var(--muted)}
 @media(max-width:900px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.command-grid{grid-template-columns:1fr}}
-</style>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#020617">
-<link rel="apple-touch-icon" href="icon-192.png">
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
-}
-</script>
+.timeline{position:relative;margin-top:10px;padding-left:24px}
+.timeline:before{content:"";position:absolute;left:8px;top:4px;bottom:4px;width:2px;background:var(--border)}
+.timeline-item{position:relative;margin:0 0 16px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:#020617}
+.timeline-item:before{content:"";position:absolute;left:-22px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--blue);border:2px solid #020617}
+.timeline-item.green:before{background:var(--green)}.timeline-item.amber:before{background:var(--amber)}.timeline-item.red:before{background:var(--red)}
+.timeline-title{font-weight:bold;font-size:16px}.timeline-meta{color:var(--muted);font-size:13px;margin-top:4px}
+.timeline-badge{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--muted)}
+
+
+.timeline-item.payday-event{border-color:#14532d;background:linear-gradient(135deg,#020617,#052e16)}
+.timeline-item.payday-event .timeline-title{color:var(--green)}
+</style>
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v1.2 Refinement</span></h1>
+  <h1>Grant OS <span class="pill">v1.3 Timeline Preview 3</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
   <div class="tabs">
     <button class="tab active" onclick="UI.show('dashboard', this)">Dashboard</button>
+    <button class="tab" onclick="UI.show('timeline', this)">Timeline</button>
     <button class="tab" onclick="UI.show('budget', this)">Budget Setup</button>
     <button class="tab" onclick="UI.show('debts', this)">Debt Tracker</button>
     <button class="tab" onclick="UI.show('holidays', this)">Holiday Pots</button>
@@ -86,7 +90,24 @@ if ('serviceWorker' in navigator) {
     </div>
   </section>
 
-  <section id="budget" class="section">
+  
+  
+  <section id="timeline" class="section">
+    <div class="grid">
+      <div class="card full">
+        <h3>Next 90 Days</h3>
+        <div id="timelineSummary"></div>
+      </div>
+      <div class="card full">
+        <h3>Financial Timeline</h3>
+        <p class="note">A single view of upcoming debt, holiday, payday and goal milestones. The timeline auto-extends as you add future dates.</p>
+        <button class="primary" onclick="Timeline.scrollToday()">Jump to Today</button>
+        <div id="timelineList" class="timeline"></div>
+      </div>
+    </div>
+  </section>
+
+<section id="budget" class="section">
     <div class="grid">
       <div class="card wide">
         <h3>Core Figures</h3>
@@ -385,17 +406,18 @@ const Budget = {
 
 const Debt = {
   render(){
-    UI.table("debtTable",["Debt","Balance","Monthly","Finish","Type","Due Date","Priority"],state.debts,(r,i)=>`
+    UI.table("debtTable",["Debt","Balance","Monthly","Finish","Type","Due Date","Priority","Remove"],state.debts,(r,i)=>`
       <td><input value="${r[0]}" oninput="state.debts[${i}][0]=this.value;App.saveAndRender()"></td>
       <td><input type="number" value="${r[1]}" oninput="state.debts[${i}][1]=Number(this.value);App.saveAndRender()"></td>
       <td><input type="number" value="${r[2]}" oninput="state.debts[${i}][2]=Number(this.value);App.saveAndRender()"></td>
       <td><input value="${r[3]}" oninput="state.debts[${i}][3]=this.value;App.saveAndRender()"></td>
       <td><select onchange="state.debts[${i}][4]=this.value;App.saveAndRender()"><option ${r[4]==="Regular"?"selected":""}>Regular</option><option ${r[4]==="One-off"?"selected":""}>One-off</option><option ${r[4]==="Flexible"?"selected":""}>Flexible</option></select></td>
       <td><input value="${r[5]||""}" oninput="state.debts[${i}][5]=this.value;App.saveAndRender()"></td>
-      <td><input type="number" value="${r[6]||i+1}" oninput="state.debts[${i}][6]=Number(this.value);App.saveAndRender()"></td>`);
+      <td><input type="number" value="${r[6]||i+1}" oninput="state.debts[${i}][6]=Number(this.value);App.saveAndRender()"></td><td><button class="danger" onclick="Debt.remove(${i})">Remove</button></td>`);
     this.progress(); this.priority(); this.simulator();
   },
   add(){ state.debts.push(["New debt",0,0,"","Regular","",state.debts.length+1]); App.saveAndRender(); },
+  remove(i){ if(confirm("Remove this debt?")){ state.debts.splice(i,1); App.saveAndRender(); } },
   saveOverpay(){ state.extraOverpayment=Number(document.getElementById("extraOverpayment").value||0); state.overpayTarget=document.getElementById("overpayTarget").value; App.saveAndRender(); },
   progress(){
     document.getElementById("debtProgressList").innerHTML=state.debts.map(d=>{
@@ -432,12 +454,12 @@ const Debt = {
 
 const Holidays = {
   render(){
-    UI.table("holidayTable",["Holiday","Note","Target","Saved/Ringfenced","Date/Due Date"],state.holidays,(r,i)=>`
+    UI.table("holidayTable",["Holiday","Note","Target","Saved/Ringfenced","Date/Due Date","Remove"],state.holidays,(r,i)=>`
       <td><input value="${r[0]}" oninput="state.holidays[${i}][0]=this.value;App.saveAndRender()"></td>
       <td><input value="${r[1]}" oninput="state.holidays[${i}][1]=this.value;App.saveAndRender()"></td>
       <td><input type="number" value="${r[2]}" oninput="state.holidays[${i}][2]=Number(this.value);App.saveAndRender()"></td>
       <td><input type="number" value="${r[3]}" oninput="state.holidays[${i}][3]=Number(this.value);App.saveAndRender()"></td>
-      <td><input value="${r[4]||""}" oninput="state.holidays[${i}][4]=this.value;App.saveAndRender()"></td>`);
+      <td><input value="${r[4]||""}" oninput="state.holidays[${i}][4]=this.value;App.saveAndRender()"></td><td><button class="danger" onclick="Holidays.remove(${i})">Remove</button></td>`);
     const sortedHolidays = [...state.holidays].sort((a,b)=>{
       const da=Calc.parseDate(a[4]), db=Calc.parseDate(b[4]);
       if(da && db) return da-db;
@@ -451,7 +473,8 @@ const Holidays = {
       return `<td>${h[0]}</td><td>${h[4]||""}</td><td>${money(h[2])}</td><td>${money(h[3])}</td><td>${money(rem)}</td><td><span class="status-badge ${status.cls}">${status.icon} ${status.label}</span></td><td class="note">${status.detail}</td>`;
     });
   },
-  add(){ state.holidays.push(["New holiday","",0,0,""]); App.saveAndRender(); }
+  add(){ state.holidays.push(["New holiday","",0,0,""]); App.saveAndRender(); },
+  remove(i){ if(confirm("Remove this holiday?")){ state.holidays.splice(i,1); App.saveAndRender(); } }
 };
 
 const Relocation = {
@@ -472,8 +495,179 @@ const Settings = {
   reset(){ if(confirm("Reset all Grant OS data?")){ localStorage.removeItem("grantOS_v1"); state=structuredClone(Defaults); App.render(); } }
 };
 
+
+
+const Timeline = {
+  toDate(value){ if(!value) return null; const d=new Date(value); return isNaN(d.getTime())?null:d; },
+  fmtDate(d){ return d ? d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : ""; },
+  todayMarkerId:"timeline-today-marker",
+
+  spareBefore(date){
+    const d=this.toDate(date);
+    if(!d) return 0;
+    const paydayDay=Number(state.payday||26);
+    let cursor=new Date(new Date().getFullYear(), new Date().getMonth(), paydayDay);
+    const now=new Date();
+    if(now.getDate()>=paydayDay) cursor=new Date(now.getFullYear(), now.getMonth()+1, paydayDay);
+    let paydays=0;
+    while(cursor<=d){
+      paydays++;
+      cursor=new Date(cursor.getFullYear(), cursor.getMonth()+1, paydayDay);
+    }
+    const fixed=(Calc.totalFixed?Calc.totalFixed():0) + Number(state.weeklyBudget||60)*4;
+    return Math.max(0, paydays*(Number(state.wage||0)-fixed));
+  },
+
+  riskForAmount(amount, date, saved=0){
+    const remaining=Math.max(0, Number(amount||0)-Number(saved||0));
+    if(remaining<=0) return {cls:"green", label:"Fully funded", detail:"Already covered by saved/ringfenced money."};
+    const spare=this.spareBefore(date);
+    if(spare>=remaining) return {cls:"amber", label:"Covered by wage", detail:`Forecast spare before date: ${money(spare)}.`};
+    return {cls:"red", label:"Risk", detail:`Short by ${money(remaining-spare)} before date.`};
+  },
+
+  build(){
+    const items=[];
+    const now=new Date();
+
+    // Holidays
+    (state.holidays||[]).forEach(h=>{
+      const d=this.toDate(h[4]);
+      const target=Number(h[2]||0), saved=Number(h[3]||0), remaining=Math.max(0,target-saved);
+      const risk=this.riskForAmount(target,h[4],saved);
+      items.push({
+        date:d,title:h[0],type:"Holiday",amount:remaining,
+        detail:`${money(remaining)} remaining • ${risk.label}`,
+        subdetail:risk.detail, cls:risk.cls
+      });
+    });
+
+    // Debts
+    (state.debts||[]).forEach(dbt=>{
+      const type=(Calc.debtType?Calc.debtType(dbt):(dbt[4]||"Regular"));
+      const d=this.toDate(dbt[5]);
+      if(type==="One-off" && Number(dbt[1]||0)>0){
+        const risk=this.riskForAmount(Number(dbt[1]||0), dbt[5], 0);
+        items.push({
+          date:d,title:"Clear "+dbt[0],type:"Debt",amount:Number(dbt[1]||0),
+          detail:`${money(dbt[1])} due • ${risk.label}`,
+          subdetail:risk.detail, cls:risk.cls
+        });
+      }
+      if(type==="Regular" && dbt[5]){
+        items.push({
+          date:d,title:dbt[0]+" estimated finish",type:"Debt finish",amount:Number(dbt[1]||0),
+          detail:`Balance ${money(dbt[1])} • monthly ${money(dbt[2])}`,
+          subdetail:"Estimated finish date from your debt tracker.", cls:"green"
+        });
+      }
+    });
+
+    // Paydays auto-extend based on your furthest dated debt/holiday, with a minimum 36-month runway.
+    const paydayDay=Number(state.payday||26);
+    let pd=new Date(now.getFullYear(), now.getMonth(), paydayDay);
+    if(now.getDate()>=paydayDay) pd=new Date(now.getFullYear(), now.getMonth()+1, paydayDay);
+
+    const datedEvents = [];
+    (state.holidays||[]).forEach(h=>{ const d=this.toDate(h[4]); if(d) datedEvents.push(d); });
+    (state.debts||[]).forEach(dbt=>{ const d=this.toDate(dbt[5]); if(d) datedEvents.push(d); });
+
+    let horizon = new Date(now.getFullYear()+3, now.getMonth(), paydayDay); // minimum 3 years
+    if(datedEvents.length){
+      const furthest = new Date(Math.max(...datedEvents.map(d=>d.getTime())));
+      const extended = new Date(furthest.getFullYear(), furthest.getMonth()+12, paydayDay); // 12 months beyond furthest plan
+      if(extended > horizon) horizon = extended;
+    }
+
+    let i=0;
+    while(true){
+      const d=new Date(pd.getFullYear(), pd.getMonth()+i, paydayDay);
+      if(d>horizon || i>120) break; // practical safety cap: 10 years
+      const fixed=(Calc.totalFixed?Calc.totalFixed():0) + Number(state.weeklyBudget||60)*4;
+      const spare=Math.max(0,Number(state.wage||0)-fixed);
+      items.push({
+        date:d,title:"Payday",type:"Income",amount:Number(state.wage||0),
+        detail:`Expected wage ${money(state.wage||0)}`,
+        subdetail:`Estimated spare after normal bills and weekly budget: ${money(spare)}.`,
+        cls:"green", payday:true
+      });
+      i++;
+    }
+
+    // Goals
+    if(Number(state.emergencyFund||0)<Number(state.emergencyTarget||1000)){
+      items.push({
+        date:null,title:"Build emergency fund",type:"Goal",amount:Number(state.emergencyTarget||1000)-Number(state.emergencyFund||0),
+        detail:`${money(state.emergencyFund||0)} / ${money(state.emergencyTarget||1000)}`,
+        subdetail:"Ongoing goal.", cls:"amber"
+      });
+    }
+    const relocation=(Calc.totalRelocation?Calc.totalRelocation():0);
+    items.push({
+      date:null,title:"Relocation fund",type:"Goal",amount:Math.max(0,10000-relocation),
+      detail:`${money(relocation)} / £10,000`,
+      subdetail:"Ongoing Thailand/New Zealand fund.", cls:relocation>=10000?"green":"amber"
+    });
+
+    return items.sort((a,b)=>{
+      if(a.date&&b.date) return a.date-b.date;
+      if(a.date&&!b.date) return -1;
+      if(!a.date&&b.date) return 1;
+      return a.title.localeCompare(b.title);
+    });
+  },
+
+  summary(items){
+    const now=new Date();
+    const in90=new Date(now.getTime()+90*24*60*60*1000);
+    const dated=items.filter(x=>x.date && x.date>=now && x.date<=in90);
+    const paydays=dated.filter(x=>x.type==="Income").length;
+    const holidays=dated.filter(x=>x.type==="Holiday").length;
+    const debts=dated.filter(x=>x.type==="Debt"||x.type==="Debt finish").length;
+    const red=dated.filter(x=>x.cls==="red").length;
+    const amber=dated.filter(x=>x.cls==="amber").length;
+    const status=red>0?"Risk items need attention":amber>0?"Everything covered, but watch amber items":"Everything currently safe";
+    const cls=red>0?"red":amber>0?"amber":"green";
+    return `<div class="alert ${cls==="red"?"red":cls==="green"?"green":""}">
+      <strong>${status}</strong><br>
+      <span class="note">${paydays} payday(s), ${holidays} holiday item(s), ${debts} debt milestone(s) in the next 90 days.</span>
+    </div>`;
+  },
+
+  render(){
+    const items=this.build();
+    const list=document.getElementById("timelineList");
+    const summary=document.getElementById("timelineSummary");
+    const preview=document.getElementById("dashboardTimelinePreview");
+    if(summary) summary.innerHTML=this.summary(items);
+
+    let insertedToday=false;
+    const now=new Date();
+    const htmlItems=[];
+    items.forEach(item=>{
+      if(!insertedToday && item.date && item.date>=now){
+        htmlItems.push(`<div id="${this.todayMarkerId}" class="timeline-item green"><div class="timeline-title">Today<span class="timeline-badge">Current position</span></div><div class="timeline-meta">${this.fmtDate(now)} • Start from here</div></div>`);
+        insertedToday=true;
+      }
+      const paydayClass=item.payday?" payday-event":"";
+      htmlItems.push(`<div class="timeline-item ${item.cls}${paydayClass}">
+        <div class="timeline-title">${item.title}<span class="timeline-badge">${item.type}</span></div>
+        <div class="timeline-meta">${item.date?this.fmtDate(item.date):"Ongoing"} • ${item.detail}</div>
+        <div class="timeline-meta">${item.subdetail||""}</div>
+      </div>`);
+    });
+    if(!insertedToday) htmlItems.unshift(`<div id="${this.todayMarkerId}" class="timeline-item green"><div class="timeline-title">Today<span class="timeline-badge">Current position</span></div><div class="timeline-meta">${this.fmtDate(now)} • Start from here</div></div>`);
+    if(list) list.innerHTML=htmlItems.join("");
+  },
+
+  scrollToday(){
+    const el=document.getElementById(this.todayMarkerId);
+    if(el) el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+};
+
 const App = {
-  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Data.save(); },
+  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); Data.save(); },
   saveAndRender(){ Data.save(); this.render(); }
 };
 App.render();
