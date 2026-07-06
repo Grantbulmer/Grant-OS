@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.2 Input Focus Fix</title>
+<title>Grant OS v2.5.3 Strong Input Focus Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -146,7 +146,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.2 Input Focus Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.5.3 Strong Input Focus Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -245,7 +245,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
         <h3>Smarter Overpayment Simulator</h3>
         <p class="note">Regular debts only. One-off BNPL payments do not distort the estimate.</p>
         <table>
-          <tr><td>Extra monthly overpayment</td><td><input id="extraOverpayment" type="number" oninput="Debt.saveOverpay()"></td></tr>
+          <tr><td>Extra monthly overpayment</td><td><input id="extraOverpayment" type="number" onchange="Debt.saveOverpay()"></td></tr>
           <tr><td>Apply overpayment to</td><td><select id="overpayTarget" onchange="Debt.saveOverpay()"></select></td></tr>
           <tr><td>Regular loan repayment estimate</td><td id="monthsRemainingNow">0</td></tr>
           <tr><td>With overpayment estimate</td><td id="monthsRemainingOverpay">0</td></tr>
@@ -514,7 +514,7 @@ const Budget = {
   render(){
     ["wage","firstDirectBalance","firstDirectOverdraft","monzoBalance","monzoOverdraft","monzoOverdraftLimit","weeklyBudget","payday","emergencyFund","emergencyTarget"].forEach(k=>UI.setVal(k,state[k]));
     UI.setVal("includeMonzoOverdraftForSpend",state.includeMonzoOverdraftForSpend);
-    UI.table("fixedCostsTable",["Bill","Amount"],state.fixed,(r,i)=>`<td><input value="${r[0]}" oninput="state.fixed[${i}][0]=this.value;App.saveAndRender()"></td><td><input type="number" value="${r[1]}" oninput="state.fixed[${i}][1]=Number(this.value);App.saveAndRender()"></td>`);
+    UI.table("fixedCostsTable",["Bill","Amount"],state.fixed,(r,i)=>`<td><input value="${r[0]}" onchange="state.fixed[${i}][0]=this.value;App.saveAndRender()"></td><td><input type="number" value="${r[1]}" onchange="state.fixed[${i}][1]=Number(this.value);App.saveAndRender()"></td>`);
     document.getElementById("paydayResult").innerHTML=`<div class="alert green">Current next priority: <strong>${Calc.nextPriority()}</strong></div>`;
   },
   save(){
@@ -528,13 +528,13 @@ const Budget = {
 const Debt = {
   render(){
     UI.table("debtTable",["Debt","Balance","Monthly","Finish","Type","Due Date","Priority","Remove"],state.debts,(r,i)=>`
-      <td><input value="${r[0]}" oninput="state.debts[${i}][0]=this.value;App.saveAndRender()"></td>
-      <td><input type="number" value="${r[1]}" oninput="state.debts[${i}][1]=Number(this.value);App.saveAndRender()"></td>
-      <td><input type="number" value="${r[2]}" oninput="state.debts[${i}][2]=Number(this.value);App.saveAndRender()"></td>
-      <td><input value="${r[3]}" oninput="state.debts[${i}][3]=this.value;App.saveAndRender()"></td>
+      <td><input value="${r[0]}" onchange="state.debts[${i}][0]=this.value;App.saveAndRender()"></td>
+      <td><input type="number" value="${r[1]}" onchange="state.debts[${i}][1]=Number(this.value);App.saveAndRender()"></td>
+      <td><input type="number" value="${r[2]}" onchange="state.debts[${i}][2]=Number(this.value);App.saveAndRender()"></td>
+      <td><input value="${r[3]}" onchange="state.debts[${i}][3]=this.value;App.saveAndRender()"></td>
       <td><select onchange="state.debts[${i}][4]=this.value;App.saveAndRender()"><option ${r[4]==="Regular"?"selected":""}>Regular</option><option ${r[4]==="One-off"?"selected":""}>One-off</option><option ${r[4]==="Flexible"?"selected":""}>Flexible</option></select></td>
-      <td><input value="${r[5]||""}" oninput="state.debts[${i}][5]=this.value;App.saveAndRender()"></td>
-      <td><input type="number" value="${r[6]||i+1}" oninput="state.debts[${i}][6]=Number(this.value);App.saveAndRender()"></td><td><button class="danger" onclick="Debt.remove(${i})">Remove</button></td>`);
+      <td><input value="${r[5]||""}" onchange="state.debts[${i}][5]=this.value;App.saveAndRender()"></td>
+      <td><input type="number" value="${r[6]||i+1}" onchange="state.debts[${i}][6]=Number(this.value);App.saveAndRender()"></td><td><button class="danger" onclick="Debt.remove(${i})">Remove</button></td>`);
     this.progress(); this.priority(); this.simulator();
   },
   add(){ state.debts.push(["New debt",0,0,"","Regular","",state.debts.length+1]); App.saveAndRender(); },
@@ -576,11 +576,11 @@ const Debt = {
 const Holidays = {
   render(){
     UI.table("holidayTable",["Holiday","Note","Target","Saved/Ringfenced","Date/Due Date","Remove"],state.holidays,(r,i)=>`
-      <td><input value="${r[0]}" oninput="state.holidays[${i}][0]=this.value;App.saveAndRender()"></td>
-      <td><input value="${r[1]}" oninput="state.holidays[${i}][1]=this.value;App.saveAndRender()"></td>
-      <td><input type="number" value="${r[2]}" oninput="state.holidays[${i}][2]=Number(this.value);App.saveAndRender()"></td>
-      <td><input type="number" value="${r[3]}" oninput="state.holidays[${i}][3]=Number(this.value);App.saveAndRender()"></td>
-      <td><input value="${r[4]||""}" oninput="state.holidays[${i}][4]=this.value;App.saveAndRender()"></td><td><button class="danger" onclick="Holidays.remove(${i})">Remove</button></td>`);
+      <td><input value="${r[0]}" onchange="state.holidays[${i}][0]=this.value;App.saveAndRender()"></td>
+      <td><input value="${r[1]}" onchange="state.holidays[${i}][1]=this.value;App.saveAndRender()"></td>
+      <td><input type="number" value="${r[2]}" onchange="state.holidays[${i}][2]=Number(this.value);App.saveAndRender()"></td>
+      <td><input type="number" value="${r[3]}" onchange="state.holidays[${i}][3]=Number(this.value);App.saveAndRender()"></td>
+      <td><input value="${r[4]||""}" onchange="state.holidays[${i}][4]=this.value;App.saveAndRender()"></td><td><button class="danger" onclick="Holidays.remove(${i})">Remove</button></td>`);
     const sortedHolidays = [...state.holidays].sort((a,b)=>{
       const da=Calc.parseDate(a[4]), db=Calc.parseDate(b[4]);
       if(da && db) return da-db;
@@ -600,13 +600,13 @@ const Holidays = {
 
 const Relocation = {
   render(){
-    UI.table("thaiTable",["Item","Target","Saved"],state.thai,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" oninput="state.thai[${i}][2]=Number(this.value);App.saveAndRender()"></td>`);
-    UI.table("nzTable",["Item","Target","Saved"],state.nz,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" oninput="state.nz[${i}][2]=Number(this.value);App.saveAndRender()"></td>`);
+    UI.table("thaiTable",["Item","Target","Saved"],state.thai,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" onchange="state.thai[${i}][2]=Number(this.value);App.saveAndRender()"></td>`);
+    UI.table("nzTable",["Item","Target","Saved"],state.nz,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" onchange="state.nz[${i}][2]=Number(this.value);App.saveAndRender()"></td>`);
   }
 };
 
 const Career = {
-  render(){ UI.table("jobTable",["Employer","Role","Status","Country"],state.jobs,(r,i)=>`<td><input value="${r[0]}" oninput="state.jobs[${i}][0]=this.value;App.saveAndRender()"></td><td><input value="${r[1]}" oninput="state.jobs[${i}][1]=this.value;App.saveAndRender()"></td><td><input value="${r[2]}" oninput="state.jobs[${i}][2]=this.value;App.saveAndRender()"></td><td><input value="${r[3]}" oninput="state.jobs[${i}][3]=this.value;App.saveAndRender()"></td>`); },
+  render(){ UI.table("jobTable",["Employer","Role","Status","Country"],state.jobs,(r,i)=>`<td><input value="${r[0]}" onchange="state.jobs[${i}][0]=this.value;App.saveAndRender()"></td><td><input value="${r[1]}" onchange="state.jobs[${i}][1]=this.value;App.saveAndRender()"></td><td><input value="${r[2]}" onchange="state.jobs[${i}][2]=this.value;App.saveAndRender()"></td><td><input value="${r[3]}" onchange="state.jobs[${i}][3]=this.value;App.saveAndRender()"></td>`); },
   add(){ state.jobs.push(["","","Applied",""]); App.saveAndRender(); }
 };
 
@@ -1645,34 +1645,63 @@ const App = {
 };
 App.render();
 
-/* v2.5.2 input focus fix
-   Graphs now update after editing instead of after every digit typed. */
-const InputFocusFixV252 = {
-  refresh(){
-    try{
-      if(typeof Data !== "undefined" && Data.save) Data.save();
-      if(typeof App !== "undefined" && App.render) App.render();
-      else if(typeof GraphsV21 !== "undefined" && GraphsV21.render) GraphsV21.render();
-    }catch(e){}
+/* v2.5.3 strong input focus fix
+   Prevents re-rendering while a user is actively typing in any input field. */
+const StrongInputFocusFixV253 = {
+  isEditing(){
+    const el = document.activeElement;
+    return !!(el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"));
   },
   patch(){
-    if(window._grantOSInputFocusFixV252) return;
-    window._grantOSInputFocusFixV252 = true;
+    if(window._grantOSStrongInputFocusFixV253) return;
+    window._grantOSStrongInputFocusFixV253 = true;
+
+    // Patch App.render so it does not rebuild forms while the keyboard is open.
+    setTimeout(()=>{
+      if(window.App && App.render && !App._strongFocusPatchedV253){
+        App._strongFocusPatchedV253 = true;
+        const originalRender = App.render.bind(App);
+        App.render = function(){
+          if(StrongInputFocusFixV253.isEditing()){
+            try{ if(typeof Data !== "undefined" && Data.save) Data.save(); }catch(e){}
+            return;
+          }
+          return originalRender();
+        };
+      }
+    }, 50);
+
+    // Save while typing, but do not redraw.
+    document.addEventListener("input", e=>{
+      if(e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.target.tagName==="SELECT")){
+        try{ if(typeof Data !== "undefined" && Data.save) Data.save(); }catch(err){}
+      }
+    }, true);
+
+    // When editing finishes, redraw once.
+    const finishEdit = ()=>{
+      setTimeout(()=>{
+        try{
+          if(typeof Data !== "undefined" && Data.save) Data.save();
+          const active = document.activeElement;
+          if(!StrongInputFocusFixV253.isEditing()){
+            if(window.App && App.render) App.render();
+            else if(window.GraphsV21 && GraphsV21.render) GraphsV21.render();
+          }
+        }catch(e){}
+      }, 100);
+    };
 
     document.addEventListener("change", e=>{
-      if(e.target && (e.target.tagName==="INPUT" || e.target.tagName==="SELECT" || e.target.tagName==="TEXTAREA")){
-        setTimeout(()=>InputFocusFixV252.refresh(), 50);
-      }
-    });
+      if(e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.target.tagName==="SELECT")) finishEdit();
+    }, true);
 
     document.addEventListener("blur", e=>{
-      if(e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA")){
-        setTimeout(()=>InputFocusFixV252.refresh(), 50);
-      }
+      if(e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.target.tagName==="SELECT")) finishEdit();
     }, true);
   }
 };
-InputFocusFixV252.patch();
+StrongInputFocusFixV253.patch();
 
 </script>
 </body>
