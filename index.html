@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.1.1 Graphs Layout Test</title>
+<title>Grant OS v2.4 Complete</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -63,6 +63,33 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .score-box{background:#020617;border:1px solid var(--border);border-radius:14px;padding:12px}
 .score-box strong{display:block;font-size:22px;margin-top:4px}
 @media(max-width:900px){.graph-grid,.score-breakdown{grid-template-columns:1fr}}
+
+/* v2.4 */
+.snapshot-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.snapshot-card{background:#020617;border:1px solid var(--border);border-radius:16px;padding:14px}
+.snapshot-card .label{color:var(--muted);font-size:14px}
+.snapshot-card .value{font-size:30px;font-weight:800;margin:6px 0;color:var(--text)}
+.snapshot-card .detail{color:var(--muted);font-size:14px;margin-top:6px}
+.snapshot-card .bar{height:10px;background:#020617;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px}
+.snapshot-card .fill{height:100%;background:var(--green);border-radius:999px}
+.snapshot-card.warning .fill{background:var(--amber)}
+.snapshot-card.risk .fill{background:var(--red)}
+.snapshot-card.good .value{color:var(--green)}
+.snapshot-card.warning .value{color:var(--amber)}
+.snapshot-card.risk .value{color:var(--red)}
+.range-toggle{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.range-toggle button{padding:8px 12px;border-radius:999px}
+.range-toggle button.active{background:var(--blue);color:#00111a}
+.linegraph{height:190px;background:#2b3440;border:1px solid var(--border);border-radius:14px;padding:12px;position:relative;overflow:hidden}
+.linegraph:before{content:"";position:absolute;inset:12px;background-image:linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px);background-size:24px 24px}
+.linegraph svg{position:relative;z-index:1;width:100%;height:100%}
+.linegraph-label{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:6px}
+.linegraph-note{color:var(--muted);font-size:12px;margin-top:8px}
+.alert.amber{border-left-color:var(--amber)!important;color:#f59e0b!important}
+.alert.red{border-left-color:var(--red)!important;color:#ff6b6b!important}
+.alert.green{border-left-color:var(--green)!important;color:#86efac!important}
+@media(max-width:900px){.snapshot-grid{grid-template-columns:1fr}}
+
 </style>
 
 <link rel="manifest" href="manifest.json?v=201">
@@ -79,7 +106,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.1.1 Graphs Layout Test</span></h1>
+  <h1>Grant OS <span class="pill">v2.4 Complete</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -108,7 +135,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
       <div class="card"><h3>Emergency Fund</h3><div id="emergencyProgress" class="big green">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
       <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
       <div class="card wide"><h3>Next Priority</h3><div id="nextPriority" class="big blue">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
-      <div class="card full"><h3>Payday-to-Payday Forecast</h3><table id="forecastTable"></table></div>
+      <div class="card full"><h3>Payday-to-Payday Forecast</h3><div class="range-toggle" id="forecastRangeToggle"></div><table id="forecastTable"></table></div>
     </div>
   </section>
 
@@ -209,8 +236,8 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
         <p class="note">Simple visuals to show whether you are improving. These are estimates based on the figures currently entered in Grant OS.</p>
       </div>
       <div class="card full">
-        <h3>Finance Health Breakdown</h3>
-        <div id="financeHealthBreakdown" class="score-breakdown"></div>
+        <h3>Financial Snapshot</h3>
+        <div id="financeHealthBreakdown" class="snapshot-grid"></div>
       </div>
       <div class="card wide">
         <h3>Debt Balance Forecast</h3>
@@ -230,6 +257,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
       </div>
     </div>
   </section>
+
 
 
 <section id="relocation" class="section">
@@ -366,10 +394,10 @@ const Calc = {
   alerts(){
     const out=[];
     const currys=this.debtBalance("Currys BNPL");
-    if(currys>0) out.push(["red",`Currys BNPL still has ${money(currys)} remaining.`]);
+    if(currys>0) out.push(["amber",`Currys BNPL still has ${money(currys)} remaining.`]);
     const flights=this.holidayRemaining("Amsterdam flights");
-    if(flights>0) out.push(["red",`Amsterdam flights still need ${money(flights)} ringfenced.`]);
-    if(this.safeWeek()<Number(state.weeklyBudget||60)) out.push(["red",`Safe weekly spend is ${money(this.safeWeek())}, below your usual ${money(state.weeklyBudget||60)} target.`]);
+    if(flights>0) out.push(["amber",`Amsterdam flights still need ${money(flights)} ringfenced.`]);
+    if(this.safeWeek()<Number(state.weeklyBudget||60)) out.push(["amber",`Safe weekly spend is ${money(this.safeWeek())}, below your usual ${money(state.weeklyBudget||60)} target.`]);
     if(this.totalOverdraft()>0) out.push(["amber",`You are using ${money(this.totalOverdraft())} of overdraft across First Direct and Monzo.`]);
     if(Number(state.emergencyFund||0)<Number(state.emergencyTarget||1000)) out.push(["amber",`Emergency fund is ${money(state.emergencyFund)} / ${money(state.emergencyTarget)}.`]);
     if(!out.length) out.push(["green","No immediate finance alerts. Keep following the weekly spend plan."]);
@@ -868,8 +896,113 @@ const GraphsV21 = {
   }
 };
 
+
+const SnapshotV24 = {
+  pct(n,d){ return d>0 ? Math.max(0,Math.min(100,(n/d)*100)) : 0; },
+  render(){
+    const box=document.getElementById("financeHealthBreakdown");
+    if(!box) return false;
+    const overdraft = Calc.totalOverdraft ? Calc.totalOverdraft() : 0;
+    const odLimit = Math.max(Number(state.overdraftLimit||1000), 1);
+    const currysRow=(state.debts||[]).find(d=>(d[0]||"").toLowerCase().includes("currys"));
+    const bnpl = currysRow ? Number(currysRow[1]||0) : 0;
+    const emergency = Number(state.emergencyFund||0);
+    const emergencyTarget = Math.max(Number(state.emergencyTarget||1000),1);
+    const bank = Calc.bankPosition ? Calc.bankPosition() : 0;
+    const debt = Calc.totalDebt ? Calc.totalDebt() : 0;
+    const holidayTarget = (state.holidays||[]).reduce((s,h)=>s+Number(h[2]||0),0);
+    const holidaySaved = (state.holidays||[]).reduce((s,h)=>s+Math.min(Number(h[2]||0),Number(h[3]||0)),0);
+    const holidayPct = this.pct(holidaySaved, holidayTarget);
+    const odPct = this.pct(overdraft, odLimit);
+    const emergencyPct = this.pct(emergency, emergencyTarget);
+    const cards = [
+      {title:"Overdraft",value:`${money(overdraft)} used`,detail:`${Math.round(odPct)}% of ${money(odLimit)} limit`,pct:odPct,cls:overdraft<=0?"good":odPct>80?"risk":"warning"},
+      {title:"BNPL",value:`${money(bnpl)} remaining`,detail:bnpl<=0?"Cleared":"Currys BNPL still to clear",pct:bnpl<=0?100:Math.max(0,100-this.pct(bnpl,440)),cls:bnpl<=0?"good":"warning"},
+      {title:"Emergency fund",value:`${money(emergency)} saved`,detail:`${Math.round(emergencyPct)}% of ${money(emergencyTarget)} target`,pct:emergencyPct,cls:emergency>=emergencyTarget?"good":"warning"},
+      {title:"Bank position",value:money(bank),detail:bank>=0?"Positive overall position":"Current overall position",pct:bank>=0?100:Math.max(0,100+(bank/1000)*100),cls:bank>=0?"good":"warning"},
+      {title:"Holiday funding",value:`${Math.round(holidayPct)}% funded`,detail:`${money(holidaySaved)} / ${money(holidayTarget)}`,pct:holidayPct,cls:holidayPct>=100?"good":"warning"},
+      {title:"Debt load",value:`${money(debt)} remaining`,detail:"Total debt still to clear",pct:Math.max(0,100-this.pct(debt,12000)),cls:debt<=0?"good":"warning"}
+    ];
+    box.innerHTML=cards.map(c=>`<div class="snapshot-card ${c.cls}"><div class="label">${c.title}</div><div class="value">${c.value}</div><div class="bar"><div class="fill" style="width:${Math.round(c.pct)}%"></div></div><div class="detail">${c.detail}</div></div>`).join("");
+    return true;
+  }
+};
+
+const ForecastRangeV24 = {
+  get(){ return Number(localStorage.getItem("grantOSForecastMonths") || 6); },
+  set(m){ localStorage.setItem("grantOSForecastMonths", String(m)); this.renderToggle(); if(ForecastV21) ForecastV21.renderForecastTable(); if(GraphsV21) GraphsV21.render(); },
+  renderToggle(){
+    const el=document.getElementById("forecastRangeToggle");
+    if(!el) return;
+    const current=this.get();
+    el.innerHTML=[3,6,9,12].map(m=>`<button class="${current===m?'active':''}" onclick="ForecastRangeV24.set(${m})">${m} months</button>`).join("");
+  }
+};
+
+if(typeof ForecastV21 !== "undefined"){
+  ForecastV21.renderForecastTable = function(){
+    const t=document.getElementById("forecastTable");
+    if(!t) return false;
+    ForecastRangeV24.renderToggle();
+    const rows=this.monthlySeries(ForecastRangeV24.get());
+    t.innerHTML="<tr><th>Month</th><th>Forecast bank position</th><th>Total debt estimate</th><th>One-offs due</th><th>Emergency fund est.</th><th>Notes</th></tr>";
+    rows.forEach(r=>{
+      const note = r.oneOff>0 ? "One-off costs included" : "Normal month estimate";
+      t.innerHTML += `<tr><td>${r.month}</td><td>${money(r.bank)}</td><td>${money(r.debt)}</td><td>${money(r.oneOff)}</td><td>${money(r.emergency)}</td><td>${note}</td></tr>`;
+    });
+    return true;
+  };
+}
+
+const GraphsV24 = {
+  line(id, rows, key, prefix="£"){
+    const el=document.getElementById(id);
+    if(!el) return;
+    const vals=rows.map(r=>Number(r[key]||0));
+    const min=Math.min(...vals,0), max=Math.max(...vals,1), span=Math.max(1,max-min);
+    const w=600,h=160,pad=18;
+    const points=rows.map((r,i)=>{
+      const x=pad+(rows.length===1?0:(i/(rows.length-1))*(w-pad*2));
+      const y=h-pad-((Number(r[key]||0)-min)/span)*(h-pad*2);
+      return {x,y,label:r.month,val:r[key]};
+    });
+    const poly=points.map(p=>`${p.x},${p.y}`).join(" ");
+    el.innerHTML=`<div class="linegraph"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="4" style="color:var(--blue)"></polyline>${points.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="var(--amber)"><title>${p.label}: ${prefix}${p.val}</title></circle>`).join("")}</svg></div><div class="linegraph-label"><span>${rows[0]?.month||""}</span><span>${rows[rows.length-1]?.month||""}</span></div><div class="linegraph-note">Line graph uses the selected ${ForecastRangeV24.get()} month forecast range.</div>`;
+  },
+  bars(id, rows, key, prefix="£"){
+    const el=document.getElementById(id); if(!el) return;
+    const vals=rows.map(r=>Math.abs(Number(r[key]||0)));
+    const max=Math.max(...vals,1);
+    el.innerHTML=`<div class="sparkline">${rows.map(r=>`<div class="sparkbar" title="${r.month}: ${prefix}${r[key]}" style="height:${Math.max(4,Math.abs(r[key])/max*125)}px"></div>`).join("")}</div><div class="graph-labels"><span>${rows[0]?.month||""}</span><span>${rows[rows.length-1]?.month||""}</span></div>`;
+  },
+  holidayFunding(){
+    const el=document.getElementById("holidayFundingGraph"); if(!el) return;
+    const rows=(state.holidays||[]).map(h=>{
+      const pct=Number(h[2]||0)>0 ? Math.min(100,Number(h[3]||0)/Number(h[2]||0)*100) : 100;
+      return {name:h[0],pct};
+    });
+    el.innerHTML=rows.map(r=>`<div class="minirow"><strong>${r.name}</strong><div class="chartbar"><div class="chartfill" style="width:${r.pct}%"></div></div><span>${Math.round(r.pct)}%</span></div>`).join("");
+  },
+  render(){
+    if(typeof ForecastV21==="undefined") return;
+    const rows=ForecastV21.monthlySeries(ForecastRangeV24.get());
+    this.line("debtForecastGraph",rows,"debt");
+    this.line("bankForecastGraph",rows,"bank");
+    this.bars("emergencyGraph",rows,"emergency");
+    this.holidayFunding();
+    ForecastRangeV24.renderToggle();
+  }
+};
+
+if(typeof GraphsV21 !== "undefined"){
+  GraphsV21.render = GraphsV24.render.bind(GraphsV24);
+  GraphsV21.line = GraphsV24.line.bind(GraphsV24);
+  GraphsV21.bars = GraphsV24.bars.bind(GraphsV24);
+  GraphsV21.holidayFunding = GraphsV24.holidayFunding.bind(GraphsV24);
+}
+
 const App = {
-  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); HealthV21.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); Data.save(); },
+  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); HealthV21.render(); SnapshotV24.render(); ForecastRangeV24.renderToggle(); ForecastV21.renderForecastTable(); GraphsV21.render(); Data.save(); },
   saveAndRender(){ Data.save(); this.render(); }
 };
 App.render();
