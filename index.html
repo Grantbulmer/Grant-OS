@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.0.1 Icon Fix</title>
+<title>Grant OS v2.1.1 Graphs Layout Test</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -53,6 +53,16 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 
 .timeline-item.payday-event{border-color:#14532d;background:linear-gradient(135deg,#020617,#052e16)}
 .timeline-item.payday-event .timeline-title{color:var(--green)}
+
+.graph-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.graph-card{background:#020617;border:1px solid var(--border);border-radius:16px;padding:16px}
+.sparkline{display:flex;align-items:end;gap:6px;height:140px;border-bottom:1px solid var(--border);padding:8px 0}
+.sparkbar{flex:1;background:var(--blue);border-radius:6px 6px 0 0;min-height:4px}
+.graph-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:6px}
+.score-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.score-box{background:#020617;border:1px solid var(--border);border-radius:14px;padding:12px}
+.score-box strong{display:block;font-size:22px;margin-top:4px}
+@media(max-width:900px){.graph-grid,.score-breakdown{grid-template-columns:1fr}}
 </style>
 
 <link rel="manifest" href="manifest.json?v=201">
@@ -69,7 +79,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.0.1 Icon Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.1.1 Graphs Layout Test</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -79,6 +89,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
     <button class="tab" onclick="UI.show('budget', this)">Budget Setup</button>
     <button class="tab" onclick="UI.show('debts', this)">Debt Tracker</button>
     <button class="tab" onclick="UI.show('holidays', this)">Holiday Pots</button>
+    <button class="tab" onclick="UI.show('graphs', this)">Graphs</button>
     <button class="tab" onclick="UI.show('relocation', this)">Relocation</button>
     <button class="tab" onclick="UI.show('career', this)">Career</button>
     <button class="tab" onclick="UI.show('settings', this)">Settings</button>
@@ -95,9 +106,8 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
       <div class="card wide"><h3>Debt Remaining</h3><div id="debtRemaining" class="big red">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
       <div class="card wide"><h3>Relocation Fund</h3><div id="relocationProgress" class="big green">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
       <div class="card"><h3>Emergency Fund</h3><div id="emergencyProgress" class="big green">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
-      <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note">Overdraft, debt and emergency fund score.</div></div>
+      <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
       <div class="card wide"><h3>Next Priority</h3><div id="nextPriority" class="big blue">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
-      <div class="card full"><h3>Progress Indicators</h3><div id="progressIndicators"></div></div>
       <div class="card full"><h3>Payday-to-Payday Forecast</h3><table id="forecastTable"></table></div>
     </div>
   </section>
@@ -117,9 +127,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
         <div id="timelineList" class="timeline"></div>
       </div>
     </div>
-  </section>
-
-<section id="budget" class="section">
+  </section><section id="budget" class="section">
     <div class="grid">
       <div class="card wide">
         <h3>Core Figures</h3>
@@ -191,7 +199,40 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
     </div>
   </section>
 
-  <section id="relocation" class="section">
+  
+
+
+  <section id="graphs" class="section">
+    <div class="grid">
+      <div class="card full">
+        <h3>Insights & Graphs</h3>
+        <p class="note">Simple visuals to show whether you are improving. These are estimates based on the figures currently entered in Grant OS.</p>
+      </div>
+      <div class="card full">
+        <h3>Finance Health Breakdown</h3>
+        <div id="financeHealthBreakdown" class="score-breakdown"></div>
+      </div>
+      <div class="card wide">
+        <h3>Debt Balance Forecast</h3>
+        <div id="debtForecastGraph"></div>
+      </div>
+      <div class="card wide">
+        <h3>Bank Position Forecast</h3>
+        <div id="bankForecastGraph"></div>
+      </div>
+      <div class="card wide">
+        <h3>Emergency Fund Progress</h3>
+        <div id="emergencyGraph"></div>
+      </div>
+      <div class="card wide">
+        <h3>Holiday Funding</h3>
+        <div id="holidayFundingGraph"></div>
+      </div>
+    </div>
+  </section>
+
+
+<section id="relocation" class="section">
     <div class="grid">
       <div class="card wide"><h3>Thailand Fund</h3><table id="thaiTable"></table></div>
       <div class="card wide"><h3>New Zealand Fund</h3><table id="nzTable"></table></div>
@@ -371,7 +412,7 @@ const Dashboard = {
     const health=Math.round(Math.max(0,30-(Calc.totalOverdraft()/300*30))+Math.min(30,emerPct*.3)+Math.max(0,40-(Calc.totalDebt()/11000*40)));
     const fh=document.getElementById("financeHealth"); fh.textContent=health+"/100"; fh.className="big "+(health>=70?"green":health>=40?"amber":"red");
     document.getElementById("alertsBox").innerHTML=Calc.alerts().map(a=>`<div class="alert ${a[0]}">${a[1]}</div>`).join("");
-    this.progress(); this.forecast();
+    this.forecast();
   },
   progress(){
     const ams=Calc.holiday("Amsterdam");
@@ -678,8 +719,157 @@ const Timeline = {
   }
 };
 
+
+const HealthV21 = {
+  score(){
+    const overdraft = Calc.totalOverdraft ? Calc.totalOverdraft() : 0;
+    const debt = Calc.totalDebt ? Calc.totalDebt() : 0;
+    const bank = Calc.bankPosition ? Calc.bankPosition() : 0;
+    const emergency = Number(state.emergencyFund||0);
+    const emergencyTarget = Math.max(Number(state.emergencyTarget||1000),1);
+    const bnpl = Calc.debtBalance ? Calc.debtBalance("Currys BNPL") : 0;
+    const holidays = state.holidays || [];
+    const holidayTarget = holidays.reduce((s,h)=>s+Number(h[2]||0),0);
+    const holidaySaved = holidays.reduce((s,h)=>s+Math.min(Number(h[2]||0),Number(h[3]||0)),0);
+    const holidayPct = holidayTarget>0 ? holidaySaved/holidayTarget : 1;
+
+    const overdraftScore = Math.max(0, Math.min(20, 20 - (overdraft/650)*20));
+    const bnplScore = bnpl<=0 ? 15 : Math.max(0, 15 - (bnpl/440)*15);
+    const emergencyScore = Math.min(20, (emergency/emergencyTarget)*20);
+    const bankScore = bank>=0 ? 15 : Math.max(0, 15 + (bank/1000)*15);
+    const holidayScore = Math.min(10, holidayPct*10);
+    const debtScore = Math.max(0, Math.min(20, 20 - (debt/11000)*20));
+
+    const total = Math.round(overdraftScore+bnplScore+emergencyScore+bankScore+holidayScore+debtScore);
+    return {
+      total,
+      parts:[
+        ["Overdraft",overdraftScore,20, overdraft<=0 ? "No overdraft used" : `${money(overdraft)} overdraft used`],
+        ["BNPL",bnplScore,15, bnpl<=0 ? "BNPL cleared" : `${money(bnpl)} BNPL remaining`],
+        ["Emergency fund",emergencyScore,20, `${money(emergency)} / ${money(emergencyTarget)}`],
+        ["Bank position",bankScore,15, `${money(bank)} overall position`],
+        ["Holiday funding",holidayScore,10, `${Math.round(holidayPct*100)}% funded`],
+        ["Debt load",debtScore,20, `${money(debt)} total debt`]
+      ],
+      next:this.nextAction(overdraft,bnpl,emergency,emergencyTarget,bank)
+    };
+  },
+  nextAction(overdraft,bnpl,emergency,target,bank){
+    if(bnpl>0) return `Clear Currys BNPL to gain up to 15 points.`;
+    if(overdraft>0) return `Reduce overdraft use to gain up to 20 points.`;
+    if(emergency<target) return `Build emergency fund towards ${money(target)}.`;
+    if(bank<0) return `Move your overall bank position positive.`;
+    return `Keep debt reducing and start building relocation savings.`;
+  },
+  render(){
+    const data=this.score();
+    const fh=document.getElementById("financeHealth");
+    if(fh){
+      fh.textContent=data.total+"/100";
+      fh.className="big "+(data.total>=70?"green":data.total>=40?"amber":"red");
+    }
+    const note=document.getElementById("financeHealthNote");
+    if(note) note.textContent=data.next;
+    const box=document.getElementById("financeHealthBreakdown");
+    if(box){
+      box.innerHTML=data.parts.map(p=>`<div class="score-box"><span class="small">${p[0]}</span><strong>${Math.round(p[1])}/${p[2]}</strong><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,(p[1]/p[2])*100))}%"></div></div><div class="note">${p[3]}</div></div>`).join("");
+    }
+  }
+};
+
+const ForecastV21 = {
+  monthlySeries(months=12){
+    const rows=[];
+    let bank = Calc.bankPosition ? Calc.bankPosition() : 0;
+    let debt = Calc.totalDebt ? Calc.totalDebt() : 0;
+    let emergency = Number(state.emergencyFund||0);
+    const fixed = Calc.totalFixed ? Calc.totalFixed() : 0;
+    const living = Number(state.weeklyBudget||60)*4;
+    const monthlyDebtPay = (state.debts||[]).filter(d=>(Calc.debtType?Calc.debtType(d):d[4])==="Regular").reduce((s,d)=>s+Number(d[2]||0),0);
+    const flexPay = Calc.debtMonthly ? Calc.debtMonthly("Friend") : 0;
+
+    const now=new Date();
+    for(let i=0;i<months;i++){
+      const d=new Date(now.getFullYear(), now.getMonth()+i, Number(state.payday||26));
+      let income=Number(state.wage||0);
+      let out=fixed+living;
+      let oneOff=0;
+
+      // dated one-off debts due in this month
+      (state.debts||[]).forEach(debtRow=>{
+        const type=Calc.debtType?Calc.debtType(debtRow):(debtRow[4]||"Regular");
+        const due=Timeline && Timeline.toDate ? Timeline.toDate(debtRow[5]) : new Date(debtRow[5]);
+        if(type==="One-off" && due && due.getMonth()===d.getMonth() && due.getFullYear()===d.getFullYear()){
+          oneOff += Number(debtRow[1]||0);
+        }
+      });
+
+      // holiday remaining due in this month
+      (state.holidays||[]).forEach(h=>{
+        const hd=Timeline && Timeline.toDate ? Timeline.toDate(h[4]) : new Date(h[4]);
+        if(hd && hd.getMonth()===d.getMonth() && hd.getFullYear()===d.getFullYear()){
+          oneOff += Math.max(0,Number(h[2]||0)-Number(h[3]||0));
+        }
+      });
+
+      bank += income - out - oneOff;
+      debt = Math.max(0, debt - monthlyDebtPay - flexPay - oneOff);
+      if(bank>0 && emergency<Number(state.emergencyTarget||1000)){
+        const save = Math.min(bank*0.15, Number(state.emergencyTarget||1000)-emergency);
+        emergency += Math.max(0,save);
+      }
+
+      rows.push({
+        month:d.toLocaleDateString("en-GB",{month:"short",year:"2-digit"}),
+        bank:Math.round(bank),
+        debt:Math.round(debt),
+        emergency:Math.round(emergency),
+        oneOff:Math.round(oneOff)
+      });
+    }
+    return rows;
+  },
+  renderForecastTable(){
+    const t=document.getElementById("forecastTable");
+    if(!t) return false;
+    const rows=this.monthlySeries(7);
+    t.innerHTML="<tr><th>Month</th><th>Forecast bank position</th><th>Total debt estimate</th><th>One-offs due</th><th>Emergency fund est.</th><th>Notes</th></tr>";
+    rows.forEach(r=>{
+      const note = r.oneOff>0 ? "One-off costs included" : "Normal month estimate";
+      t.innerHTML += `<tr><td>${r.month}</td><td>${money(r.bank)}</td><td>${money(r.debt)}</td><td>${money(r.oneOff)}</td><td>${money(r.emergency)}</td><td>${note}</td></tr>`;
+    });
+    return true;
+  }
+};
+
+const GraphsV21 = {
+  bars(id, rows, key, prefix="£"){
+    const el=document.getElementById(id);
+    if(!el) return;
+    const vals=rows.map(r=>Math.abs(Number(r[key]||0)));
+    const max=Math.max(...vals,1);
+    el.innerHTML=`<div class="sparkline">${rows.map(r=>`<div class="sparkbar" title="${r.month}: ${prefix}${r[key]}" style="height:${Math.max(4,Math.abs(r[key])/max*125)}px"></div>`).join("")}</div><div class="graph-labels"><span>${rows[0]?.month||""}</span><span>${rows[rows.length-1]?.month||""}</span></div>`;
+  },
+  holidayFunding(){
+    const el=document.getElementById("holidayFundingGraph");
+    if(!el) return;
+    const rows=(state.holidays||[]).map(h=>{
+      const pct=Number(h[2]||0)>0 ? Math.min(100,Number(h[3]||0)/Number(h[2]||0)*100) : 100;
+      return {name:h[0],pct};
+    });
+    el.innerHTML=rows.map(r=>`<div class="minirow"><strong>${r.name}</strong><div class="chartbar"><div class="chartfill" style="width:${r.pct}%"></div></div><span>${Math.round(r.pct)}%</span></div>`).join("");
+  },
+  render(){
+    const rows=ForecastV21.monthlySeries(12);
+    this.bars("debtForecastGraph", rows, "debt");
+    this.bars("bankForecastGraph", rows, "bank");
+    this.bars("emergencyGraph", rows, "emergency");
+    this.holidayFunding();
+  }
+};
+
 const App = {
-  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); Data.save(); },
+  render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); HealthV21.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); Data.save(); },
   saveAndRender(){ Data.save(); this.render(); }
 };
 App.render();
