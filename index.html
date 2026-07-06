@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.5.27 Accounts Tab Real Fix</title>
+<title>Grant OS v2.5.5.29 Visual Polish Pass 1</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -228,16 +228,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=201">
+<link rel="manifest" href="manifest.json?v=203">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=201">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=201">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=201">
-<link rel="shortcut icon" href="favicon.ico?v=201">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=203">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=203">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=203">
+<link rel="shortcut icon" href="favicon.ico?v=203">
 
 
 <style>
@@ -773,7 +773,7 @@ header{position:relative}
 
 
 <style>
-/* v2.5.5.27 accounts tab actual fix */
+/* v2.5.5.28 selected overdraft buffer */
 .v25527-summary-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;margin:18px 0 16px!important}
 .v25527-summary-card{background:#0b1220!important;border:1px solid var(--border,#334155)!important;border-radius:18px!important;padding:22px!important;min-height:130px!important}
 .v25527-summary-card h3{margin:0 0 16px!important;color:#bfdbfe!important;text-transform:uppercase!important;letter-spacing:.09em!important}
@@ -787,23 +787,70 @@ header{position:relative}
 @media(max-width:900px){.v25527-summary-grid,.v25527-accounts-grid,.v25527-form-grid{grid-template-columns:1fr!important}}
 </style>
 
+
+<style>
+/* v2.5.5.29 visual polish pass 1 */
+body{background:radial-gradient(circle at top,#11203a 0%,#081120 36%,#020617 100%);}
+header{background:linear-gradient(180deg,rgba(2,6,23,.98),rgba(2,6,23,.92));backdrop-filter:blur(8px);}
+.card{background:linear-gradient(180deg,rgba(30,42,56,.98),rgba(12,18,33,.98));border-color:#405168;box-shadow:0 14px 34px rgba(0,0,0,.28);}
+button{transition:transform .15s ease, box-shadow .15s ease, background .15s ease;}
+button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.18);}
+.stat-card{position:relative;overflow:hidden;}
+.stat-card:after{content:"";position:absolute;inset:auto 0 0 0;height:3px;background:currentColor;opacity:.28;}
+.stat-head{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.stat-head h3{margin:0!important;}
+.stat-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
+.stat-card .note{margin-top:8px;}
+.accent-blue{color:#38bdf8;border-color:rgba(56,189,248,.38);background:linear-gradient(180deg,rgba(18,35,56,.98),rgba(9,18,33,.98));}
+.accent-blue h3,.accent-blue .note{color:#c8e9fb;}
+.accent-blue .stat-icon{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.28);}
+.accent-green{color:#22c55e;border-color:rgba(34,197,94,.34);background:linear-gradient(180deg,rgba(15,42,28,.98),rgba(8,24,16,.98));}
+.accent-green h3,.accent-green .note{color:#d6f7e2;}
+.accent-green .stat-icon{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.3);}
+.accent-amber{color:#f59e0b;border-color:rgba(245,158,11,.34);background:linear-gradient(180deg,rgba(51,31,4,.98),rgba(23,15,5,.98));}
+.accent-amber h3,.accent-amber .note{color:#fde6b8;}
+.accent-amber .stat-icon{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.3);}
+.accent-red{color:#ef4444;border-color:rgba(239,68,68,.34);background:linear-gradient(180deg,rgba(59,16,21,.98),rgba(24,8,11,.98));}
+.accent-red h3,.accent-red .note{color:#ffd5d5;}
+.accent-red .stat-icon{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.3);}
+.accent-teal{color:#2dd4bf;border-color:rgba(45,212,191,.34);background:linear-gradient(180deg,rgba(10,44,42,.98),rgba(7,19,23,.98));}
+.accent-teal h3,.accent-teal .note{color:#cffaf4;}
+.accent-teal .stat-icon{background:rgba(45,212,191,.14);border-color:rgba(45,212,191,.3);}
+.accent-purple{color:#a78bfa;border-color:rgba(167,139,250,.34);background:linear-gradient(180deg,rgba(30,21,58,.98),rgba(12,9,26,.98));}
+.accent-purple h3,.accent-purple .note{color:#e2d8ff;}
+.accent-purple .stat-icon{background:rgba(167,139,250,.14);border-color:rgba(167,139,250,.3);}
+.value-soft{font-size:36px;font-weight:800;letter-spacing:-.02em;}
+.value-positive{color:var(--green)!important;}
+.value-negative{color:var(--red)!important;}
+.value-warning{color:var(--amber)!important;}
+.value-info{color:var(--blue)!important;}
+#dashboard .dashboard-cards .card .bar{background:rgba(2,6,23,.65);}
+#dashboard .dashboard-cards .card.wide .big{line-height:1.15;}
+#accounts .v25527-summary-card{position:relative;overflow:hidden;}
+#accounts .v25527-summary-card:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;opacity:.24;}
+</style>
+
+
+
+
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.5.27 Accounts Tab Real Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.5.5.29 Visual Polish Pass 1</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
   <div class="tabs">
-    <button class="tab active" onclick="UI.show('dashboard', this)">Dashboard</button>
+    <button class="tab active" onclick="UI.show('dashboard', this)">📊 Dashboard</button>
     <button class="tab" onclick="UI.show('accounts', this)">🏦 Accounts</button>
-    <button class="tab" onclick="UI.show('budget', this)">Budget Setup</button>
-    <button class="tab" onclick="UI.show('debts', this)">Debt Tracker</button>
-    <button class="tab" onclick="UI.show('holidays', this)">Holiday Pots</button>
-    <button class="tab" onclick="UI.show('graphs', this)">Graphs</button>
-    <button class="tab" onclick="UI.show('relocation', this)">Relocation</button>
-    <button class="tab" onclick="UI.show('career', this)">Career</button>
-    <button class="tab" onclick="UI.show('settings', this)">Settings</button>
+    <button class="tab" onclick="UI.show('budget', this)">🧾 Budget Setup</button>
+    <button class="tab" onclick="UI.show('debts', this)">💳 Debt Tracker</button>
+    <button class="tab" onclick="UI.show('holidays', this)">✈️ Holiday Pots</button>
+    <button class="tab" onclick="UI.show('graphs', this)">📈 Graphs</button>
+    <button class="tab" onclick="UI.show('relocation', this)">🌍 Relocation</button>
+    <button class="tab" onclick="UI.show('career', this)">💼 Career</button>
+    <button class="tab" onclick="UI.show('settings', this)">⚙️ Settings</button>
   </div>
 
   <section id="dashboard" class="section active">
@@ -812,18 +859,18 @@ header{position:relative}
         <div class="card"><h3>Immediate Alerts</h3><div id="alertsBox"></div></div>
 
         <div class="dashboard-cards">
-          <div class="card"><h3>Overall Bank Position</h3><div id="bankPosition" class="big">£0</div><div class="note">First Direct + Monzo balances minus overdrafts.</div></div>
-          <div class="card"><h3>Total Overdraft Used</h3><div id="totalOverdraft" class="big red">£0</div><div class="note">First Direct OD + Monzo OD.</div></div>
-          <div class="card"><h3>Days Until Payday</h3><div id="daysPayday" class="big amber">0</div><div class="note">Payday assumed 26th monthly.</div></div>
-          <div class="card"><h3>Debt Remaining</h3><div id="debtRemaining" class="big red">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
+          <div class="card stat-card accent-blue"><div class="stat-head"><div class="stat-icon">🏦</div><h3>Overall Bank Position</h3></div><div id="bankPosition" class="big value-soft">£0</div><div class="note">First Direct + Monzo balances minus overdrafts.</div></div>
+          <div class="card stat-card accent-red"><div class="stat-head"><div class="stat-icon">⚠️</div><h3>Total Overdraft Used</h3></div><div id="totalOverdraft" class="big value-soft value-negative">£0</div><div class="note">First Direct OD + Monzo OD.</div></div>
+          <div class="card stat-card accent-amber"><div class="stat-head"><div class="stat-icon">📅</div><h3>Days Until Payday</h3></div><div id="daysPayday" class="big value-soft value-warning">0</div><div class="note">Payday assumed 26th monthly.</div></div>
+          <div class="card stat-card accent-red"><div class="stat-head"><div class="stat-icon">💳</div><h3>Debt Remaining</h3></div><div id="debtRemaining" class="big value-soft value-negative">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
 
-          <div class="card wide"><h3>Next Priority</h3><div id="nextPriority" class="big blue">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
-          <div class="card"><h3>Safe To Spend Today</h3><div id="safeToday" class="big green">£0</div><div class="note">Calculated from selected spend accounts.</div></div>
-          <div class="card"><h3>Safe To Spend This Week</h3><div id="safeWeek" class="big blue">£0</div><div class="note">Selected spend accounts until payday.</div></div>
+          <div class="card wide stat-card accent-purple"><div class="stat-head"><div class="stat-icon">🎯</div><h3>Next Priority</h3></div><div id="nextPriority" class="big value-soft">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
+          <div class="card stat-card accent-green"><div class="stat-head"><div class="stat-icon">☀️</div><h3>Safe To Spend Today</h3></div><div id="safeToday" class="big value-soft value-positive">£0</div><div class="note">Calculated from selected spend accounts.</div></div>
+          <div class="card stat-card accent-teal"><div class="stat-head"><div class="stat-icon">🗓️</div><h3>Safe To Spend This Week</h3></div><div id="safeWeek" class="big value-soft value-info">£0</div><div class="note">Selected spend accounts until payday.</div></div>
 
-          <div class="card wide"><h3>Relocation Fund</h3><div id="relocationProgress" class="big green">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
-          <div class="card"><h3>Emergency Fund</h3><div id="emergencyProgress" class="big green">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
-          <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
+          <div class="card wide stat-card accent-blue"><div class="stat-head"><div class="stat-icon">✈️</div><h3>Relocation Fund</h3></div><div id="relocationProgress" class="big value-soft">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
+          <div class="card stat-card accent-green"><div class="stat-head"><div class="stat-icon">🛡️</div><h3>Emergency Fund</h3></div><div id="emergencyProgress" class="big value-soft">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
+          <div class="card stat-card accent-purple"><div class="stat-head"><div class="stat-icon">📈</div><h3>Finance Health</h3></div><div id="financeHealth" class="big value-soft value-warning">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
         </div>
       </div>
 
@@ -983,19 +1030,19 @@ header{position:relative}
     <p class="note">Manage the actual accounts here. Spend and overdraft inclusion remain controlled from Budget Setup.</p>
 
     <div class="v25527-summary-grid">
-      <div class="v25527-summary-card">
-        <h3>Total Bank Balance</h3>
-        <div id="v25527TotalBalance" class="big red">£0</div>
+      <div class="v25527-summary-card stat-card accent-blue">
+        <div class="stat-head"><div class="stat-icon">🏦</div><h3>Total Bank Balance</h3></div>
+        <div id="v25527TotalBalance" class="big value-soft value-negative">£0</div>
         <p class="note">All accounts combined.</p>
       </div>
-      <div class="v25527-summary-card">
-        <h3>Available Spend</h3>
-        <div id="v25527AvailableSpend" class="big green">£0</div>
-        <p class="note">Selected accounts and overdrafts.</p>
+      <div class="v25527-summary-card stat-card accent-amber">
+        <div class="stat-head"><div class="stat-icon">🛟</div><h3>Selected Overdraft Buffer</h3></div>
+        <div id="v25528OverdraftBuffer" class="big value-soft value-positive">£0</div>
+        <p class="note">Remaining overdraft included in safe spend.</p>
       </div>
-      <div class="v25527-summary-card">
-        <h3>Accounts</h3>
-        <div id="v25527AccountCount" class="big blue">0</div>
+      <div class="v25527-summary-card stat-card accent-purple">
+        <div class="stat-head"><div class="stat-icon">🧾</div><h3>Accounts</h3></div>
+        <div id="v25527AccountCount" class="big value-soft value-info">0</div>
         <p class="note">Accounts tracked.</p>
       </div>
     </div>
@@ -1154,15 +1201,34 @@ const UI = {
 
 const Dashboard = {
   render(){
-    UI.set("bankPosition",money(Calc.bankPosition()));
-    UI.set("totalOverdraft",money(Calc.totalOverdraft()));
-    UI.set("safeToday",money(Calc.safeToday()));
-    UI.set("safeWeek",money(Calc.safeWeek()));
-    UI.set("daysPayday",Calc.daysToPayday());
-    UI.set("debtRemaining",money(Calc.totalDebt()));
-    UI.set("relocationProgress",money(Calc.totalRelocation())+" / £10,000");
-    UI.set("emergencyProgress",money(state.emergencyFund)+" / "+money(state.emergencyTarget));
+    const bankPos=Calc.bankPosition();
+    const overdraft=Calc.totalOverdraft();
+    const safeToday=Calc.safeToday();
+    const safeWeek=Calc.safeWeek();
+    const daysPayday=Calc.daysToPayday();
+    const totalDebt=Calc.totalDebt();
+    const totalRelocation=Calc.totalRelocation();
+    const emergencyFund=Number(state.emergencyFund||0);
+    const emergencyTarget=Number(state.emergencyTarget||1000);
+
+    UI.set("bankPosition",money(bankPos));
+    UI.set("totalOverdraft",money(overdraft));
+    UI.set("safeToday",money(safeToday));
+    UI.set("safeWeek",money(safeWeek));
+    UI.set("daysPayday",daysPayday);
+    UI.set("debtRemaining",money(totalDebt));
+    UI.set("relocationProgress",money(totalRelocation)+" / £10,000");
+    UI.set("emergencyProgress",money(emergencyFund)+" / "+money(emergencyTarget));
     UI.set("nextPriority",Calc.nextPriority());
+    const setBigClass=(id,cls)=>{ const el=document.getElementById(id); if(el) el.className='big value-soft '+cls; };
+    setBigClass("bankPosition", bankPos>=0 ? "value-positive" : "value-negative");
+    setBigClass("totalOverdraft", overdraft>0 ? "value-negative" : "value-positive");
+    setBigClass("safeToday", safeToday>0 ? "value-positive" : "value-warning");
+    setBigClass("safeWeek", safeWeek>0 ? "value-info" : "value-warning");
+    setBigClass("daysPayday", daysPayday<=3 ? "value-warning" : "value-info");
+    setBigClass("debtRemaining", totalDebt>0 ? "value-negative" : "value-positive");
+    setBigClass("relocationProgress", totalRelocation>=10000 ? "value-positive" : "value-info");
+    setBigClass("emergencyProgress", emergencyFund>=emergencyTarget ? "value-positive" : "value-warning");
     const debtPct=Math.max(0,Math.min(100,100-(Calc.totalDebt()/11000*100)));
     const relPct=Math.min(100,Calc.totalRelocation()/10000*100);
     const emerPct=Math.min(100,Number(state.emergencyFund||0)/Math.max(Number(state.emergencyTarget||1000),1)*100);
@@ -2421,18 +2487,32 @@ const AccountsUIV25527 = {
     Data.save();
   },
   totalBalance(accounts){ return accounts.reduce((s,a)=>s+Number(a.balance||0),0); },
+  overdraftRemaining(account){
+    if(!account) return 0;
+    const bal=Number(account.balance||0);
+    const limit=Number(account.limit||0);
+    return Math.max(0,limit+Math.min(0,bal));
+  },
+  selectedOverdraftBuffer(accounts){
+    let total=0;
+    const fd=this.find(accounts,"First Direct");
+    const monzo=this.find(accounts,"Monzo");
+    if(fd && state.includeFirstDirectOverdraftForSpend==="yes") total += this.overdraftRemaining(fd);
+    if(monzo && state.includeMonzoOverdraftForSpend==="yes") total += this.overdraftRemaining(monzo);
+    return total;
+  },
   availableSpend(accounts){
     let total=0;
     const fd=this.find(accounts,"First Direct");
     const monzo=this.find(accounts,"Monzo");
     if(fd){
       const bal=Number(fd.balance||0);
-      const rem=Math.max(0,Number(fd.limit||0)+Math.min(0,bal));
+      const rem=this.overdraftRemaining(fd);
       total += bal + (state.includeFirstDirectOverdraftForSpend==="yes" ? rem : 0);
     }
     if(monzo){
       const bal=Number(monzo.balance||0);
-      const rem=Math.max(0,Number(monzo.limit||0)+Math.min(0,bal));
+      const rem=this.overdraftRemaining(monzo);
       total += bal + (state.includeMonzoOverdraftForSpend==="yes" ? rem : 0);
     }
     accounts.forEach(a=>{
@@ -2464,14 +2544,16 @@ const AccountsUIV25527 = {
     const accounts=this.accounts();
     this.syncToState(accounts);
 
+    const totalValue=this.totalBalance(accounts);
     const total=document.getElementById("v25527TotalBalance") || document.getElementById("v2554TotalBalance");
-    if(total) total.textContent=money(this.totalBalance(accounts));
+    if(total){ total.textContent=money(totalValue); total.className='big value-soft '+(totalValue>=0?'value-positive':'value-negative'); }
 
-    const spend=document.getElementById("v25527AvailableSpend") || document.getElementById("v2554AvailableSpend");
-    if(spend) spend.textContent=money(this.availableSpend(accounts));
+    const bufferValue=this.selectedOverdraftBuffer(accounts);
+    const buffer=document.getElementById("v25528OverdraftBuffer") || document.getElementById("v25527AvailableSpend") || document.getElementById("v2554AvailableSpend");
+    if(buffer){ buffer.textContent=money(bufferValue); buffer.className='big value-soft '+(bufferValue>0?'value-positive':bufferValue<0?'value-negative':'value-warning'); }
 
     const count=document.getElementById("v25527AccountCount") || document.getElementById("v2554AccountCount");
-    if(count) count.textContent=String(accounts.length);
+    if(count){ count.textContent=String(accounts.length); count.className='big value-soft value-info'; }
 
     const list=document.getElementById("accountsList");
     if(!list) return false;
@@ -2737,6 +2819,10 @@ StableInputV254.patch();
   },true);
 })();
 </script>
+
+
+
+
 
 </body>
 </html>

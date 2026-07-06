@@ -1,13 +1,13 @@
-const CACHE_NAME = 'grant-os-v25527-accounts-tab-real-fix';
+const CACHE_NAME = 'grant-os-v25529-visual-polish-pass-1';
 const FILES = [
   './',
-  './index.html?v=201',
-  './manifest.json?v=201',
-  './icon-192.png?v=201',
-  './icon-512.png?v=201',
-  './apple-touch-icon.png?v=201',
-  './favicon-32.png?v=201',
-  './favicon.ico?v=201'
+  './index.html?v=203',
+  './manifest.json?v=203',
+  './icon-192.png?v=203',
+  './icon-512.png?v=203',
+  './apple-touch-icon.png?v=203',
+  './favicon-32.png?v=203',
+  './favicon.ico?v=203'
 ];
 
 self.addEventListener('install', event => {
