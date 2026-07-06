@@ -1,9 +1,9 @@
 {
-  "id": "/Grant-OS/?v=206",
-  "name": "Grant OS v2.5.5.32 Accounts Input & Badge Fix",
+  "id": "/Grant-OS/?v=265",
+  "name": "Grant OS v2.6.5 Live Safe Spend Date Logic",
   "short_name": "Grant OS",
   "description": "Grant's personal finance, debt, holiday, relocation and career operating system.",
-  "start_url": "./index.html?v=206",
+  "start_url": "./index.html?v=265",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -11,25 +11,25 @@
   "theme_color": "#020617",
   "icons": [
     {
-      "src": "icon-192.png?v=206",
+      "src": "icon-192.png?v=265",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png?v=206",
+      "src": "icon-512.png?v=265",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-192.png?v=206",
+      "src": "icon-192.png?v=265",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-512.png?v=206",
+      "src": "icon-512.png?v=265",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.5.32 Accounts Input & Badge Fix</title>
+<title>Grant OS v2.6.5 Live Safe Spend Date Logic</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -228,16 +228,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=206">
+<link rel="manifest" href="manifest.json?v=263">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=206">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=206">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=206">
-<link rel="shortcut icon" href="favicon.ico?v=206">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=261">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=261">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=261">
+<link rel="shortcut icon" href="favicon.ico?v=261">
 
 
 <style>
@@ -1000,10 +1000,101 @@ tr:hover td{background:rgba(56,189,248,.045);}
 @media(max-width:900px){#dynamicBudgetAccountsTable{min-width:760px}.v25531-linked-head{display:block}.v25531-budget-actions{display:block}.v25531-budget-actions button{margin-top:10px}}
 </style>
 
+
+
+<style>
+/* v2.6.1 Dashboard funds/health layout and safe-spend polish */
+#dashboard .v261-funds-health-section{
+  grid-column:1/-1!important;
+  background:linear-gradient(135deg,rgba(30,42,56,.92),rgba(15,23,42,.92))!important;
+  border:1px solid rgba(148,163,184,.22)!important;
+  border-radius:22px!important;
+  padding:18px!important;
+  overflow:hidden!important;
+}
+#dashboard .v261-section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-start;
+  margin-bottom:14px;
+  padding-bottom:12px;
+  border-bottom:1px solid rgba(148,163,184,.16);
+}
+#dashboard .v261-section-head h3{
+  margin:0!important;
+  color:#bfdbfe!important;
+  letter-spacing:.1em!important;
+  text-transform:uppercase!important;
+}
+#dashboard .v261-section-head p{
+  margin:4px 0 0!important;
+  color:var(--muted,#a9c3df)!important;
+  line-height:1.4!important;
+}
+#dashboard .v261-funds-health-row{
+  display:grid!important;
+  grid-template-columns:1.25fr .9fr 1.05fr!important;
+  gap:16px!important;
+  align-items:stretch!important;
+}
+#dashboard .v261-funds-health-row > .card{
+  min-height:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:18px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+}
+#dashboard .v261-funds-health-row > .card.wide{grid-column:auto!important;}
+#dashboard .v261-funds-health-row .stat-head{margin-bottom:10px!important;}
+#dashboard .v261-funds-health-row .big{font-size:clamp(32px,3.4vw,48px)!important;line-height:1.05!important;}
+#dashboard .v261-funds-health-row .bar{margin-top:12px!important;height:14px!important;}
+#dashboard .v261-funds-health-row .v26-card-detail{
+  margin-top:10px!important;
+  padding:9px 11px!important;
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+#dashboard .v261-funds-health-row #financeHealthNote{
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+#dashboard .v261-funds-health-row .v25530-badge-row{
+  margin-top:auto!important;
+  padding-top:12px!important;
+}
+#dashboard .v261-card-note{
+  margin-top:10px;
+  color:#cbd5e1;
+  font-size:13px;
+  line-height:1.35;
+}
+#dashboard .v261-small-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(56,189,248,.30);
+  background:rgba(12,74,110,.20);
+  color:#bae6fd;
+  font-weight:800;
+  font-size:12px;
+  white-space:nowrap;
+}
+@media(max-width:1100px){
+  #dashboard .v261-section-head{display:block;}
+  #dashboard .v261-section-head .v261-small-chip{margin-top:10px;}
+  #dashboard .v261-funds-health-row{grid-template-columns:1fr!important;}
+}
+</style>
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.5.32 Accounts Input & Badge Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.6.4 Dashboard Card Order</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -1022,21 +1113,21 @@ tr:hover td{background:rgba(56,189,248,.045);}
   <section id="dashboard" class="section active">
     <div class="dashboard-single-layout">
       <div class="dashboard-left">
-        <div class="card"><h3>Immediate Alerts</h3><div id="alertsBox"></div></div>
+        <div class="card"><h3>Immediate Action Alerts</h3><div id="alertsBox"></div></div>
 
         <div class="dashboard-cards">
-          <div class="card stat-card accent-blue"><div class="stat-head"><div class="stat-icon">🏦</div><h3>Overall Bank Position</h3></div><div id="bankPosition" class="big value-soft">£0</div><div class="note">First Direct + Monzo balances minus overdrafts.</div></div>
-          <div class="card stat-card accent-red"><div class="stat-head"><div class="stat-icon">⚠️</div><h3>Total Overdraft Used</h3></div><div id="totalOverdraft" class="big value-soft value-negative">£0</div><div class="note">First Direct OD + Monzo OD.</div></div>
-          <div class="card stat-card accent-amber"><div class="stat-head"><div class="stat-icon">📅</div><h3>Days Until Payday</h3></div><div id="daysPayday" class="big value-soft value-warning">0</div><div class="note">Payday assumed 26th monthly.</div></div>
-          <div class="card stat-card accent-red"><div class="stat-head"><div class="stat-icon">💳</div><h3>Debt Remaining</h3></div><div id="debtRemaining" class="big value-soft value-negative">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
+          <div class="card stat-card accent-green"><div class="stat-head"><div class="stat-icon">☀️</div><h3>Safe To Spend Today</h3></div><div id="safeToday" class="big value-soft value-positive">£0</div><div class="note">Daily allowance until payday using selected accounts and overdraft rules.</div></div>
+          <div class="card stat-card accent-teal"><div class="stat-head"><div class="stat-icon">🗓️</div><h3>Safe To Spend This Week</h3></div><div id="safeWeek" class="big value-soft value-info">£0</div><div class="note">Weekly allowance to stay on track until payday.</div></div>
+          <div class="card stat-card accent-blue"><div class="stat-head"><div class="stat-icon">🏦</div><h3>Net Bank Position</h3></div><div id="bankPosition" class="big value-soft">£0</div><div class="note">All linked account balances after overdrafts already used.</div></div>
+          <div class="card stat-card accent-red"><div class="stat-head"><div class="stat-icon">💳</div><h3>Total Debt Remaining</h3></div><div id="debtRemaining" class="big value-soft value-negative">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
 
-          <div class="card wide stat-card accent-purple"><div class="stat-head"><div class="stat-icon">🎯</div><h3>Next Priority</h3></div><div id="nextPriority" class="big value-soft">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
-          <div class="card stat-card accent-green"><div class="stat-head"><div class="stat-icon">☀️</div><h3>Safe To Spend Today</h3></div><div id="safeToday" class="big value-soft value-positive">£0</div><div class="note">Calculated from selected spend accounts.</div></div>
-          <div class="card stat-card accent-teal"><div class="stat-head"><div class="stat-icon">🗓️</div><h3>Safe To Spend This Week</h3></div><div id="safeWeek" class="big value-soft value-info">£0</div><div class="note">Selected spend accounts until payday.</div></div>
+          <div class="card wide stat-card accent-purple"><div class="stat-head"><div class="stat-icon">🎯</div><h3>Next Priority</h3></div><div id="nextPriority" class="big value-soft">Loading...</div><div class="note">Your current highest-impact action, based on debt, overdraft and holiday funding.</div></div>
+          <div class="card stat-card accent-amber"><div class="stat-head"><div class="stat-icon">📅</div><h3>Days Until Payday</h3></div><div id="daysPayday" class="big value-soft value-warning">0</div><div class="note">Payday assumed 26th monthly.</div></div>
+          <div class="card stat-card accent-red"><div class="stat-head"><div class="stat-icon">⚠️</div><h3>Total Overdraft Used</h3></div><div id="totalOverdraft" class="big value-soft value-negative">£0</div><div class="note">Active overdraft currently being used across linked accounts.</div></div>
 
           <div class="card wide stat-card accent-blue"><div class="stat-head"><div class="stat-icon">✈️</div><h3>Relocation Fund</h3></div><div id="relocationProgress" class="big value-soft">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
           <div class="card stat-card accent-green"><div class="stat-head"><div class="stat-icon">🛡️</div><h3>Emergency Fund</h3></div><div id="emergencyProgress" class="big value-soft">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
-          <div class="card stat-card accent-purple"><div class="stat-head"><div class="stat-icon">📈</div><h3>Finance Health</h3></div><div id="financeHealth" class="big value-soft value-warning">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
+          <div class="card stat-card accent-purple"><div class="stat-head"><div class="stat-icon">📈</div><h3>Finance Health Score</h3></div><div id="financeHealth" class="big value-soft value-warning">0/100</div><div class="note" id="financeHealthNote">Main pressure points: overdraft, debt, savings and upcoming funding needs.</div></div>
         </div>
       </div>
 
@@ -3093,7 +3184,7 @@ StableInputV254.patch();
 <script>
 /* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
 (function(){
-  const VERSION='v2.5.5.32 Accounts Input & Badge Fix';
+  const VERSION='v2.6 Dashboard Clarity Pass';
   const MAX_ACCOUNTS=5;
 
   function num(v){ return Number(v||0); }
@@ -3406,6 +3497,596 @@ StableInputV254.patch();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,80);}); else setTimeout(boot,80);
   setTimeout(boot,450);
+})();
+</script>
+
+
+<style>
+/* v2.6 Dashboard Clarity Pass */
+.v26-action-alert{display:block;line-height:1.35;}
+.v26-action-title{display:block;font-weight:900;color:#fff;margin-bottom:4px;}
+.v26-action-meta{display:block;color:#bfdbfe;font-size:14px;margin-bottom:2px;}
+.v26-action-reason{display:block;color:#cbd5e1;font-size:13px;}
+.v26-card-detail{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(2,6,23,.32);border:1px solid rgba(148,163,184,.14);color:#cbd5e1;font-size:14px;line-height:1.35;}
+.v26-card-detail strong{color:#fff;}
+.v26-card-detail .muted{color:#93c5fd;}
+.v26-compact-badges .v25530-badge-row{gap:8px;}
+.v26-compact-badges .v25530-badge{white-space:normal;line-height:1.15;}
+</style>
+<script>
+/* v2.6 Dashboard Clarity Pass */
+(function(){
+  const VERSION='v2.6 Dashboard Clarity Pass';
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
+  function num(v){ return Number(v||0); }
+  function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
+  function setCardBadges(valueId,badges){
+    var value=document.getElementById(valueId); if(!value) return;
+    var card=value.closest('.stat-card,.card') || value.parentElement; if(!card) return;
+    card.classList.add('v26-compact-badges');
+    var row=card.querySelector(':scope > .v25530-badge-row');
+    if(!row){ row=document.createElement('div'); row.className='v25530-badge-row'; card.appendChild(row); }
+    row.innerHTML=(badges||[]).slice(0,2).map(badgeHtml).join('');
+    row.style.display=(badges&&badges.length)?'flex':'none';
+  }
+  function setHeading(valueId,text){
+    var value=document.getElementById(valueId); if(!value) return;
+    var h=value.closest('.stat-card,.card')?.querySelector('h3'); if(h) h.textContent=text;
+  }
+  function setNote(valueId,html){
+    var value=document.getElementById(valueId); if(!value) return;
+    var note=value.nextElementSibling;
+    if(note && note.classList.contains('note')) note.innerHTML=html;
+  }
+  function ensureDetail(valueId,id,html){
+    var value=document.getElementById(valueId); if(!value) return;
+    var card=value.closest('.stat-card,.card'); if(!card) return;
+    var detail=document.getElementById(id);
+    if(!detail){ detail=document.createElement('div'); detail.id=id; detail.className='v26-card-detail';
+      var note=value.nextElementSibling;
+      if(note && note.classList.contains('note')) note.insertAdjacentElement('afterend', detail);
+      else value.insertAdjacentElement('afterend', detail);
+    }
+    detail.innerHTML=html;
+  }
+  function getIncludedBuffer(){
+    try{ if(window.AccountsUIV25527) return AccountsUIV25527.selectedOverdraftBuffer(AccountsUIV25527.accounts()); }catch(e){}
+    try{
+      var monzo=Math.max(0,num(state.monzoOverdraftLimit)-num(state.monzoOverdraft));
+      var fd=Math.max(0,num(state.firstDirectOverdraftLimit||650)-num(state.firstDirectOverdraft));
+      return (state.includeMonzoOverdraftForSpend==='yes'?monzo:0)+(state.includeFirstDirectOverdraftForSpend==='yes'?fd:0);
+    }catch(e){return 0;}
+  }
+  function anyOverdraftIncluded(){
+    try{
+      if(window.AccountsUIV25527){
+        return AccountsUIV25527.accounts().some(function(a){ return a && a.includeOverdraftForSpend==='yes'; });
+      }
+    }catch(e){}
+    try{return state.includeMonzoOverdraftForSpend==='yes'||state.includeFirstDirectOverdraftForSpend==='yes';}catch(e){return false;}
+  }
+  function financeHealth(){
+    var od=Calc.totalOverdraft?Calc.totalOverdraft():0;
+    var debt=Calc.totalDebt?Calc.totalDebt():0;
+    var target=Math.max(num(state.emergencyTarget||1000),1);
+    var emerPct=Math.min(100,num(state.emergencyFund||0)/target*100);
+    return Math.round(Math.max(0,30-(od/300*30))+Math.min(30,emerPct*.3)+Math.max(0,40-(debt/11000*40)));
+  }
+  function financeStatus(score){
+    if(score>=75) return {label:'Strong',type:'green',detail:'You have good cover and fewer short-term pressure points.'};
+    if(score>=45) return {label:'Improving',type:'amber',detail:'You are moving in the right direction, but debt or savings still need attention.'};
+    if(score>=20) return {label:'Tight',type:'amber',detail:'The main pressure is debt, overdraft use or low savings.'};
+    return {label:'Critical',type:'red',detail:'BNPL/debt, active overdraft and a low emergency fund are pulling the score down.'};
+  }
+  function nextPriorityDetail(){
+    try{
+      var one=(state.debts||[]).filter(function(d){return Calc.debtType(d)==='One-off' && num(d[1])>0;}).sort(function(a,b){return Calc.debtPriority(a)-Calc.debtPriority(b);});
+      if(one.length) return {title:'Clear '+one[0][0], reason:'Highest-priority one-off debt. Clearing it removes a short-term pressure point and can improve your finance health score.', badge:'Debt priority'};
+      if(Calc.holidayRemaining('Amsterdam flights')>0) return {title:'Pay Amsterdam flights', reason:'This is still unfunded/ringfenced and sits in your immediate alerts.', badge:'Funding priority'};
+      if((Calc.totalOverdraft?Calc.totalOverdraft():0)>0) return {title:'Reduce overdraft reliance', reason:'This reduces interest/risk and improves your net bank position.', badge:'Overdraft priority'};
+      if(num(state.emergencyFund)<num(state.emergencyTarget||1000)) return {title:'Build emergency fund', reason:'Your emergency fund is below target, so spare money should strengthen your safety buffer.', badge:'Safety buffer'};
+      return {title:'Build relocation fund', reason:'Debt and emergency priorities are covered, so surplus can move toward longer-term goals.', badge:'Long-term goal'};
+    }catch(e){ return {title:'Review finances', reason:'Check the highest pressure area before payday.', badge:'Review'}; }
+  }
+  function actionAlert(level,title,meta,reason){
+    return [level, '<span class="v26-action-alert"><span class="v26-action-title">Action: '+title+'</span><span class="v26-action-meta">'+meta+'</span><span class="v26-action-reason">Why: '+reason+'</span></span>'];
+  }
+  function patchCalc(){
+    if(!window.Calc || Calc.__v26Clarity) return;
+    Calc.alerts=function(){
+      var out=[];
+      var currys=this.debtBalance?this.debtBalance('Currys BNPL'):0;
+      if(currys>0) out.push(actionAlert('amber','Clear Currys BNPL','Remaining: '+moneySafe(currys),'removes BNPL pressure and can lift your finance health score.'));
+      var flights=this.holidayRemaining?this.holidayRemaining('Amsterdam flights'):0;
+      if(flights>0) out.push(actionAlert('amber','Ringfence Amsterdam flights','Still needed: '+moneySafe(flights),'keeps the holiday cost covered before the due date.'));
+      var safeW=this.safeWeek?this.safeWeek():0, weekly=num(state.weeklyBudget||60);
+      if(safeW<weekly) out.push(actionAlert('amber','Protect weekly spend','Safe week: '+moneySafe(safeW)+' / target '+moneySafe(weekly),'spending above this risks pressure before payday.'));
+      var od=this.totalOverdraft?this.totalOverdraft():0;
+      if(od>0) out.push(actionAlert('amber','Reduce overdraft use','Currently used: '+moneySafe(od),'active overdraft is lowering your net bank position.'));
+      if(num(state.emergencyFund)<num(state.emergencyTarget||1000)) out.push(actionAlert('amber','Build emergency fund','Saved: '+moneySafe(state.emergencyFund)+' / '+moneySafe(state.emergencyTarget),'a stronger buffer reduces reliance on overdraft or BNPL.'));
+      if(!out.length) out.push(actionAlert('green','Keep following the plan','No immediate finance alerts','your current setup is covered based on the saved figures.'));
+      return out;
+    };
+    Calc.__v26Clarity=true;
+  }
+  function applyClarity(){
+    try{
+      document.title='Grant OS '+VERSION;
+      var pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;
+      setHeading('bankPosition','Net Bank Position');
+      setHeading('debtRemaining','Total Debt Remaining');
+      setHeading('financeHealth','Finance Health Score');
+      var alertH=document.querySelector('#alertsBox')?.closest('.card')?.querySelector('h3'); if(alertH) alertH.textContent='Immediate Action Alerts';
+      setNote('bankPosition','All linked account balances after overdrafts already used.');
+      setNote('totalOverdraft','Active overdraft currently being used across linked accounts.');
+      setNote('safeToday','Daily allowance until payday using selected accounts and overdraft rules.');
+      setNote('safeWeek','Weekly allowance to stay on track until payday.');
+      var debtCard=document.getElementById('debtRemaining')?.closest('.card');
+      if(debtCard && !document.getElementById('v26DebtNote')){
+        var n=document.createElement('div'); n.id='v26DebtNote'; n.className='v26-card-detail'; n.textContent='Outstanding non-overdraft debt tracked in Debt Tracker.';
+        debtCard.appendChild(n);
+      }
+      var pri=nextPriorityDetail();
+      var np=document.getElementById('nextPriority'); if(np) np.textContent=pri.title;
+      setNote('nextPriority','Current action that should have the biggest short-term impact.');
+      ensureDetail('nextPriority','v26NextPriorityReason','<strong>Why this matters:</strong> '+pri.reason);
+      var health=financeHealth(), status=financeStatus(health);
+      var fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=health+'/100'; fh.className='big value-soft '+(health>=70?'value-positive':health>=40?'value-warning':'value-negative'); }
+      var fhn=document.getElementById('financeHealthNote');
+      if(fhn) fhn.textContent='Status: '+status.label+'. Main pressure points are measured from overdraft, debt and emergency savings.';
+      ensureDetail('financeHealth','v26FinanceHealthReason','<strong>Status:</strong> '+status.label+'<br><span class="muted">'+status.detail+'</span>');
+      var buffer=getIncludedBuffer();
+      var od=Calc.totalOverdraft?Calc.totalOverdraft():0;
+      var bank=Calc.bankPosition?Calc.bankPosition():0;
+      var debt=Calc.totalDebt?Calc.totalDebt():0;
+      var safeW=Calc.safeWeek?Calc.safeWeek():0, weekly=num(state.weeklyBudget||60);
+      setCardBadges('bankPosition',[bank<0?{text:'Negative net position',type:'red'}:{text:'Positive net position',type:'green'}]);
+      setCardBadges('totalOverdraft',[od>0?{text:'Active overdraft',type:'red'}:{text:'No overdraft used',type:'green'}]);
+      setCardBadges('debtRemaining',[debt>0?{text:'Repayment plan active',type:'amber'}:{text:'No tracked debt',type:'green'}]);
+      setCardBadges('nextPriority',[{text:pri.badge,type:'purple'}]);
+      var safeTodayBadge;
+      if(anyOverdraftIncluded() && buffer>0 && buffer<=50) safeTodayBadge={text:'OD buffer low',type:'amber'};
+      else if(anyOverdraftIncluded()) safeTodayBadge={text:'OD included',type:'amber'};
+      else safeTodayBadge={text:'Balance only',type:'blue'};
+      setCardBadges('safeToday',[safeTodayBadge]);
+      setCardBadges('safeWeek',[safeW<=0?{text:'No spare spend',type:'red'}:(safeW<weekly?{text:'Below target',type:'amber'}:{text:'On track',type:'green'})]);
+      setCardBadges('financeHealth',[{text:'Status: '+status.label,type:status.type}]);
+    }catch(e){ console.warn('v2.6 clarity apply',e); }
+  }
+  function boot(){
+    patchCalc();
+    if(window.Dashboard && Dashboard.render && !Dashboard.render.__v26Clarity){
+      var old=Dashboard.render.bind(Dashboard);
+      Dashboard.render=function(){ var r=old(); applyClarity(); setTimeout(applyClarity,40); return r; };
+      Dashboard.render.__v26Clarity=true;
+    }
+    try{ if(window.Dashboard) Dashboard.render(); }catch(e){}
+    applyClarity(); setTimeout(applyClarity,120); setTimeout(applyClarity,520);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,90);}); else setTimeout(boot,90);
+})();
+</script>
+
+
+
+<script>
+/* v2.6.1 Dashboard layout + safe-spend fix */
+(function(){
+  const VERSION='v2.6.1 Dashboard Layout + Safe Spend Fix';
+  function num(v){ return Number(v||0); }
+  function moneySafe(n){ try{return money(n);}catch(e){ return '£'+num(n).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
+  function accountList(){
+    try{ if(window.AccountsUIV25527 && AccountsUIV25527.accounts) return AccountsUIV25527.accounts().filter(Boolean); }catch(e){}
+    try{ if(window.Calc && Calc.accountList) return Calc.accountList().filter(Boolean); }catch(e){}
+    return [
+      {name:'First Direct', balance:num(state.firstDirectBalance)-num(state.firstDirectOverdraft), limit:num(state.firstDirectOverdraftLimit||650), includeOverdraftForSpend:state.includeFirstDirectOverdraftForSpend||'no'},
+      {name:'Monzo', balance:num(state.monzoBalance)-num(state.monzoOverdraft), limit:num(state.monzoOverdraftLimit||200), includeOverdraftForSpend:state.includeMonzoOverdraftForSpend||'yes'}
+    ];
+  }
+  function includeFlag(a){
+    if(a && (a.includeOverdraftForSpend==='yes' || a.includeOverdraftForSpend==='no')) return a.includeOverdraftForSpend;
+    const name=String((a&&a.name)||'').toLowerCase();
+    if(name.includes('monzo')) return state.includeMonzoOverdraftForSpend||'no';
+    if(name.includes('first direct')) return state.includeFirstDirectOverdraftForSpend||'no';
+    return 'no';
+  }
+  function remainingOD(a){
+    const bal=num(a&&a.balance), limit=num(a&&a.limit);
+    const used=Math.max(0,-bal);
+    return Math.max(0,limit-used);
+  }
+  function accountSafePot(a){
+    const bal=num(a&&a.balance);
+    const positiveBalance=Math.max(0,bal);
+    const buffer=(includeFlag(a)==='yes')?remainingOD(a):0;
+    return positiveBalance+buffer;
+  }
+  function patchSafeSpend(){
+    try{
+      if(!window.Calc) return;
+      Calc.selectedSpendPot=function(){
+        return Math.max(0,accountList().reduce(function(s,a){ return s+accountSafePot(a); },0));
+      };
+      Calc.monzoSpendPot=function(){ return this.selectedSpendPot(); };
+      Calc.safeWeek=function(){
+        const weeks=Math.max(1,Math.ceil((this.daysToPayday?this.daysToPayday():0)/7));
+        return Math.min(num(state.weeklyBudget||60), this.selectedSpendPot()/weeks);
+      };
+      Calc.safeToday=function(){
+        const days=Math.max(1,this.daysToPayday?this.daysToPayday():0);
+        return Math.max(0,this.selectedSpendPot()/days);
+      };
+      Calc.__v261SafeSpendFixed=true;
+    }catch(e){ console.warn('v2.6.1 safe-spend patch',e); }
+    try{
+      if(window.AccountsUIV25527){
+        AccountsUIV25527.availableSpend=function(accounts){
+          return Math.max(0,(accounts||accountList()).filter(Boolean).reduce(function(s,a){ return s+accountSafePot(a); },0));
+        };
+      }
+    }catch(e){}
+  }
+  function ensureCardNote(card,id,html){
+    if(!card || document.getElementById(id)) return;
+    const div=document.createElement('div');
+    div.id=id;
+    div.className='v261-card-note';
+    div.innerHTML=html;
+    const bar=card.querySelector('.bar');
+    if(bar) bar.insertAdjacentElement('afterend',div);
+    else card.appendChild(div);
+  }
+  function ensureFundsLayout(){
+    try{
+      const layout=document.querySelector('#dashboard .dashboard-single-layout');
+      const forecast=document.querySelector('#dashboard .forecast-dashboard-card');
+      if(!layout) return;
+      let section=document.getElementById('v261FundsHealthSection');
+      if(!section){
+        section=document.createElement('div');
+        section.id='v261FundsHealthSection';
+        section.className='card full v261-funds-health-section';
+        section.innerHTML='<div class="v261-section-head"><div><h3>Funds & Finance Health</h3><p>Compact view of savings goals and the health score without wasting dashboard space.</p></div><span class="v261-small-chip">🔎 Goal overview</span></div><div id="v261FundsHealthRow" class="v261-funds-health-row"></div>';
+        layout.insertBefore(section, forecast || null);
+      }
+      const row=document.getElementById('v261FundsHealthRow');
+      if(!row) return;
+      ['relocationProgress','emergencyProgress','financeHealth'].forEach(function(id){
+        const value=document.getElementById(id);
+        const card=value && value.closest('.card');
+        if(card && card.parentElement!==row){
+          card.classList.remove('wide');
+          card.classList.add('v261-goal-card');
+          row.appendChild(card);
+        }
+      });
+      const relocationCard=document.getElementById('relocationProgress')?.closest('.card');
+      const emergencyCard=document.getElementById('emergencyProgress')?.closest('.card');
+      const financeCard=document.getElementById('financeHealth')?.closest('.card');
+      ensureCardNote(relocationCard,'v261RelocationNote','Long-term moving fund progress. This should grow once short-term debt pressure eases.');
+      ensureCardNote(emergencyCard,'v261EmergencyNote','Target safety buffer before relying less on overdraft.');
+      if(financeCard){
+        const fhn=document.getElementById('financeHealthNote');
+        if(fhn) fhn.textContent='Status summary based on debt, overdraft use and emergency savings.';
+        const detail=document.getElementById('v26FinanceHealthReason');
+        if(detail) detail.innerHTML='<strong>Next lift:</strong> clear short-term BNPL, then reduce overdraft use.';
+      }
+    }catch(e){ console.warn('v2.6.1 funds layout',e); }
+  }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function refresh(){
+    updateVersion();
+    patchSafeSpend();
+    ensureFundsLayout();
+    try{
+      if(window.Dashboard && Dashboard.render && !Dashboard.render.__v261Wrapped){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ patchSafeSpend(); const r=old(); ensureFundsLayout(); setTimeout(ensureFundsLayout,30); return r; };
+        Dashboard.render.__v261Wrapped=true;
+      }
+    }catch(e){}
+    try{ if(window.Dashboard) Dashboard.render(); }catch(e){}
+    ensureFundsLayout();
+    try{ if(window.GrantOSVisualBadgesApply) window.GrantOSVisualBadgesApply(); }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(refresh,100); setTimeout(refresh,500); });
+  else { setTimeout(refresh,100); setTimeout(refresh,500); }
+})();
+</script>
+
+
+
+<script>
+/* v2.6.2 Safe Spend Dashboard Runtime Fix
+   Fixes dashboard Safe To Spend cards by reading the same linked-account overdraft buffer
+   used by the Accounts and Budget tabs. Uses lexical globals directly rather than window.*
+   because this app defines core modules with const, so they are not attached to window. */
+(function(){
+  const VERSION='v2.6.2 Safe Spend Dashboard Fix';
+  function num(v){ return Number(v||0); }
+  function fmtMoney(v){
+    try{ return money(v); }
+    catch(e){ return '£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2}); }
+  }
+  function isFD(name){ return /first\s*direct/i.test(String(name||'')); }
+  function isMonzo(name){ return /monzo/i.test(String(name||'')); }
+  function readAccountsSafe(){
+    try{
+      if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.accounts){
+        const list=AccountsUIV25527.accounts();
+        if(Array.isArray(list) && list.length) return list.filter(Boolean);
+      }
+    }catch(e){}
+    try{
+      if(typeof Calc!=='undefined' && Calc.accountList){
+        const list=Calc.accountList();
+        if(Array.isArray(list) && list.length) return list.filter(Boolean);
+      }
+    }catch(e){}
+    return [
+      {name:'First Direct',balance:num(state.firstDirectBalance)-num(state.firstDirectOverdraft),limit:num(state.firstDirectOverdraftLimit||650),includeOverdraftForSpend:state.includeFirstDirectOverdraftForSpend||'no'},
+      {name:'Monzo',balance:num(state.monzoBalance)-num(state.monzoOverdraft),limit:num(state.monzoOverdraftLimit||200),includeOverdraftForSpend:state.includeMonzoOverdraftForSpend||'yes'}
+    ];
+  }
+  function includeFlag(account){
+    if(account && (account.includeOverdraftForSpend==='yes' || account.includeOverdraftForSpend==='no')) return account.includeOverdraftForSpend;
+    const name=String((account&&account.name)||'');
+    if(isMonzo(name)) return state.includeMonzoOverdraftForSpend||'no';
+    if(isFD(name)) return state.includeFirstDirectOverdraftForSpend||'no';
+    return 'no';
+  }
+  function remainingBuffer(account){
+    const balance=num(account&&account.balance);
+    const limit=num(account&&account.limit);
+    const used=Math.max(0,-balance);
+    return Math.max(0,limit-used);
+  }
+  function includedSafeSpendPot(){
+    return Math.max(0,readAccountsSafe().reduce(function(total,account){
+      const balance=num(account&&account.balance);
+      const positiveBalance=Math.max(0,balance);
+      const overdraftBuffer=includeFlag(account)==='yes' ? remainingBuffer(account) : 0;
+      return total + positiveBalance + overdraftBuffer;
+    },0));
+  }
+  function daysToPaydaySafe(){
+    try{ if(typeof Calc!=='undefined' && Calc.daysToPayday) return Math.max(1,Calc.daysToPayday()); }catch(e){}
+    try{
+      const now=new Date();
+      let d=new Date(now.getFullYear(), now.getMonth(), num(state.payday||26));
+      if(now.getDate()>=num(state.payday||26)) d=new Date(now.getFullYear(), now.getMonth()+1, num(state.payday||26));
+      return Math.max(1,Math.ceil((d-now)/(1000*60*60*24)));
+    }catch(e){ return 1; }
+  }
+  function weeksToPaydaySafe(){ return Math.max(1,Math.ceil(daysToPaydaySafe()/7)); }
+  function dailySafe(){ return includedSafeSpendPot()/daysToPaydaySafe(); }
+  function weeklySafe(){ return Math.min(num(state.weeklyBudget||60), includedSafeSpendPot()/weeksToPaydaySafe()); }
+  function setValue(id,value,cls){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.textContent=fmtMoney(value);
+    el.className='big value-soft '+cls;
+  }
+  function setBadge(valueId,badges){
+    const value=document.getElementById(valueId);
+    if(!value) return;
+    const card=value.closest('.stat-card,.card') || value.parentElement;
+    if(!card) return;
+    let row=card.querySelector(':scope > .v25530-badge-row');
+    if(!row){ row=document.createElement('div'); row.className='v25530-badge-row'; card.appendChild(row); }
+    row.innerHTML=(badges||[]).slice(0,2).map(function(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }).join('');
+    row.style.display=badges && badges.length ? 'flex' : 'none';
+  }
+  function refreshSafeSpendCards(){
+    try{
+      const pot=includedSafeSpendPot();
+      const today=dailySafe();
+      const week=weeklySafe();
+      const weeklyTarget=num(state.weeklyBudget||60);
+      const hasIncludedBuffer=readAccountsSafe().some(function(a){ return includeFlag(a)==='yes' && remainingBuffer(a)>0; });
+      const lowBuffer=pot>0 && pot<=50;
+      setValue('safeToday',today,today>0?'value-positive':'value-warning');
+      setValue('safeWeek',week,week>0?'value-info':'value-warning');
+      setBadge('safeToday',hasIncludedBuffer?[{text:lowBuffer?'OD buffer low':'OD included',type:'amber'}]:[{text:'Balance only',type:'blue'}]);
+      setBadge('safeWeek',week<=0?[{text:'No spare spend',type:'red'}]:(week<weeklyTarget?[{text:'Below target',type:'amber'}]:[{text:'On track',type:'green'}]));
+    }catch(e){ console.warn('v2.6.2 safe spend refresh',e); }
+  }
+  function patchCalcSafeSpend(){
+    try{
+      if(typeof Calc==='undefined') return;
+      Calc.selectedSpendPot=function(){ return includedSafeSpendPot(); };
+      Calc.monzoSpendPot=function(){ return this.selectedSpendPot(); };
+      Calc.safeToday=function(){ return dailySafe(); };
+      Calc.safeWeek=function(){ return weeklySafe(); };
+      Calc.__v262SafeSpendFixed=true;
+    }catch(e){ console.warn('v2.6.2 safe spend calc patch',e); }
+  }
+  function patchAccountAndBudgetRefresh(){
+    try{
+      if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.update && !AccountsUIV25527.update.__v262SafeSpendRefresh){
+        const old=AccountsUIV25527.update.bind(AccountsUIV25527);
+        AccountsUIV25527.update=function(){ const r=old.apply(this,arguments); patchCalcSafeSpend(); refreshSafeSpendCards(); return r; };
+        AccountsUIV25527.update.__v262SafeSpendRefresh=true;
+      }
+    }catch(e){}
+    try{
+      if(typeof Budget!=='undefined' && Budget.v25531SaveDraft && !Budget.v25531SaveDraft.__v262SafeSpendRefresh){
+        const old=Budget.v25531SaveDraft.bind(Budget);
+        Budget.v25531SaveDraft=function(){ const r=old.apply(this,arguments); patchCalcSafeSpend(); refreshSafeSpendCards(); return r; };
+        Budget.v25531SaveDraft.__v262SafeSpendRefresh=true;
+      }
+    }catch(e){}
+  }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function boot(){
+    updateVersion();
+    patchCalcSafeSpend();
+    patchAccountAndBudgetRefresh();
+    try{
+      if(typeof Dashboard!=='undefined' && Dashboard.render && !Dashboard.render.__v262SafeSpendWrapped){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ patchCalcSafeSpend(); const r=old(); refreshSafeSpendCards(); setTimeout(refreshSafeSpendCards,30); return r; };
+        Dashboard.render.__v262SafeSpendWrapped=true;
+      }
+    }catch(e){}
+    try{ if(typeof Dashboard!=='undefined' && Dashboard.render) Dashboard.render(); }catch(e){}
+    refreshSafeSpendCards();
+    setTimeout(refreshSafeSpendCards,80);
+    setTimeout(refreshSafeSpendCards,350);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(boot,120); });
+  else setTimeout(boot,120);
+})();
+</script>
+
+
+<script>
+/* v2.6.4 Dashboard Card Order
+   Moves Safe To Spend cards into the first row and moves bank/overdraft cards below Next Priority. */
+(function(){
+  const VERSION='v2.6.4 Dashboard Card Order';
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function cardFor(id){
+    const el=document.getElementById(id);
+    return el ? el.closest('.card') : null;
+  }
+  function reorderDashboardCards(){
+    try{
+      const wrap=document.querySelector('#dashboard .dashboard-cards');
+      if(!wrap) return;
+      const order=['safeToday','safeWeek','bankPosition','debtRemaining','nextPriority','daysPayday','totalOverdraft'];
+      order.map(cardFor).filter(Boolean).forEach(card=>wrap.appendChild(card));
+      const next=cardFor('nextPriority');
+      if(next) next.classList.add('wide');
+      const bank=cardFor('bankPosition');
+      if(bank) bank.classList.remove('wide');
+      const od=cardFor('totalOverdraft');
+      if(od) od.classList.remove('wide');
+    }catch(e){ console.warn('v2.6.4 dashboard card order', e); }
+  }
+  function boot(){
+    updateVersion();
+    reorderDashboardCards();
+    try{
+      if(typeof Dashboard!=='undefined' && Dashboard.render && !Dashboard.render.__v264CardOrder){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=old(); reorderDashboardCards(); setTimeout(reorderDashboardCards,30); return r; };
+        Dashboard.render.__v264CardOrder=true;
+      }
+    }catch(e){}
+    setTimeout(reorderDashboardCards,100);
+    setTimeout(reorderDashboardCards,500);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(boot,120); });
+  else setTimeout(boot,120);
+})();
+</script>
+
+
+<script>
+/* v2.6.5 Live Safe Spend Date Logic
+   Makes safe-spend and payday-based cards use the current live date rather than
+   the original page-load date. If the app is left open overnight and no money is
+   spent, the daily/weekly safe-spend allowance rolls forward automatically. */
+(function(){
+  const VERSION='v2.6.5 Live Safe Spend Date Logic';
+  const MS_DAY=24*60*60*1000;
+  let lastDateKey='';
+  function num(v){ return Number(v||0); }
+  function localMidnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function dateKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function calendarDaysBetween(a,b){ return Math.ceil((localMidnight(b)-localMidnight(a))/MS_DAY); }
+  function liveNextPayday(){
+    const now=new Date();
+    const pay=Math.max(1,Math.min(31,num(state&&state.payday||26)));
+    let d=new Date(now.getFullYear(), now.getMonth(), pay);
+    if(now.getDate()>=pay) d=new Date(now.getFullYear(), now.getMonth()+1, pay);
+    return d;
+  }
+  function liveDaysToPayday(){ return Math.max(1,calendarDaysBetween(new Date(), liveNextPayday())); }
+  function liveWeeksToPayday(){ return Math.max(1,Math.ceil(liveDaysToPayday()/7)); }
+  function parseDate(v){
+    if(!v) return null;
+    const d=new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function patchLiveDateCalculations(){
+    try{
+      if(typeof Calc==='undefined') return;
+      Calc.nextPayday=function(){ return liveNextPayday(); };
+      Calc.daysBetween=function(a,b){ return calendarDaysBetween(a,b); };
+      Calc.daysToPayday=function(){ return liveDaysToPayday(); };
+      Calc.weeksToPayday=function(){ return liveWeeksToPayday(); };
+      Calc.paydaysBefore=function(date){
+        const due=parseDate(date);
+        if(!due) return 0;
+        let count=0;
+        let cursor=liveNextPayday();
+        const pay=Math.max(1,Math.min(31,num(state&&state.payday||26)));
+        while(cursor<=due){
+          count++;
+          cursor=new Date(cursor.getFullYear(), cursor.getMonth()+1, pay);
+        }
+        return count;
+      };
+      Calc.holidayCountdown=function(name){
+        const h=this.holiday ? this.holiday(name) : null;
+        const d=h ? parseDate(h[4]) : null;
+        return d ? Math.max(0,calendarDaysBetween(new Date(),d))+' days' : '';
+      };
+      // Keep the v2.6.2 selected-spend pot logic, but divide it by live days/weeks.
+      if(typeof Calc.selectedSpendPot==='function'){
+        Calc.safeToday=function(){ return Math.max(0,this.selectedSpendPot()/liveDaysToPayday()); };
+        Calc.safeWeek=function(){ return Math.min(num(state.weeklyBudget||60), this.selectedSpendPot()/liveWeeksToPayday()); };
+      }
+      Calc.__v265LiveDateLogic=true;
+    }catch(e){ console.warn('v2.6.5 live date calc patch', e); }
+  }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function refreshDashboard(){
+    patchLiveDateCalculations();
+    try{ if(typeof Dashboard!=='undefined' && Dashboard.render) Dashboard.render(); }catch(e){ console.warn('v2.6.5 dashboard refresh', e); }
+    try{ if(window.GrantOSVisualBadgesApply) window.GrantOSVisualBadgesApply(); }catch(e){}
+  }
+  function checkDateRollForward(){
+    const nowKey=dateKey(new Date());
+    if(nowKey!==lastDateKey){
+      lastDateKey=nowKey;
+      refreshDashboard();
+    }
+  }
+  function scheduleNextMidnightRefresh(){
+    try{
+      const now=new Date();
+      const next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);
+      const delay=Math.max(1000,next-now);
+      setTimeout(function(){ refreshDashboard(); scheduleNextMidnightRefresh(); },delay);
+    }catch(e){}
+  }
+  function boot(){
+    updateVersion();
+    patchLiveDateCalculations();
+    refreshDashboard();
+    lastDateKey=dateKey(new Date());
+    // Lightweight watcher so a dashboard left open overnight rolls forward without reload.
+    setInterval(checkDateRollForward,60000);
+    scheduleNextMidnightRefresh();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(boot,160); });
+  else setTimeout(boot,160);
 })();
 </script>
 
