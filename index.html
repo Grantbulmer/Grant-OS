@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.4.1 No Sticky Header</title>
+<title>Grant OS v2.4.2 Enhanced Graphs</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -90,6 +90,24 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .alert.green{border-left-color:var(--green)!important;color:#86efac!important}
 @media(max-width:900px){.snapshot-grid{grid-template-columns:1fr}}
 
+
+/* v2.4.2 enhanced graphs */
+.graph-summary{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 12px}
+.graph-chip{background:#020617;border:1px solid var(--border);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:12px}
+.graph-chip strong{color:var(--text)}
+.enhanced-linegraph{height:240px;background:#2b3440;border:1px solid var(--border);border-radius:14px;padding:10px 8px 6px 8px;position:relative;overflow:hidden}
+.enhanced-linegraph:before{content:"";position:absolute;inset:10px;background-image:linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px);background-size:38px 32px}
+.enhanced-linegraph svg{position:relative;z-index:1;width:100%;height:100%}
+.graph-value-label{font-size:13px;font-weight:700;fill:var(--text)}
+.graph-month-label{font-size:11px;fill:var(--muted)}
+.graph-axis-label{font-size:11px;fill:var(--muted)}
+.graph-table-wrap{margin-top:12px;overflow:auto}
+.graph-table-wrap table{width:100%;border-collapse:collapse;font-size:13px}
+.graph-table-wrap th,.graph-table-wrap td{padding:8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.graph-table-wrap th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.zero-line{stroke:#86efac;stroke-width:2;stroke-dasharray:6 6;opacity:.85}
+.debtfree-dot{fill:#22c55e}
+
 </style>
 
 <link rel="manifest" href="manifest.json?v=201">
@@ -106,7 +124,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.4.1 No Sticky Header</span></h1>
+  <h1>Grant OS <span class="pill">v2.4.2 Enhanced Graphs</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -999,6 +1017,147 @@ if(typeof GraphsV21 !== "undefined"){
   GraphsV21.line = GraphsV24.line.bind(GraphsV24);
   GraphsV21.bars = GraphsV24.bars.bind(GraphsV24);
   GraphsV21.holidayFunding = GraphsV24.holidayFunding.bind(GraphsV24);
+}
+
+
+const EnhancedGraphsV242 = {
+  moneyShort(n){
+    n=Number(n||0);
+    const sign=n<0?"-":"";
+    n=Math.abs(n);
+    if(n>=1000) return `${sign}£${(n/1000).toFixed(n%1000===0?0:1)}k`;
+    return `${sign}£${Math.round(n)}`;
+  },
+  estimateDebtFree(rows){
+    const hit = rows.find(r=>Number(r.debt)<=0);
+    return hit ? hit.month : "Beyond selected range";
+  },
+  estimatePositiveBank(rows){
+    const hit = rows.find(r=>Number(r.bank)>=0);
+    return hit ? hit.month : "Beyond selected range";
+  },
+  estimateEmergencyTarget(rows){
+    const target = Number(state.emergencyTarget||1000);
+    const hit = rows.find(r=>Number(r.emergency)>=target);
+    return hit ? hit.month : "Beyond selected range";
+  },
+  enhancedLine(id, rows, key, opts={}){
+    const el=document.getElementById(id);
+    if(!el) return;
+    const values=rows.map(r=>Number(r[key]||0));
+    const includeZero = opts.zeroLine || values.some(v=>v<0);
+    const min=Math.min(...values, includeZero?0:Math.min(...values));
+    const max=Math.max(...values, includeZero?0:Math.max(...values), 1);
+    const span=Math.max(1,max-min);
+    const w=680,h=230,padL=50,padR=28,padT=28,padB=42;
+    const xFor=i=>padL+(rows.length===1?0:(i/(rows.length-1))*(w-padL-padR));
+    const yFor=v=>padT+((max-v)/span)*(h-padT-padB);
+    const points=rows.map((r,i)=>({x:xFor(i),y:yFor(Number(r[key]||0)),v:Number(r[key]||0),month:r.month}));
+    const poly=points.map(p=>`${p.x},${p.y}`).join(" ");
+    const zeroY=yFor(0);
+    const yTicks=[max, min+(span*0.5), min];
+
+    el.innerHTML = `
+      <div class="graph-summary">
+        ${opts.summary || ""}
+      </div>
+      <div class="enhanced-linegraph">
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          ${includeZero ? `<line x1="${padL}" y1="${zeroY}" x2="${w-padR}" y2="${zeroY}" class="zero-line"></line><text x="${padL}" y="${zeroY-5}" class="graph-axis-label">£0</text>` : ""}
+          ${yTicks.map(v=>`<text x="8" y="${yFor(v)+4}" class="graph-axis-label">${this.moneyShort(v)}</text>`).join("")}
+          <polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="5" style="color:var(--blue)"></polyline>
+          ${points.map((p,i)=>{
+            const dotClass = opts.debtFree && p.v<=0 ? "debtfree-dot" : "";
+            const dotFill = dotClass ? "" : `fill="var(--amber)"`;
+            return `<circle cx="${p.x}" cy="${p.y}" r="6" ${dotFill} class="${dotClass}"><title>${p.month}: ${money(p.v)}</title></circle>
+              <text x="${p.x}" y="${Math.max(14,p.y-10)}" text-anchor="middle" class="graph-value-label">${this.moneyShort(p.v)}</text>`;
+          }).join("")}
+          ${points.map((p,i)=> (i===0 || i===points.length-1 || rows.length<=6) ? `<text x="${p.x}" y="${h-14}" text-anchor="middle" class="graph-month-label">${p.month}</text>` : "").join("")}
+        </svg>
+      </div>
+    `;
+  },
+  emergencyBars(id, rows){
+    const el=document.getElementById(id);
+    if(!el) return;
+    const target=Number(state.emergencyTarget||1000);
+    const max=Math.max(target,...rows.map(r=>Number(r.emergency||0)),1);
+    const w=680,h=230,padL=50,padR=28,padT=22,padB=42;
+    const barW=(w-padL-padR)/rows.length*0.62;
+    const yFor=v=>padT+((max-v)/max)*(h-padT-padB);
+    const targetY=yFor(target);
+    const hit=this.estimateEmergencyTarget(rows);
+    el.innerHTML=`
+      <div class="graph-summary">
+        <span class="graph-chip"><strong>Target:</strong> ${money(target)}</span>
+        <span class="graph-chip"><strong>Target reached:</strong> ${hit}</span>
+      </div>
+      <div class="enhanced-linegraph">
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <line x1="${padL}" y1="${targetY}" x2="${w-padR}" y2="${targetY}" class="zero-line"></line>
+          <text x="${padL}" y="${targetY-5}" class="graph-axis-label">${money(target)}</text>
+          ${rows.map((r,i)=>{
+            const x=padL+(i+0.5)*((w-padL-padR)/rows.length)-barW/2;
+            const v=Number(r.emergency||0);
+            const y=yFor(v);
+            const bh=h-padB-y;
+            return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="8" fill="var(--blue)"><title>${r.month}: ${money(v)}</title></rect>
+              <text x="${x+barW/2}" y="${Math.max(14,y-8)}" text-anchor="middle" class="graph-value-label">${this.moneyShort(v)}</text>
+              ${(i===0 || i===rows.length-1 || rows.length<=6) ? `<text x="${x+barW/2}" y="${h-14}" text-anchor="middle" class="graph-month-label">${r.month}</text>` : ""}`;
+          }).join("")}
+        </svg>
+      </div>`;
+  },
+  holidayFunding(){
+    const el=document.getElementById("holidayFundingGraph");
+    if(!el) return;
+    const rows=(state.holidays||[]).map(h=>{
+      const target=Number(h[2]||0), saved=Number(h[3]||0);
+      const pct=target>0 ? Math.min(100,saved/target*100) : 100;
+      return {name:h[0],target,saved,pct};
+    });
+    const totalTarget=rows.reduce((s,r)=>s+r.target,0);
+    const totalSaved=rows.reduce((s,r)=>s+Math.min(r.saved,r.target),0);
+    const totalPct=totalTarget>0 ? Math.round(totalSaved/totalTarget*100) : 100;
+    el.innerHTML=`
+      <div class="graph-summary">
+        <span class="graph-chip"><strong>Combined:</strong> ${totalPct}% funded</span>
+        <span class="graph-chip"><strong>Saved:</strong> ${money(totalSaved)} / ${money(totalTarget)}</span>
+      </div>
+      ${rows.map(r=>`<div class="minirow"><strong>${r.name}</strong><div class="chartbar"><div class="chartfill" style="width:${r.pct}%"></div></div><span>${Math.round(r.pct)}%</span></div>`).join("")}
+    `;
+  },
+  table(rows){
+    return `<div class="graph-table-wrap"><table><tr><th>Month</th><th>Debt</th><th>Bank</th><th>Emergency</th><th>One-offs</th></tr>${rows.map(r=>`<tr><td>${r.month}</td><td>${money(r.debt)}</td><td>${money(r.bank)}</td><td>${money(r.emergency)}</td><td>${money(r.oneOff)}</td></tr>`).join("")}</table></div>`;
+  },
+  render(){
+    if(typeof ForecastV21==="undefined") return;
+    const months = typeof ForecastRangeV24 !== "undefined" ? ForecastRangeV24.get() : 9;
+    const rows=ForecastV21.monthlySeries(months);
+    const debtSummary=`
+      <span class="graph-chip"><strong>Current:</strong> ${money(rows[0]?.debt||0)}</span>
+      <span class="graph-chip"><strong>Selected end:</strong> ${money(rows[rows.length-1]?.debt||0)}</span>
+      <span class="graph-chip"><strong>Estimated debt-free:</strong> ${this.estimateDebtFree(rows)}</span>`;
+    const bankSummary=`
+      <span class="graph-chip"><strong>Starts:</strong> ${money(rows[0]?.bank||0)}</span>
+      <span class="graph-chip"><strong>Selected end:</strong> ${money(rows[rows.length-1]?.bank||0)}</span>
+      <span class="graph-chip"><strong>Positive from:</strong> ${this.estimatePositiveBank(rows)}</span>`;
+    this.enhancedLine("debtForecastGraph",rows,"debt",{summary:debtSummary,debtFree:true});
+    const debtEl=document.getElementById("debtForecastGraph");
+    if(debtEl) debtEl.insertAdjacentHTML("beforeend", this.table(rows));
+    this.enhancedLine("bankForecastGraph",rows,"bank",{summary:bankSummary,zeroLine:true});
+    const bankEl=document.getElementById("bankForecastGraph");
+    if(bankEl) bankEl.insertAdjacentHTML("beforeend", this.table(rows));
+    this.emergencyBars("emergencyGraph",rows);
+    const emergencyEl=document.getElementById("emergencyGraph");
+    if(emergencyEl) emergencyEl.insertAdjacentHTML("beforeend", this.table(rows));
+    this.holidayFunding();
+    if(typeof ForecastRangeV24 !== "undefined") ForecastRangeV24.renderToggle();
+  }
+};
+
+if(typeof GraphsV21 !== "undefined"){
+  GraphsV21.render = EnhancedGraphsV242.render.bind(EnhancedGraphsV242);
 }
 
 const App = {
