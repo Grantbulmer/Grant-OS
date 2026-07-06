@@ -1,10 +1,13 @@
-const CACHE_NAME = 'grant-os-v20';
+const CACHE_NAME = 'grant-os-v201';
 const FILES = [
   './',
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './index.html?v=201',
+  './manifest.json?v=201',
+  './icon-192.png?v=201',
+  './icon-512.png?v=201',
+  './apple-touch-icon.png?v=201',
+  './favicon-32.png?v=201',
+  './favicon.ico?v=201'
 ];
 
 self.addEventListener('install', event => {
