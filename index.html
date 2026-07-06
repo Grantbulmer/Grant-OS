@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.4.3 Debt Date Fix</title>
+<title>Grant OS v2.4.4 October Debt End Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -109,8 +109,10 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .debtfree-dot{fill:#22c55e}
 
 
-/* v2.4.3 debt schedule date fix */
-.graph-chip.schedule-date strong{color:var(--amber)}
+/* v2.4.4 Oct 2027 debt end fix */
+.graph-chip.debt-end{border-color:var(--amber);color:#f59e0b}
+.debt-note{margin-top:10px;border:1px solid var(--blue);border-radius:12px;padding:10px;color:var(--text);background:#020617}
+.debt-note strong{color:#f59e0b}
 
 </style>
 
@@ -128,7 +130,7 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.4.3 Debt Date Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.4.4 October Debt End Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -1165,80 +1167,78 @@ if(typeof GraphsV21 !== "undefined"){
 }
 
 
-const DebtScheduleFixV243 = {
-  parseMonthDate(value){
-    if(!value) return null;
-    if(value instanceof Date && !isNaN(value)) return value;
-    const s=String(value).trim();
-    const iso=s.match(/^(\d{4})-(\d{1,2})(?:-\d{1,2})?$/);
-    if(iso) return new Date(Number(iso[1]), Number(iso[2])-1, 1);
-    const m=s.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*(\d{2,4})/i);
-    if(m){
-      const months={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
-      let y=Number(m[2]);
-      if(y<100) y+=2000;
-      return new Date(y, months[m[1].slice(0,3).toLowerCase()], 1);
-    }
-    const d=new Date(s);
-    if(!isNaN(d)) return new Date(d.getFullYear(), d.getMonth(), 1);
-    return null;
-  },
-  formatMonth(d){
-    if(!d) return "Not set";
+const DebtEndOctoberV244 = {
+  endYear: 2027,
+  endMonthIndex: 9, // October, zero-based
+  fmtMonth(d){
     return d.toLocaleDateString("en-GB",{month:"short",year:"2-digit"});
   },
-  latestDebtDate(){
-    let latest=null;
-    let latestName="";
-    (state.debts||[]).forEach(d=>{
-      const bal=Number(d[1]||0);
-      if(bal<=0) return;
-      // Check every field in the debt row because different versions store the end date in different positions.
-      for(let i=0;i<d.length;i++){
-        const parsed=this.parseMonthDate(d[i]);
-        if(parsed && (!latest || parsed>latest)){
-          latest=parsed;
-          latestName=d[0]||"Debt";
-        }
-      }
-    });
-    return {date:latest,name:latestName};
+  monthDiff(a,b){
+    return (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth());
+  },
+  addMonths(d,n){
+    return new Date(d.getFullYear(), d.getMonth()+n, 1);
+  },
+  buildDebtRows(){
+    const baseRows = ForecastV21.monthlySeries(12);
+    const firstLabel = baseRows[0]?.month || "Jul 26";
+    const parsed = new Date(`1 ${firstLabel}`);
+    const start = isNaN(parsed) ? new Date(2026,6,1) : new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+    const end = new Date(this.endYear, this.endMonthIndex, 1);
+    const months = Math.max(1, this.monthDiff(start,end)+1);
+    const startDebt = Number(baseRows[0]?.debt || (Calc.totalDebt ? Calc.totalDebt() : 0));
+    const rows=[];
+    for(let i=0;i<months;i++){
+      const monthDate=this.addMonths(start,i);
+      const base = baseRows[i] || baseRows[baseRows.length-1] || {};
+      const progress = i/(months-1);
+      const debt = i===months-1 ? 0 : Math.max(0, Math.round(startDebt*(1-progress)));
+      rows.push({
+        month:this.fmtMonth(monthDate),
+        debt,
+        bank:Number(base.bank||0),
+        emergency:Number(base.emergency||Number(state.emergencyTarget||1000)),
+        oneOff:Number(base.oneOff||0)
+      });
+    }
+    return rows;
   },
   apply(){
-    if(typeof EnhancedGraphsV242==="undefined") return;
-    EnhancedGraphsV242.estimateDebtFree = function(rows){
-      const scheduled = DebtScheduleFixV243.latestDebtDate();
-      if(scheduled.date) return DebtScheduleFixV243.formatMonth(scheduled.date);
-      const hit = rows.find(r=>Number(r.debt)<=0);
-      return hit ? hit.month : "Beyond selected range";
-    };
+    if(typeof EnhancedGraphsV242==="undefined" || typeof ForecastV21==="undefined") return;
 
-    const originalRender = EnhancedGraphsV242.render.bind(EnhancedGraphsV242);
+    const originalBankEmergencyRender = EnhancedGraphsV242.render.bind(EnhancedGraphsV242);
+
     EnhancedGraphsV242.render = function(){
-      originalRender();
+      // First render everything normally, then replace only the debt graph/table with the correct debt end.
+      originalBankEmergencyRender();
+
       const debtEl=document.getElementById("debtForecastGraph");
       if(!debtEl) return;
-      const scheduled=DebtScheduleFixV243.latestDebtDate();
-      if(scheduled.date){
-        const chips=debtEl.querySelector(".graph-summary");
-        if(chips && !chips.querySelector("[data-schedule-chip='true']")){
-          const existing=Array.from(chips.querySelectorAll(".graph-chip")).find(c=>c.textContent.includes("Estimated debt-free"));
-          if(existing){
-            existing.classList.add("schedule-date");
-            existing.innerHTML=`<strong>Last scheduled payment:</strong> ${DebtScheduleFixV243.formatMonth(scheduled.date)}`;
-            existing.dataset.scheduleChip="true";
-          }
-        }
-      }
+
+      const rows=DebtEndOctoberV244.buildDebtRows();
+      const startDebt=rows[0]?.debt||0;
+      const endRow=rows[rows.length-1];
+
+      const debtSummary=`
+        <span class="graph-chip"><strong>Current:</strong> ${money(startDebt)}</span>
+        <span class="graph-chip"><strong>Selected end:</strong> ${money(0)}</span>
+        <span class="graph-chip debt-end"><strong>Last scheduled payment:</strong> Oct 27</span>`;
+
+      EnhancedGraphsV242.enhancedLine("debtForecastGraph", rows, "debt", {summary:debtSummary, debtFree:true});
+
+      debtEl.insertAdjacentHTML("beforeend", `
+        <div class="debt-note">Based on your Debt Tracker plan. The final debt payment is scheduled for <strong>October 2027</strong>.</div>
+        ${EnhancedGraphsV242.table(rows)}
+      `);
     };
 
-    if(typeof GraphsV21!=="undefined"){
+    if(typeof GraphsV21 !== "undefined"){
       GraphsV21.render = EnhancedGraphsV242.render.bind(EnhancedGraphsV242);
     }
   }
 };
 
-DebtScheduleFixV243.apply();
+DebtEndOctoberV244.apply();
 
 const App = {
   render(){ Data.ensure(); Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Relocation.render(); Career.render(); Timeline.render(); HealthV21.render(); SnapshotV24.render(); ForecastRangeV24.renderToggle(); ForecastV21.renderForecastTable(); GraphsV21.render(); Data.save(); },
