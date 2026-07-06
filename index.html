@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.5.29 Visual Polish Pass 1</title>
+<title>Grant OS v2.5.5.30 Visual Polish Pass 2</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -228,16 +228,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=203">
+<link rel="manifest" href="manifest.json?v=204">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=203">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=203">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=203">
-<link rel="shortcut icon" href="favicon.ico?v=203">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=204">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=204">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=204">
+<link rel="shortcut icon" href="favicon.ico?v=204">
 
 
 <style>
@@ -834,10 +834,155 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.18);}
 
 
 
+
+
+<style>
+/* v2.5.5.30 visual polish pass 2 - buttons, section headers, soft blocks and smart badges */
+:root{
+  --soft-card:rgba(15,23,42,.72);
+  --soft-card-2:rgba(30,41,59,.52);
+  --soft-border:rgba(148,163,184,.22);
+  --glow-blue:rgba(56,189,248,.16);
+  --glow-green:rgba(34,197,94,.14);
+  --glow-amber:rgba(245,158,11,.14);
+  --glow-red:rgba(239,68,68,.14);
+}
+main{padding-top:26px;}
+.tabs{
+  padding:10px;
+  border:1px solid var(--soft-border);
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(15,23,42,.62),rgba(2,6,23,.34));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 34px rgba(0,0,0,.18);
+}
+button,.tab{
+  min-height:42px;
+  border-radius:999px!important;
+  border:1px solid rgba(148,163,184,.28)!important;
+  background:linear-gradient(180deg,rgba(51,65,85,.92),rgba(15,23,42,.92))!important;
+  color:#eaf4ff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 20px rgba(0,0,0,.12);
+  letter-spacing:.01em;
+}
+button:hover,.tab:hover{border-color:rgba(56,189,248,.48)!important;box-shadow:0 10px 24px rgba(0,0,0,.22),0 0 0 3px rgba(56,189,248,.08);}
+button:active,.tab:active{transform:translateY(0)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.28)!important;}
+button.active,.tab.active,button.primary{
+  background:linear-gradient(180deg,#67d8ff,#22b8ee)!important;
+  color:#031524!important;
+  border-color:rgba(125,211,252,.75)!important;
+  box-shadow:0 10px 28px rgba(56,189,248,.20),inset 0 1px 0 rgba(255,255,255,.32);
+}
+button.danger{
+  background:linear-gradient(180deg,#b91c1c,#7f1d1d)!important;
+  color:#fff!important;
+  border-color:rgba(248,113,113,.5)!important;
+}
+button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(56,189,248,.22)!important;
+  border-color:rgba(56,189,248,.72)!important;
+}
+.card,.graph-card,.snapshot-card,.score-box,.step,.v25527-account-card,.v25524-account-card,.v2554-account-card{
+  background:linear-gradient(180deg,rgba(30,41,59,.74),rgba(8,13,25,.74))!important;
+  border-color:var(--soft-border)!important;
+  border-radius:22px!important;
+  box-shadow:0 18px 42px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+#accounts>.card,.grid>.card,.dashboard-right>.card,#dashboard .forecast-dashboard-card{
+  background:linear-gradient(180deg,rgba(15,23,42,.84),rgba(3,7,18,.72))!important;
+}
+.card>h3,.forecast-dashboard-card>h3,.v25527-account-card>h3,.v25524-account-card>h3,.v2554-account-card>h3{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding-bottom:11px!important;
+  margin-bottom:14px!important;
+  border-bottom:1px solid rgba(148,163,184,.18)!important;
+  color:#dbeafe!important;
+  letter-spacing:.08em!important;
+}
+.card>h3:before,.forecast-dashboard-card>h3:before,.v25527-account-card>h3:before,.v25524-account-card>h3:before,.v2554-account-card>h3:before{
+  content:"";
+  width:8px;
+  height:24px;
+  border-radius:999px;
+  background:linear-gradient(180deg,var(--blue),#2563eb);
+  box-shadow:0 0 18px rgba(56,189,248,.32);
+  flex:0 0 auto;
+}
+.stat-head h3:before{display:none!important;content:none!important;}
+.stat-card{border-radius:22px!important;}
+.stat-card:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle at top right,currentColor,transparent 30%);
+  opacity:.08;
+}
+.stat-icon{border-radius:16px!important;}
+input,select{
+  background:rgba(2,6,23,.66)!important;
+  border-color:rgba(148,163,184,.26)!important;
+  box-shadow:inset 0 1px 8px rgba(0,0,0,.2);
+}
+input:hover,select:hover{border-color:rgba(56,189,248,.45)!important;}
+.alert{
+  background:linear-gradient(180deg,rgba(15,23,42,.78),rgba(2,6,23,.62))!important;
+  border-top:1px solid rgba(148,163,184,.12)!important;
+  border-right:1px solid rgba(148,163,184,.12)!important;
+  border-bottom:1px solid rgba(148,163,184,.12)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.14);
+}
+table{border-spacing:0 4px;border-collapse:separate!important;}
+th{border-bottom:none!important;}
+td{background:rgba(2,6,23,.24);border-bottom:1px solid rgba(148,163,184,.12)!important;}
+tr:hover td{background:rgba(56,189,248,.045);}
+.v25530-badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;position:relative;z-index:2;}
+.v25530-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  border:1px solid rgba(148,163,184,.28);
+  background:rgba(2,6,23,.56);
+  color:#cbd5e1;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.v25530-badge.green{background:rgba(20,83,45,.36);border-color:rgba(34,197,94,.34);color:#bbf7d0;}
+.v25530-badge.amber{background:rgba(69,26,3,.42);border-color:rgba(245,158,11,.4);color:#fde68a;}
+.v25530-badge.red{background:rgba(69,10,10,.42);border-color:rgba(239,68,68,.4);color:#fecaca;}
+.v25530-badge.blue{background:rgba(12,74,110,.36);border-color:rgba(56,189,248,.4);color:#bae6fd;}
+.v25530-badge.purple{background:rgba(59,7,100,.32);border-color:rgba(167,139,250,.38);color:#ddd6fe;}
+.v25530-soft-note{
+  margin-top:10px;
+  padding:9px 11px;
+  border-radius:14px;
+  background:rgba(2,6,23,.30);
+  border:1px solid rgba(148,163,184,.12);
+  color:var(--muted);
+  font-size:13px;
+}
+#dashboard .range-toggle button{padding:8px 14px!important;min-height:36px;}
+#accounts .v25527-add{margin-top:18px;}
+@media(max-width:900px){
+  main{padding:16px;}
+  .tabs{border-radius:18px;gap:8px;}
+  button,.tab{min-height:40px;padding:9px 13px!important;}
+  .card>h3,.forecast-dashboard-card>h3,.v25527-account-card>h3{font-size:13px!important;}
+  .v25530-badge{font-size:10px;padding:5px 8px;}
+}
+</style>
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.5.29 Visual Polish Pass 1</span></h1>
+  <h1>Grant OS <span class="pill">v2.5.5.30 Visual Polish Pass 2</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -2823,6 +2968,104 @@ StableInputV254.patch();
 
 
 
+
+
+
+<script>
+/* v2.5.5.30 smart visual badges */
+(function(){
+  function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
+  function setCardBadges(valueId,badges){
+    var value=document.getElementById(valueId);
+    if(!value) return;
+    var card=value.closest('.card') || value.parentElement;
+    if(!card) return;
+    var row=card.querySelector(':scope > .v25530-badge-row');
+    if(!row){ row=document.createElement('div'); row.className='v25530-badge-row'; card.appendChild(row); }
+    row.innerHTML=(badges||[]).map(badgeHtml).join('');
+    row.style.display=(badges&&badges.length)?'flex':'none';
+  }
+  function includedBuffer(){
+    try{
+      if(typeof AccountsUIV25527 !== 'undefined'){
+        var accounts=AccountsUIV25527.accounts();
+        return AccountsUIV25527.selectedOverdraftBuffer(accounts);
+      }
+    }catch(e){}
+    try{
+      var monzo=Math.max(0,Number(state.monzoOverdraftLimit||0)-Number(state.monzoOverdraft||0));
+      var fd=Math.max(0,Number(state.firstDirectOverdraftLimit||650)-Number(state.firstDirectOverdraft||0));
+      return (state.includeMonzoOverdraftForSpend==='yes'?monzo:0)+(state.includeFirstDirectOverdraftForSpend==='yes'?fd:0);
+    }catch(e){ return 0; }
+  }
+  function isAnyOverdraftIncluded(){
+    try{ return state.includeMonzoOverdraftForSpend==='yes' || state.includeFirstDirectOverdraftForSpend==='yes'; }catch(e){ return false; }
+  }
+  function applyDashboardBadges(){
+    try{
+      var buffer=includedBuffer();
+      var overdraft=(typeof Calc!=='undefined' && Calc.totalOverdraft)?Calc.totalOverdraft():0;
+      var safeWeek=(typeof Calc!=='undefined' && Calc.safeWeek)?Calc.safeWeek():0;
+      var weekly=Number(state.weeklyBudget||0);
+      var bank=(typeof Calc!=='undefined' && Calc.bankPosition)?Calc.bankPosition():0;
+      var safeBadges=[];
+      if(isAnyOverdraftIncluded()) safeBadges.push({text:'🛟 Overdraft included',type:'amber'});
+      if(buffer>0 && buffer<=50) safeBadges.push({text:'⚠️ Low buffer',type:'amber'});
+      if(buffer>50) safeBadges.push({text:'🛡️ Buffer available',type:'green'});
+      if(!safeBadges.length) safeBadges.push({text:'Balance only',type:'blue'});
+      setCardBadges('safeToday',safeBadges.slice(0,2));
+      var weekBadges=[];
+      if(safeWeek>0 && weekly>0 && safeWeek<weekly) weekBadges.push({text:'Below weekly target',type:'amber'});
+      if(safeWeek>=weekly && weekly>0) weekBadges.push({text:'On track',type:'green'});
+      if(safeWeek<=0) weekBadges.push({text:'No spare spend',type:'red'});
+      setCardBadges('safeWeek',weekBadges);
+      setCardBadges('totalOverdraft',overdraft>0?[{text:'Active overdraft',type:'red'}]:[{text:'No overdraft used',type:'green'}]);
+      setCardBadges('bankPosition',bank<0?[{text:'Negative position',type:'red'}]:[{text:'Positive position',type:'green'}]);
+      setCardBadges('v25528OverdraftBuffer',buffer>0?[{text:'Included in safe spend',type:'amber'}].concat(buffer<=50?[{text:'Low buffer',type:'amber'}]:[{text:'Buffer available',type:'green'}]):[{text:'No selected buffer',type:'blue'}]);
+    }catch(e){}
+  }
+  function applyAccountBadges(){
+    try{
+      if(typeof AccountsUIV25527==='undefined') return;
+      var accounts=AccountsUIV25527.accounts();
+      var cards=document.querySelectorAll('#accountsList .v25527-account-card');
+      accounts.forEach(function(a,i){
+        var card=cards[i]; if(!card) return;
+        var row=card.querySelector(':scope > .v25530-badge-row');
+        if(!row){ row=document.createElement('div'); row.className='v25530-badge-row'; card.insertBefore(row,card.querySelector('.v25527-actions')||null); }
+        var bal=Number(a.balance||0), limit=Number(a.limit||0);
+        var remaining=Math.max(0,limit+Math.min(0,bal));
+        var name=String(a.name||'').toLowerCase();
+        var included=(/monzo/.test(name) && state.includeMonzoOverdraftForSpend==='yes') || (/first\s*direct/.test(name) && state.includeFirstDirectOverdraftForSpend==='yes');
+        var badges=[];
+        if(bal<0) badges.push({text:'Overdraft active',type:'red'});
+        if(limit>0 && included) badges.push({text:'Overdraft included',type:'amber'});
+        if(limit>0 && !included && (/monzo/.test(name)||/first\s*direct/.test(name))) badges.push({text:'Balance only',type:'blue'});
+        if(limit>0 && remaining>0 && remaining<=50) badges.push({text:'Low buffer',type:'amber'});
+        if(bal>=0 && limit===0) badges.push({text:'Positive balance',type:'green'});
+        row.innerHTML=badges.map(badgeHtml).join('');
+        row.style.display=badges.length?'flex':'none';
+      });
+    }catch(e){}
+  }
+  function apply(){ applyDashboardBadges(); applyAccountBadges(); }
+  try{
+    if(typeof Dashboard!=='undefined' && Dashboard.render && !Dashboard.render.__v25530Badges){
+      var oldDash=Dashboard.render;
+      Dashboard.render=function(){ var r=oldDash.apply(this,arguments); setTimeout(apply,0); return r; };
+      Dashboard.render.__v25530Badges=true;
+    }
+  }catch(e){}
+  try{
+    if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.render && !AccountsUIV25527.render.__v25530Badges){
+      var oldAcc=AccountsUIV25527.render;
+      AccountsUIV25527.render=function(){ var r=oldAcc.apply(this,arguments); setTimeout(apply,0); return r; };
+      AccountsUIV25527.render.__v25530Badges=true;
+    }
+  }catch(e){}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(apply,80);}); else setTimeout(apply,80);
+})();
+</script>
 
 </body>
 </html>

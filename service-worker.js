@@ -1,13 +1,13 @@
-const CACHE_NAME = 'grant-os-v25529-visual-polish-pass-1';
+const CACHE_NAME = 'grant-os-v25530-visual-polish-pass-2';
 const FILES = [
   './',
-  './index.html?v=203',
-  './manifest.json?v=203',
-  './icon-192.png?v=203',
-  './icon-512.png?v=203',
-  './apple-touch-icon.png?v=203',
-  './favicon-32.png?v=203',
-  './favicon.ico?v=203'
+  './index.html?v=204',
+  './manifest.json?v=204',
+  './icon-192.png?v=204',
+  './icon-512.png?v=204',
+  './apple-touch-icon.png?v=204',
+  './favicon-32.png?v=204',
+  './favicon.ico?v=204'
 ];
 
 self.addEventListener('install', event => {
