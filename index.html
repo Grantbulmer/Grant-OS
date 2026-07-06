@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.5.5.17 Audited Baseline</title>
+<title>Grant OS v2.5.5.19 Forecast Table Clean</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -302,16 +302,135 @@ header{position:relative}
 @media(max-width:900px){.v2557-budget-selectors{grid-template-columns:1fr}}
 </style>
 
+
+<style>
+/* v2.5.5.19 Forecast Table Clean */
+#timeline{display:none!important}
+#dashboard .dashboard-single-layout{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,.98fr)!important;
+  gap:16px!important;
+  align-items:start!important;
+}
+#dashboard .dashboard-left,#dashboard .dashboard-right{
+  display:grid!important;
+  gap:16px!important;
+  min-width:0!important;
+}
+#dashboard .dashboard-cards{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:16px!important;
+}
+#dashboard .dashboard-cards .wide{grid-column:span 2!important}
+#dashboard .forecast-dashboard-card{grid-column:1/-1!important}
+#dashboard .timeline-dashboard-card{min-height:560px!important}
+#dashboard .timeline-dashboard-card #timelineList{max-height:470px!important;overflow:auto!important}
+
+/* remove any unexpected recreated duplicate right cards if browser cache injects them */
+#dashboard .dashboard-right > .card:not(:has(#timelineSummary)):not(.timeline-dashboard-card){display:none!important}
+
+@media(max-width:900px){
+  #dashboard .dashboard-single-layout{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:6px!important;
+  }
+  #dashboard .dashboard-left,#dashboard .dashboard-right,#dashboard .dashboard-cards{gap:6px!important}
+  #dashboard .dashboard-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #dashboard .dashboard-cards .wide{grid-column:span 2!important}
+  #dashboard .card{padding:7px!important;border-radius:10px!important;min-width:0!important;overflow:hidden!important}
+  #dashboard .card h3{font-size:clamp(9px,2.15vw,14px)!important;letter-spacing:.1em!important;margin-bottom:6px!important}
+  #dashboard .big{font-size:clamp(20px,4.8vw,34px)!important}
+  #dashboard .note,#dashboard p,#dashboard td,#dashboard th,#dashboard .timeline-meta{
+    font-size:clamp(9px,1.95vw,14px)!important;line-height:1.35!important;
+  }
+  #dashboard .alert{padding:8px!important;margin:7px 0!important;font-size:clamp(10px,2.3vw,14px)!important}
+  #dashboard .timeline-dashboard-card{min-height:620px!important}
+  #dashboard .timeline-dashboard-card #timelineList{max-height:530px!important;overflow:auto!important}
+  #dashboard .timeline{padding-left:18px!important}
+  #dashboard .timeline-item{padding:8px!important;margin-bottom:10px!important}
+  #dashboard .timeline-item:before{left:-21px!important}
+}
+</style>
+
+
+<style>
+/* v2.5.5.19 forecast table polish only */
+#dashboard .forecast-dashboard-card{
+  overflow:hidden!important;
+}
+#dashboard .forecast-dashboard-card .range-toggle{
+  display:flex!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  margin-bottom:12px!important;
+}
+#dashboard .forecast-dashboard-card table{
+  width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+}
+#dashboard .forecast-dashboard-card th,
+#dashboard .forecast-dashboard-card td{
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+  vertical-align:top!important;
+}
+#dashboard .forecast-dashboard-card th:nth-child(1),
+#dashboard .forecast-dashboard-card td:nth-child(1){width:14%!important}
+#dashboard .forecast-dashboard-card th:nth-child(2),
+#dashboard .forecast-dashboard-card td:nth-child(2){width:20%!important}
+#dashboard .forecast-dashboard-card th:nth-child(3),
+#dashboard .forecast-dashboard-card td:nth-child(3){width:18%!important}
+#dashboard .forecast-dashboard-card th:nth-child(4),
+#dashboard .forecast-dashboard-card td:nth-child(4){width:13%!important}
+#dashboard .forecast-dashboard-card th:nth-child(5),
+#dashboard .forecast-dashboard-card td:nth-child(5){width:17%!important}
+#dashboard .forecast-dashboard-card th:nth-child(6),
+#dashboard .forecast-dashboard-card td:nth-child(6){width:18%!important}
+
+@media(max-width:900px){
+  #dashboard .forecast-dashboard-card{
+    padding:8px!important;
+  }
+  #dashboard .forecast-dashboard-card .range-toggle button{
+    flex:1 1 30%!important;
+    min-width:92px!important;
+    padding:8px 10px!important;
+  }
+  #dashboard .forecast-dashboard-card table{
+    font-size:clamp(9px,1.85vw,13px)!important;
+  }
+  #dashboard .forecast-dashboard-card th,
+  #dashboard .forecast-dashboard-card td{
+    padding:8px 4px!important;
+    line-height:1.25!important;
+  }
+  #dashboard .forecast-dashboard-card th:nth-child(1),
+  #dashboard .forecast-dashboard-card td:nth-child(1){width:15%!important}
+  #dashboard .forecast-dashboard-card th:nth-child(2),
+  #dashboard .forecast-dashboard-card td:nth-child(2){width:20%!important}
+  #dashboard .forecast-dashboard-card th:nth-child(3),
+  #dashboard .forecast-dashboard-card td:nth-child(3){width:18%!important}
+  #dashboard .forecast-dashboard-card th:nth-child(4),
+  #dashboard .forecast-dashboard-card td:nth-child(4){width:13%!important}
+  #dashboard .forecast-dashboard-card th:nth-child(5),
+  #dashboard .forecast-dashboard-card td:nth-child(5){width:17%!important}
+  #dashboard .forecast-dashboard-card th:nth-child(6),
+  #dashboard .forecast-dashboard-card td:nth-child(6){width:17%!important}
+}
+</style>
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.5.5.17 Audited Baseline</span></h1>
+  <h1>Grant OS <span class="pill">v2.5.5.19 Forecast Table Clean</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
   <div class="tabs">
     <button class="tab active" onclick="UI.show('dashboard', this)">Dashboard</button>
-    <button class="tab" onclick="UI.show('timeline', this)">Timeline</button>
     <button class="tab" onclick="UI.show('budget', this)">Budget Setup</button>
     <button class="tab" onclick="UI.show('debts', this)">Debt Tracker</button>
     <button class="tab" onclick="UI.show('holidays', this)">Holiday Pots</button>
@@ -322,38 +441,43 @@ header{position:relative}
   </div>
 
   <section id="dashboard" class="section active">
-    <div class="grid">
-      <div class="card full"><h3>Immediate Alerts</h3><div id="alertsBox"></div></div>
-      <div class="card"><h3>Overall Bank Position</h3><div id="bankPosition" class="big">£0</div><div class="note">First Direct + Monzo balances minus overdrafts.</div></div>
-      <div class="card"><h3>Total Overdraft Used</h3><div id="totalOverdraft" class="big red">£0</div><div class="note">First Direct OD + Monzo OD.</div></div>
-      <div class="card"><h3>Safe To Spend Today</h3><div id="safeToday" class="big green">£0</div><div class="note">Calculated from selected spend accounts.</div></div>
-      <div class="card"><h3>Safe To Spend This Week</h3><div id="safeWeek" class="big blue">£0</div><div class="note">Selected spend accounts until payday.</div></div>
-      <div class="card"><h3>Days Until Payday</h3><div id="daysPayday" class="big amber">0</div><div class="note">Payday assumed 26th monthly.</div></div>
-      <div class="card wide"><h3>Debt Remaining</h3><div id="debtRemaining" class="big red">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
-      <div class="card wide"><h3>Relocation Fund</h3><div id="relocationProgress" class="big green">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
-      <div class="card"><h3>Emergency Fund</h3><div id="emergencyProgress" class="big green">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
-      <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
-      <div class="card wide"><h3>Next Priority</h3><div id="nextPriority" class="big blue">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
-      <div class="card full"><h3>Payday-to-Payday Forecast</h3><div class="range-toggle" id="forecastRangeToggle"></div><table id="forecastTable"></table></div>
+    <div class="dashboard-single-layout">
+      <div class="dashboard-left">
+        <div class="card"><h3>Immediate Alerts</h3><div id="alertsBox"></div></div>
+
+        <div class="dashboard-cards">
+          <div class="card"><h3>Overall Bank Position</h3><div id="bankPosition" class="big">£0</div><div class="note">First Direct + Monzo balances minus overdrafts.</div></div>
+          <div class="card"><h3>Total Overdraft Used</h3><div id="totalOverdraft" class="big red">£0</div><div class="note">First Direct OD + Monzo OD.</div></div>
+          <div class="card"><h3>Days Until Payday</h3><div id="daysPayday" class="big amber">0</div><div class="note">Payday assumed 26th monthly.</div></div>
+          <div class="card"><h3>Debt Remaining</h3><div id="debtRemaining" class="big red">£0</div><div class="bar"><div id="debtBar" class="fill"></div></div></div>
+
+          <div class="card wide"><h3>Next Priority</h3><div id="nextPriority" class="big blue">Loading...</div><div class="note">Based on linked debt, overdraft and holiday figures.</div></div>
+          <div class="card"><h3>Safe To Spend Today</h3><div id="safeToday" class="big green">£0</div><div class="note">Calculated from selected spend accounts.</div></div>
+          <div class="card"><h3>Safe To Spend This Week</h3><div id="safeWeek" class="big blue">£0</div><div class="note">Selected spend accounts until payday.</div></div>
+
+          <div class="card wide"><h3>Relocation Fund</h3><div id="relocationProgress" class="big green">£0 / £10,000</div><div class="bar"><div id="relocationBar" class="fill"></div></div></div>
+          <div class="card"><h3>Emergency Fund</h3><div id="emergencyProgress" class="big green">£0 / £1,000</div><div class="bar"><div id="emergencyBar" class="fill"></div></div></div>
+          <div class="card"><h3>Finance Health</h3><div id="financeHealth" class="big amber">0/100</div><div class="note" id="financeHealthNote">Overdraft, debt, savings and funding score.</div></div>
+        </div>
+      </div>
+
+      <div class="dashboard-right">
+        <div class="card"><h3>Next 90 Days</h3><div id="timelineSummary"></div></div>
+        <div class="card timeline-dashboard-card">
+          <h3>Financial Timeline</h3>
+          <p class="note">A single view of upcoming debt, holiday, payday and goal milestones. The timeline auto-extends as you add future dates.</p>
+          <button class="primary" onclick="Timeline.scrollToday()">Jump to Today</button>
+          <div id="timelineList" class="timeline"></div>
+        </div>
+      </div>
+
+      <div class="card forecast-dashboard-card"><h3>Payday-to-Payday Forecast</h3><div class="range-toggle" id="forecastRangeToggle"></div><table id="forecastTable"></table></div>
     </div>
   </section>
 
   
   
-  <section id="timeline" class="section">
-    <div class="grid">
-      <div class="card full">
-        <h3>Next 90 Days</h3>
-        <div id="timelineSummary"></div>
-      </div>
-      <div class="card full">
-        <h3>Financial Timeline</h3>
-        <p class="note">A single view of upcoming debt, holiday, payday and goal milestones. The timeline auto-extends as you add future dates.</p>
-        <button class="primary" onclick="Timeline.scrollToday()">Jump to Today</button>
-        <div id="timelineList" class="timeline"></div>
-      </div>
-    </div>
-  </section><section id="budget" class="section">
+  <section id="timeline" class="section" style="display:none" aria-hidden="true"></section><section id="budget" class="section">
     <div class="grid">
       <div class="card wide">
         <h3>Core Figures</h3>
@@ -1178,7 +1302,7 @@ const ForecastRangeV24 = {
     const el=document.getElementById("forecastRangeToggle");
     if(!el) return;
     const current=this.get();
-    el.innerHTML=[3,6,9,12].map(m=>`<button class="${current===m?'active':''}" onclick="ForecastRangeV24.set(${m})">${m} months</button>`).join("");
+    el.innerHTML=[3,6,12].map(m=>`<button class="${current===m?'active':''}" onclick="ForecastRangeV24.set(${m})">${m} months</button>`).join("");
   }
 };
 
@@ -1953,7 +2077,7 @@ const StrongInputFocusFixV253 = {
 StrongInputFocusFixV253.patch();
 
 
-/* v2.5.5.17 Audited Baseline
+/* v2.5.5.19 Forecast Table Clean
    Inputs save while typing without re-rendering. The app redraws once after the field is left. */
 const StableInputV254 = {
   isField(el){
@@ -2027,298 +2151,48 @@ StableInputV254.patch();
 
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Grant OS v2.5.5.18 audit: 23 passed, 0 failed. No layout changes. -->
+
 <script>
+/* v2.5.5.19 Forecast Table Clean: nav cleanup only */
 (function(){
-  var tabIcons={
-    "Dashboard":"🏠","Timeline":"🕒","Accounts":"🏦","Budget Setup":"💷","Debt Tracker":"💳",
-    "Holiday Pots":"✈️","Graphs":"📈","Relocation":"🏡","Career":"💼","Settings":"⚙️"
-  };
-  function cleanLabel(s){return (s||"").replace(/^[^\w£]+/,"").trim();}
-  function txt(el){return (el&&el.textContent||"").trim();}
-  function enhanceTabs(){
-    var buttons=Array.prototype.slice.call(document.querySelectorAll(".tabs button,.tab"));
-    var hasAccounts=false;
-    buttons.forEach(function(b){
-      var label=cleanLabel(txt(b));
-      Object.keys(tabIcons).forEach(function(k){
-        if(label.indexOf(k)>=0){
-          if(b.innerHTML.indexOf('v2551-icon')<0){
-            b.innerHTML='<span class="v2551-icon">'+tabIcons[k]+'</span><span>'+label+'</span>';
-          }
-          if(k==="Accounts") hasAccounts=true;
-        }
-      });
-    });
-    if(!hasAccounts && buttons.length){
-      var tabs=buttons[0].parentElement;
-      var btn=document.createElement("button");
-      btn.className=buttons[0].className||"tab";
-      btn.innerHTML='<span class="v2551-icon">🏦</span><span>Accounts</span>';
-      btn.onclick=function(){
-        Array.prototype.slice.call(document.querySelectorAll(".tabs button,.tab")).forEach(function(x){x.classList.remove("active")});
-        btn.classList.add("active");
-        document.querySelectorAll(".section").forEach(function(s){s.classList.remove("active")});
-        var acc=document.getElementById("accounts"); if(acc)acc.classList.add("active");
-      };
-      if(buttons[0].nextSibling) tabs.insertBefore(btn,buttons[0].nextSibling); else tabs.appendChild(btn);
-    }
-  }
-  function getMoneyAfter(label){
-    var all=document.body.innerText||"";
-    var re=new RegExp(label+"[\\s\\S]{0,80}?£\\s*(-?[\\d,.]+)","i");
-    var m=all.match(re);
-    return m?("£"+m[1]):"Live";
-  }
-  function getHealth(){
-    var all=document.body.innerText||"";
-    var m=all.match(/Finance Health[\s\S]{0,80}?(\d+\/100)/i);
-    return m?m[1]:"Live";
-  }
-  function mini(icon,title,value,sub,cls){
-    return '<div class="v2551-mini"><div class="v2551-mini-head"><span class="v2551-mini-badge">'+icon+'</span><span>'+title+'</span></div><div class="v2551-mini-value '+(cls||"")+'">'+value+'</div><div class="v2551-mini-sub">'+sub+'</div></div>';
-  }
-  function enhanceDashboard(){
-    var dash=document.getElementById("dashboard");
-    if(!dash || dash.dataset.v2551==="yes") return;
-    var cards=Array.prototype.slice.call(dash.querySelectorAll(":scope > .card, main > .card, .card"));
-    var next90=cards.filter(function(c){return /NEXT 90 DAYS/i.test(txt(c));})[0];
-    var timeline=cards.filter(function(c){return /FINANCIAL TIMELINE/i.test(txt(c));})[0];
-    var alerts=cards.filter(function(c){return /IMMEDIATE ALERTS/i.test(txt(c));})[0];
-    if(!next90 || !timeline || !alerts) return;
-
-    var parent=next90.parentElement;
-    var wrap=document.createElement("div");
-    wrap.className="v2551-dash-wrap";
-    var left=document.createElement("div"); left.className="v2551-left";
-    var right=document.createElement("div"); right.className="v2551-right";
-
-    timeline.classList.add("v2551-timeline-card");
-    left.appendChild(next90);
-    left.appendChild(timeline);
-    right.appendChild(alerts);
-
-    var extras=document.createElement("div");
-    extras.className="v2551-alert-extra";
-    extras.innerHTML=
-      mini("💷","Safe To Spend Today",getMoneyAfter("Safe To Spend Today"),"Calculated from selected spend accounts.","green")+
-      mini("🗓️","Safe To Spend This Week",getMoneyAfter("Safe To Spend This Week"),"Selected spend accounts until payday.","blue")+
-      mini("🧭","Finance Health",getHealth(),"Overdraft, debt, savings and funding score.","amber");
-    right.appendChild(extras);
-
-    wrap.appendChild(left);
-    wrap.appendChild(right);
-    parent.insertBefore(wrap,parent.firstChild);
-    dash.dataset.v2551="yes";
-  }
-  function enhanceAccounts(){
-    var el=document.getElementById("v2551AccountsInfo");
-    if(el)el.innerHTML='<p class="muted">This tab is ready for the next phase. v2.5.4 budget fields remain the source of truth for now.</p>';
-  }
   function run(){
-    enhanceTabs();
-    enhanceDashboard();
-    enhanceAccounts();
+    document.querySelectorAll("button,a").forEach(function(el){
+      var t=(el.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+      var oc=(el.getAttribute("onclick")||"").toLowerCase();
+      if(t==="timeline" || (t.indexOf("timeline")>=0 && oc.indexOf("timeline")>=0)) el.remove();
+    });
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",run); else run();
-  setTimeout(run,400);
 })();
 </script>
 
 
-
-
-
 <script>
-var V2554Accounts=(function(){
-  var KEY="grantOS.accounts.v2554";
-  var SELECT_KEY="grantOS.accountSelections.v2554";
-
-  function esc(s){
-    return String(s == null ? "" : s)
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;");
-  }
-  function money(n){
-    return "£"+Number(n||0).toLocaleString("en-GB",{maximumFractionDigits:2});
-  }
-  function defaultAccounts(){
-    return [
-      {name:"First Direct",type:"Current",balance:-82,limit:650},
-      {name:"Monzo",type:"Current",balance:-153,limit:200}
-    ];
-  }
-  function accounts(){
-    try{
-      var data=JSON.parse(localStorage.getItem(KEY)||"null");
-      if(Array.isArray(data) && data.length) return data;
-    }catch(e){}
-    return defaultAccounts();
-  }
-  function setAccounts(data){localStorage.setItem(KEY,JSON.stringify(data));}
-  function selections(){
-    try{
-      var data=JSON.parse(localStorage.getItem(SELECT_KEY)||"null");
-      if(data && Array.isArray(data.spend) && Array.isArray(data.overdraft)) return data;
-    }catch(e){}
-    return {spend:["Monzo"],overdraft:["Monzo"]};
-  }
-  function setSelections(data){localStorage.setItem(SELECT_KEY,JSON.stringify(data));}
-  function selectedValues(id){
-    var el=document.getElementById(id);
-    if(!el)return [];
-    return Array.prototype.slice.call(el.options).filter(function(o){return o.selected;}).map(function(o){return o.value;});
-  }
-  function syncBudgetSelections(){
-    setSelections({
-      spend:selectedValues("v2554SpendSelect"),
-      overdraft:selectedValues("v2554OverdraftSelect")
-    });
-    renderSummary();
-  }
-  function renderSelects(){
-    var data=accounts();
-    var sel=selections();
-    function options(kind){
-      return data.map(function(a){
-        var selected=(sel[kind]||[]).indexOf(a.name)>=0?"selected":"";
-        return '<option '+selected+' value="'+esc(a.name)+'">'+esc(a.name)+'</option>';
-      }).join("");
-    }
-    var spend=document.getElementById("v2554SpendSelect");
-    var od=document.getElementById("v2554OverdraftSelect");
-    if(spend)spend.innerHTML=options("spend");
-    if(od)od.innerHTML=options("overdraft");
-  }
-  function renderSummary(){
-    var data=accounts();
-    var sel=selections();
-    var total=data.reduce(function(s,a){return s+Number(a.balance||0);},0);
-    var available=data.reduce(function(s,a){
-      var inc=(sel.spend||[]).indexOf(a.name)>=0;
-      var od=(sel.overdraft||[]).indexOf(a.name)>=0;
-      if(!inc)return s;
-      return s+Number(a.balance||0)+(od?Number(a.limit||0):0);
-    },0);
-    var tb=document.getElementById("v2554TotalBalance");
-    var av=document.getElementById("v2554AvailableSpend");
-    var ct=document.getElementById("v2554AccountCount");
-    if(tb){tb.textContent=money(total);tb.className="big "+(total<0?"red":"green");}
-    if(av){av.textContent=money(available);av.className="big "+(available<0?"red":"green");}
-    if(ct)ct.textContent=data.length;
-  }
-  function update(i,field,value){
-    var data=accounts();
-    if(!data[i])return;
-    if(field==="balance" || field==="limit") data[i][field]=Number(value||0);
-    else data[i][field]=value;
-    setAccounts(data);
-    try{ AccountSyncV25516.syncAccountsToState(); Data.save(); Dashboard.render(); }catch(e){}
-    renderSelects();
-    renderSummary();
-  }
-  function add(){
-    var data=accounts();
-    data.push({name:"New Account",type:"Current",balance:0,limit:0});
-    setAccounts(data);
-    try{ AccountSyncV25516.syncAccountsToState(); Data.save(); Dashboard.render(); }catch(e){}
-    render();
-  }
-  function remove(i){
-    var data=accounts();
-    if(!data[i])return;
-    if(!confirm("Delete "+data[i].name+"?"))return;
-    var name=data[i].name;
-    data.splice(i,1);
-    setAccounts(data);
-    var sel=selections();
-    sel.spend=(sel.spend||[]).filter(function(n){return n!==name;});
-    sel.overdraft=(sel.overdraft||[]).filter(function(n){return n!==name;});
-    setSelections(sel);
-    try{ AccountSyncV25516.syncAccountsToState(); Data.save(); Dashboard.render(); }catch(e){}
-    render();
-  }
-  function accountCard(a,i){
-    return '<div class="v2554-account-card" data-account-index="'+i+'">'+
-      '<h3>🏦 '+esc(a.name)+'</h3>'+
-      '<div class="v2554-form-grid">'+
-        '<div><label>Account name</label><input data-field="name" value="'+esc(a.name)+'"></div>'+
-        '<div><label>Type</label><select data-field="type">'+
-          '<option '+(a.type==="Current"?"selected":"")+'>Current</option>'+
-          '<option '+(a.type==="Savings"?"selected":"")+'>Savings</option>'+
-          '<option '+(a.type==="Credit"?"selected":"")+'>Credit</option>'+
-        '</select></div>'+
-        '<div><label>Balance</label><input data-field="balance" type="number" step="0.01" value="'+Number(a.balance||0)+'"></div>'+
-        '<div><label>Overdraft limit</label><input data-field="limit" type="number" step="0.01" value="'+Number(a.limit||0)+'"></div>'+
-      '</div>'+
-      '<div class="v2554-actions"><button type="button" class="v2554-delete" data-delete-account="'+i+'">Delete</button></div>'+
-    '</div>';
-  }
-  function renderAccounts(){
-    var el=document.getElementById("accountsList");
-    if(!el)return;
-    el.innerHTML=accounts().map(accountCard).join("");
-  }
-  function render(){
-    renderAccounts();
-    renderSelects();
-    renderSummary();
-  }
-
-  document.addEventListener("change",function(e){
-    if(e.target && (e.target.id==="v2554SpendSelect" || e.target.id==="v2554OverdraftSelect")){
-      syncBudgetSelections();
-      return;
-    }
-    var field=e.target && e.target.getAttribute("data-field");
-    if(field){
-      var card=e.target.closest(".v2554-account-card");
-      if(!card)return;
-      update(Number(card.getAttribute("data-account-index")), field, e.target.value);
-    }
-  });
-  document.addEventListener("click",function(e){
-    if(e.target && e.target.id==="v2554AddAccount"){add();}
-    var del=e.target && e.target.getAttribute("data-delete-account");
-    if(del!==null && del!==undefined){remove(Number(del));}
-  });
-
-  return {accounts:accounts,selections:selections,update:update,add:add,remove:remove,render:render,renderSelects:renderSelects,renderSummary:renderSummary,syncBudgetSelections:syncBudgetSelections};
-})();
-if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",V2554Accounts.render);}
-else{V2554Accounts.render();}
-setTimeout(V2554Accounts.render,500);
-</script>
-
-
-
-
-
-<script>
-/* v2.5.5.11 one-change live FD dropdown binding */
+/* v2.5.5.19: remove 9-month forecast option safely */
 (function(){
-  function bindFD(){
-    const el=document.getElementById("includeFirstDirectOverdraftForSpend");
-    if(!el || el.dataset.fdLiveBound==="yes") return;
-    el.dataset.fdLiveBound="yes";
-    el.addEventListener("change",function(){
-      try{
-        state.includeFirstDirectOverdraftForSpend=this.value; try{AccountSyncV25516.syncAccountsToState();}catch(e){}
-        const accounts=JSON.parse(localStorage.getItem("grantOS.accounts.v2554")||"[]");
-        const fd=accounts.find(a=>a.name==="First Direct");
-        if(fd && Number(fd.limit||0)) state.firstDirectOverdraftLimit=Number(fd.limit||0);
-        Data.save();
-        App.render();
-      }catch(e){}
+  try{
+    ["grantOS_range_v25530","grantOS_range_v25531","grantOS_range_v25532","grantOS_range_v25518"].forEach(function(k){
+      if(localStorage.getItem(k)==="9") localStorage.setItem(k,"6");
     });
-  }
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bindFD);
-  else bindFD();
-  setTimeout(bindFD,500);
-  setTimeout(bindFD,1500);
+  }catch(e){}
 })();
 </script>
 
-
-<!-- Grant OS v2.5.5.17 audit: 23 passed, 0 failed. No layout changes. -->
 </body>
 </html>

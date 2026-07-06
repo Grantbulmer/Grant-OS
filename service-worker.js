@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-v25517-audited-baseline';
+const CACHE_NAME = 'grant-os-v25519-forecast-table-clean';
 const FILES = [
   './',
   './index.html?v=201',
