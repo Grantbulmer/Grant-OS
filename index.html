@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.7.13 Health Direction + Foldable Debt Columns</title>
+<title>Grant OS v2.7.14 Stability Clean Baseline</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -3347,7 +3347,7 @@ StableInputV254.patch();
 <script>
 /* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
 (function(){
-  const VERSION='v2.6 Dashboard Clarity Pass';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   const MAX_ACCOUNTS=5;
 
   function num(v){ return Number(v||0); }
@@ -3679,7 +3679,7 @@ StableInputV254.patch();
 <script>
 /* v2.6 Dashboard Clarity Pass */
 (function(){
-  const VERSION='v2.6 Dashboard Clarity Pass';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function num(v){ return Number(v||0); }
   function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
@@ -3836,7 +3836,7 @@ StableInputV254.patch();
 <script>
 /* v2.6.1 Dashboard layout + safe-spend fix */
 (function(){
-  const VERSION='v2.6.1 Dashboard Layout + Safe Spend Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function num(v){ return Number(v||0); }
   function moneySafe(n){ try{return money(n);}catch(e){ return '£'+num(n).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
   function accountList(){
@@ -3969,7 +3969,7 @@ StableInputV254.patch();
    used by the Accounts and Budget tabs. Uses lexical globals directly rather than window.*
    because this app defines core modules with const, so they are not attached to window. */
 (function(){
-  const VERSION='v2.6.2 Safe Spend Dashboard Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function num(v){ return Number(v||0); }
   function fmtMoney(v){
     try{ return money(v); }
@@ -4114,7 +4114,7 @@ StableInputV254.patch();
 /* v2.6.4 Dashboard Card Order
    Moves Safe To Spend cards into the first row and moves bank/overdraft cards below Next Priority. */
 (function(){
-  const VERSION='v2.6.4 Dashboard Card Order';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4162,7 +4162,7 @@ StableInputV254.patch();
    the original page-load date. If the app is left open overnight and no money is
    spent, the daily/weekly safe-spend allowance rolls forward automatically. */
 (function(){
-  const VERSION='v2.6.5 Live Safe Spend Date Logic';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   const MS_DAY=24*60*60*1000;
   let lastDateKey='';
   function num(v){ return Number(v||0); }
@@ -4258,7 +4258,7 @@ StableInputV254.patch();
 <script>
 /* v2.7 Responsive Device Layout Pass runtime tidy */
 (function(){
-  const VERSION='v2.7 Responsive Device Layout Pass';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4428,7 +4428,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.2 Mobile Form Access Fix runtime */
 (function(){
-  const VERSION='v2.7.2 Mobile Form Access Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   const TABLES=['fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4587,7 +4587,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates runtime */
 (function(){
-  const VERSION='v2.7.3 Mobile Full Form Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   const TABLES=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4799,7 +4799,7 @@ StableInputV254.patch();
    Creates live mobile editor cards for Budget linked accounts, fixed costs, debts and holidays.
    Desktop/foldable keeps the existing table layout. */
 (function(){
-  const VERSION='v2.7.5 Mobile Add Remove Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   const MAX_ACCOUNTS=5;
   const tableIds=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   const isPhone=()=>window.matchMedia && window.matchMedia('(max-width:640px)').matches;
@@ -4931,7 +4931,7 @@ StableInputV254.patch();
 /* v2.7.5 Mobile Add/Remove Fix
    Keeps the successful v2.7.4 mobile card layout, but makes Add/Remove update the mobile cards immediately. */
 (function(){
-  const VERSION='v2.7.5 Mobile Add Remove Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5019,7 +5019,7 @@ StableInputV254.patch();
    Debt Tracker is the master source for debt balances/repayments.
    Safe-spend/forecast totals still include debt repayments via Calc.totalFixed(). */
 (function(){
-  const VERSION='v2.7.6 Bills Debt De-duplication';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5189,7 +5189,7 @@ StableInputV254.patch();
    Adds remove controls for normal bills in Budget > Monthly Fixed Costs / Bills.
    Keeps Debt Tracker as the master place for debt repayments. */
 (function(){
-  const VERSION='v2.7.7 Budget Bill Remove Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function updateVersion(){
@@ -5292,7 +5292,7 @@ StableInputV254.patch();
    Locks Finance Health to the newer detailed score formula and removes the old
    Payday Update Mode next-priority notification from Budget Setup. */
 (function(){
-  const VERSION='v2.7.8 Finance Health Score Lock';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function updateVersion(){
@@ -5413,7 +5413,7 @@ StableInputV254.patch();
    This keeps overdraft use, BNPL, high debt, low safe spend and no emergency fund
    from ever showing as a strong position. */
 (function(){
-  const VERSION='v2.7.10 Foldable Dashboard Width Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5609,7 +5609,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.10 version label only */
 (function(){
-  const VERSION='v2.7.10 Foldable Dashboard Width Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5672,7 +5672,7 @@ StableInputV254.patch();
 /* v2.7.11 Health Live + Foldable Debt Tracker Fix
    Uses a stricter score that is sensitive to new debt and forces Finance Health to re-render after debt changes. */
 (function(){
-  const VERSION='v2.7.11 Health Live + Foldable Debt Tracker Fix';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5869,7 +5869,7 @@ StableInputV254.patch();
 /* v2.7.12 Health Live Calibration
    Makes the Finance Health score calculate from the live debt inputs, so added/removed/increased debts immediately affect the score. */
 (function(){
-  const VERSION='v2.7.12 Health Live + Foldable Debt Tweak';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6070,7 +6070,7 @@ StableInputV254.patch();
 /* v2.7.13 Health Direction Fix
    Final locked health score: adding/increasing debt must lower the score; reducing/removing debt must raise it. */
 (function(){
-  const VERSION='v2.7.13 Health Direction + Foldable Debt Columns';
+  const VERSION='v2.7.14 Stability Clean Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6234,6 +6234,28 @@ StableInputV254.patch();
   document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt')) setTimeout(()=>{syncStateFromVisibleDebtInputs();paintHealth();},50); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(patch,750)); else setTimeout(patch,750);
   [1200,2200,4000].forEach(ms=>setTimeout(patch,ms));
+})();
+</script>
+
+
+<script id="v2714StabilityBaselineGuard">
+/* v2.7.14 Stability Clean Baseline
+   Baseline guard only: keeps the visible version stable after older patch layers run.
+   No calculation, layout, or data-model changes are made here. */
+(function(){
+  const VERSION='v2.7.14 Stability Clean Baseline';
+  window.GRANT_OS_BASELINE_VERSION=VERSION;
+  function setStableVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function boot(){
+    setStableVersion();
+    [100,300,750,1500,3000].forEach(ms=>setTimeout(setStableVersion,ms));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+  else boot();
+  window.addEventListener('load',boot);
 })();
 </script>
 
