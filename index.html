@@ -6711,5 +6711,205 @@ StableInputV254.patch();
 })();
 </script>
 
+
+<script id="v283BudgetInputPersistenceFix">
+(function(){
+  const VERSION='v2.8.3 Budget Input Persistence Fix';
+  const CORE_NUMERIC=['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'];
+  const CORE_SELECTS=[];
+  const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
+  function n(v){ return Number(v||0); }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function visible(el){
+    try{ return !!(el && el.getClientRects && el.getClientRects().length && getComputedStyle(el).visibility!=='hidden' && getComputedStyle(el).display!=='none'); }catch(e){ return !!el; }
+  }
+  function rawAccounts(){
+    let data=[];
+    try{ data=JSON.parse(localStorage.getItem(ACCOUNT_KEY())||'[]'); }catch(e){ data=[]; }
+    if((!Array.isArray(data) || !data.length) && window.AccountsUIV25527 && AccountsUIV25527.accounts){
+      try{ data=AccountsUIV25527.accounts(); }catch(e){}
+    }
+    return Array.isArray(data)?data.filter(Boolean):[];
+  }
+  function writeAccounts(accounts){
+    const clean=(Array.isArray(accounts)?accounts:[]).filter(Boolean).map((a,i)=>({
+      name:String(a.name||('Account '+(i+1))).trim()||('Account '+(i+1)),
+      type:a.type||'Current',
+      balance:n(a.balance),
+      limit:Math.max(0,n(a.limit)),
+      includeOverdraftForSpend:(a.includeOverdraftForSpend==='yes'&&n(a.limit)>0)?'yes':'no'
+    }));
+    try{ localStorage.setItem(ACCOUNT_KEY(),JSON.stringify(clean)); }catch(e){}
+    try{ syncLegacyState(clean); }catch(e){}
+    try{ if(window.Data) Data.save(); }catch(e){}
+    return clean;
+  }
+  function split(balance){ const b=n(balance); return {balance:Math.max(0,b),overdraft:Math.max(0,-b)}; }
+  function syncLegacyState(accounts){
+    try{
+      const find=re=>accounts.find(a=>re.test(String(a.name||'')));
+      const fd=find(/first\s*direct/i), monzo=find(/monzo/i);
+      if(fd){ const s=split(fd.balance); state.firstDirectBalance=s.balance; state.firstDirectOverdraft=s.overdraft; state.firstDirectOverdraftLimit=n(fd.limit||650); state.includeFirstDirectOverdraftForSpend=fd.includeOverdraftForSpend||'no'; }
+      if(monzo){ const s=split(monzo.balance); state.monzoBalance=s.balance; state.monzoOverdraft=s.overdraft; state.monzoOverdraftLimit=n(monzo.limit||200); state.includeMonzoOverdraftForSpend=monzo.includeOverdraftForSpend||'no'; }
+    }catch(e){}
+  }
+  function getByIds(ids){ return ids.map(id=>document.getElementById(id)).filter(Boolean); }
+  function bestInputValue(ids,fallback){
+    const els=getByIds(ids);
+    const active=document.activeElement;
+    const activeMatch=els.find(el=>el===active);
+    if(activeMatch) return activeMatch.value;
+    const visibleMatch=els.find(visible);
+    if(visibleMatch) return visibleMatch.value;
+    return els.length?els[0].value:fallback;
+  }
+  function bestSelectValue(ids,fallback){ return bestInputValue(ids,fallback); }
+  function syncPairedInputs(i,sourcePrefix){
+    try{
+      const pairs=[['Bal','balance'],['Od','od'],['Limit','limit']];
+      pairs.forEach(([suffix])=>{
+        const src=document.getElementById(sourcePrefix+suffix+'_'+i);
+        const otherPrefix=sourcePrefix==='v274Acc'?'v25531Acc':'v274Acc';
+        const dst=document.getElementById(otherPrefix+suffix+'_'+i);
+        if(src && dst && dst!==document.activeElement) dst.value=src.value;
+      });
+      const srcSel=document.getElementById(sourcePrefix+'Include_'+i);
+      const otherPrefix=sourcePrefix==='v274Acc'?'v25531Acc':'v274Acc';
+      const dstSel=document.getElementById(otherPrefix+'Include_'+i);
+      if(srcSel && dstSel && dstSel!==document.activeElement) dstSel.value=srcSel.value;
+    }catch(e){}
+  }
+  function saveLinkedAccountsFromBestVisible(){
+    const accounts=rawAccounts();
+    if(!accounts.length) return writeAccounts(accounts);
+    accounts.forEach((a,i)=>{
+      const current=split(a.balance);
+      const bal=bestInputValue(['v274AccBal_'+i,'v25531AccBal_'+i],current.balance);
+      const od=bestInputValue(['v274AccOd_'+i,'v25531AccOd_'+i],current.overdraft);
+      const limit=bestInputValue(['v274AccLimit_'+i,'v25531AccLimit_'+i],a.limit||0);
+      const inc=bestSelectValue(['v274AccInclude_'+i,'v25531AccInclude_'+i],a.includeOverdraftForSpend||'no');
+      const positive=Math.max(0,n(bal));
+      const used=Math.max(0,n(od));
+      a.balance=positive-used;
+      a.limit=Math.max(0,n(limit));
+      a.includeOverdraftForSpend=(inc==='yes'&&a.limit>0)?'yes':'no';
+    });
+    return writeAccounts(accounts);
+  }
+  function saveCoreDraft(){
+    try{
+      CORE_NUMERIC.forEach(k=>{ const el=document.getElementById(k); if(el) state[k]=n(el.value); });
+      CORE_SELECTS.forEach(k=>{ const el=document.getElementById(k); if(el) state[k]=el.value; });
+      if(window.Data) Data.save();
+    }catch(e){}
+  }
+  function softRefresh(){
+    clearTimeout(window.__gosBudgetPersistenceRefreshTimer);
+    window.__gosBudgetPersistenceRefreshTimer=setTimeout(()=>{
+      try{ if(window.Dashboard) Dashboard.render(); }catch(e){}
+      try{ if(window.HealthV21) HealthV21.render(); }catch(e){}
+      try{ if(window.ForecastV21) ForecastV21.renderForecastTable(); }catch(e){}
+      try{ if(window.GraphsV21) GraphsV21.render(); }catch(e){}
+      try{ if(window.MobileV274 && MobileV274.renderAll) MobileV274.renderAll(); }catch(e){}
+      setVersion();
+    },120);
+  }
+  function handleBudgetEdit(ev){
+    const t=ev.target;
+    if(!t || !t.id) return;
+    if(CORE_NUMERIC.includes(t.id) || CORE_SELECTS.includes(t.id)){
+      saveCoreDraft();
+      softRefresh();
+      return;
+    }
+    const m=t.id.match(/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_(\d+)$/);
+    if(m){
+      syncPairedInputs(Number(m[3]),m[1]);
+      saveLinkedAccountsFromBestVisible();
+      softRefresh();
+    }
+  }
+  function patchBudgetSave(){
+    try{
+      if(!window.Budget) return;
+      Budget.v25531SaveDraft=function(){
+        saveCoreDraft();
+        saveLinkedAccountsFromBestVisible();
+        softRefresh();
+      };
+      Budget.save=function(){
+        saveCoreDraft();
+        saveLinkedAccountsFromBestVisible();
+        try{ if(window.Data) Data.save(); }catch(e){}
+        try{ if(window.App) App.saveAndRender(); else { if(window.Dashboard) Dashboard.render(); if(window.Budget) Budget.render(); } }catch(e){ try{ if(window.Dashboard) Dashboard.render(); if(window.Budget) Budget.render(); }catch(err){} }
+        setVersion();
+      };
+    }catch(e){ console.warn('v2.8.3 budget persistence patch save',e); }
+  }
+  function patchMobileUpdate(){
+    try{
+      if(window.MobileV274 && MobileV274.updateAccount && !MobileV274.updateAccount.__v283Persist){
+        const old=MobileV274.updateAccount.bind(MobileV274);
+        MobileV274.updateAccount=function(i){
+          const r=old.apply(this,arguments);
+          syncPairedInputs(i,'v274Acc');
+          saveLinkedAccountsFromBestVisible();
+          return r;
+        };
+        MobileV274.updateAccount.__v283Persist=true;
+      }
+    }catch(e){}
+  }
+  function protectActiveBudgetInput(){
+    try{
+      if(!window.Budget || !Budget.render || Budget.render.__v283ProtectActive) return;
+      const old=Budget.render.bind(Budget);
+      Budget.render=function(){
+        const active=document.activeElement;
+        const keep=active && active.closest && active.closest('#budget') && active.id ? {id:active.id,value:active.value,start:active.selectionStart,end:active.selectionEnd} : null;
+        if(keep) handleBudgetEdit({target:active});
+        const r=old.apply(this,arguments);
+        if(keep){
+          const el=document.getElementById(keep.id);
+          if(el){ el.value=keep.value; try{ el.focus({preventScroll:true}); if(el.setSelectionRange && keep.start!=null) el.setSelectionRange(keep.start,keep.end); }catch(e){} }
+        }
+        setVersion();
+        return r;
+      };
+      Budget.render.__v283ProtectActive=true;
+    }catch(e){}
+  }
+  function updateGuidanceText(){
+    try{
+      const guide=document.getElementById('gosBudgetCoreGuide');
+      if(guide){
+        const p=guide.querySelector('p');
+        if(p) p.innerHTML='Enter your payday, wage, weekly living budget and emergency fund. Account balances, overdrafts and overdraft limits are updated in <b>Linked Account Figures</b> on this Budget tab.';
+      }
+    }catch(e){}
+  }
+  function boot(){
+    setVersion();
+    patchBudgetSave();
+    patchMobileUpdate();
+    protectActiveBudgetInput();
+    updateGuidanceText();
+    const budget=document.getElementById('budget');
+    if(budget && !budget.__v283PersistenceListeners){
+      budget.addEventListener('input',handleBudgetEdit,true);
+      budget.addEventListener('change',handleBudgetEdit,true);
+      budget.addEventListener('focusout',handleBudgetEdit,true);
+      budget.__v283PersistenceListeners=true;
+    }
+    [250,1000,2500,5000,7500].forEach(ms=>setTimeout(()=>{patchBudgetSave();patchMobileUpdate();protectActiveBudgetInput();updateGuidanceText();setVersion();},ms));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+})();
+</script>
+
 </body>
 </html>
