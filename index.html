@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.7.14 Stability Clean Baseline</title>
+<title>Grant OS v2.8.2 Patch Tidy Baseline</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -1257,7 +1257,7 @@ header .pill{vertical-align:middle;}
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.7.3 Mobile Full Form Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.8.2 Patch Tidy Baseline</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -3347,7 +3347,7 @@ StableInputV254.patch();
 <script>
 /* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   const MAX_ACCOUNTS=5;
 
   function num(v){ return Number(v||0); }
@@ -3679,7 +3679,7 @@ StableInputV254.patch();
 <script>
 /* v2.6 Dashboard Clarity Pass */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function num(v){ return Number(v||0); }
   function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
@@ -3836,7 +3836,7 @@ StableInputV254.patch();
 <script>
 /* v2.6.1 Dashboard layout + safe-spend fix */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function num(v){ return Number(v||0); }
   function moneySafe(n){ try{return money(n);}catch(e){ return '£'+num(n).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
   function accountList(){
@@ -3969,7 +3969,7 @@ StableInputV254.patch();
    used by the Accounts and Budget tabs. Uses lexical globals directly rather than window.*
    because this app defines core modules with const, so they are not attached to window. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function num(v){ return Number(v||0); }
   function fmtMoney(v){
     try{ return money(v); }
@@ -4114,7 +4114,7 @@ StableInputV254.patch();
 /* v2.6.4 Dashboard Card Order
    Moves Safe To Spend cards into the first row and moves bank/overdraft cards below Next Priority. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4162,7 +4162,7 @@ StableInputV254.patch();
    the original page-load date. If the app is left open overnight and no money is
    spent, the daily/weekly safe-spend allowance rolls forward automatically. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   const MS_DAY=24*60*60*1000;
   let lastDateKey='';
   function num(v){ return Number(v||0); }
@@ -4258,7 +4258,7 @@ StableInputV254.patch();
 <script>
 /* v2.7 Responsive Device Layout Pass runtime tidy */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4428,7 +4428,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.2 Mobile Form Access Fix runtime */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   const TABLES=['fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4587,7 +4587,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates runtime */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   const TABLES=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4799,7 +4799,7 @@ StableInputV254.patch();
    Creates live mobile editor cards for Budget linked accounts, fixed costs, debts and holidays.
    Desktop/foldable keeps the existing table layout. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   const MAX_ACCOUNTS=5;
   const tableIds=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   const isPhone=()=>window.matchMedia && window.matchMedia('(max-width:640px)').matches;
@@ -4931,7 +4931,7 @@ StableInputV254.patch();
 /* v2.7.5 Mobile Add/Remove Fix
    Keeps the successful v2.7.4 mobile card layout, but makes Add/Remove update the mobile cards immediately. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5019,7 +5019,7 @@ StableInputV254.patch();
    Debt Tracker is the master source for debt balances/repayments.
    Safe-spend/forecast totals still include debt repayments via Calc.totalFixed(). */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5189,7 +5189,7 @@ StableInputV254.patch();
    Adds remove controls for normal bills in Budget > Monthly Fixed Costs / Bills.
    Keeps Debt Tracker as the master place for debt repayments. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function updateVersion(){
@@ -5292,7 +5292,7 @@ StableInputV254.patch();
    Locks Finance Health to the newer detailed score formula and removes the old
    Payday Update Mode next-priority notification from Budget Setup. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function updateVersion(){
@@ -5413,7 +5413,7 @@ StableInputV254.patch();
    This keeps overdraft use, BNPL, high debt, low safe spend and no emergency fund
    from ever showing as a strong position. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5609,7 +5609,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.10 version label only */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5672,7 +5672,7 @@ StableInputV254.patch();
 /* v2.7.11 Health Live + Foldable Debt Tracker Fix
    Uses a stricter score that is sensitive to new debt and forces Finance Health to re-render after debt changes. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5869,7 +5869,7 @@ StableInputV254.patch();
 /* v2.7.12 Health Live Calibration
    Makes the Finance Health score calculate from the live debt inputs, so added/removed/increased debts immediately affect the score. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6070,7 +6070,7 @@ StableInputV254.patch();
 /* v2.7.13 Health Direction Fix
    Final locked health score: adding/increasing debt must lower the score; reducing/removing debt must raise it. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6243,7 +6243,7 @@ StableInputV254.patch();
    Baseline guard only: keeps the visible version stable after older patch layers run.
    No calculation, layout, or data-model changes are made here. */
 (function(){
-  const VERSION='v2.7.14 Stability Clean Baseline';
+  const VERSION='v2.8.2 Patch Tidy Baseline';
   window.GRANT_OS_BASELINE_VERSION=VERSION;
   function setStableVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -6255,6 +6255,379 @@ StableInputV254.patch();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
   else boot();
+  window.addEventListener('load',boot);
+})();
+</script>
+
+
+<script id="v280Priority2GuidanceBreakdowns">
+/* v2.8 Priority 2: Collapsible Guidance + Calculation Breakdown Panels
+   Adds explainers/help panels only. Does not change calculations, saving, or layout logic. */
+(function(){
+  const VERSION='v2.8.2 Patch Tidy Baseline';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function esc(v){ return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+  function fmt(v){ try{return money(n(v));}catch(e){return '£'+n(v).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function findCardByHeading(sectionSelector, headingText){
+    const cards=[...document.querySelectorAll((sectionSelector||'')+' .card')];
+    const needle=String(headingText).toLowerCase();
+    return cards.find(c=>{ const h=c.querySelector('h3'); return h&&String(h.textContent||'').toLowerCase().includes(needle); });
+  }
+  function upsert(target, id, html, where='beforeend'){
+    if(!target) return null;
+    let el=document.getElementById(id);
+    if(!el){
+      const wrap=document.createElement('div'); wrap.innerHTML=html.trim(); el=wrap.firstElementChild;
+      if(!el) return null;
+      if(where==='afterbegin') target.insertBefore(el,target.firstChild);
+      else if(where==='afterTitle'){
+        const h=target.querySelector('h3'); if(h&&h.nextSibling) target.insertBefore(el,h.nextSibling); else target.appendChild(el);
+      } else target.appendChild(el);
+    } else { el.outerHTML=html.trim(); el=document.getElementById(id); }
+    return el;
+  }
+  function detail(id,title,body,cls=''){
+    return `<details id="${id}" class="gos-help ${cls}"><summary><span>${title}</span><span class="gos-help-chevron">⌄</span></summary><div class="gos-help-body">${body}</div></details>`;
+  }
+  function fixedNote(id,body){
+    return `<p id="${id}" class="gos-fixed-guidance note">${body}</p>`;
+  }
+  function kv(rows){ return `<div class="gos-kv">${rows.map(([a,b])=>`<div><span>${a}</span><strong>${b}</strong></div>`).join('')}</div>`; }
+  function aiLine(){ return `<p class="gos-ai-line"><strong>Future Grant OS AI:</strong> You will be able to enter this manually here, or ask <strong>Grant OS</strong> to add/update it for you.</p>`; }
+  function accounts(){
+    try{ if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.accounts){ const a=AccountsUIV25527.accounts(); if(Array.isArray(a)&&a.length) return a.filter(Boolean); } }catch(e){}
+    try{ return [
+      {name:'First Direct',balance:n(state.firstDirectBalance)-n(state.firstDirectOverdraft),limit:n(state.firstDirectOverdraftLimit||650),includeOverdraftForSpend:state.includeFirstDirectOverdraftForSpend||'no'},
+      {name:'Monzo',balance:n(state.monzoBalance)-n(state.monzoOverdraft),limit:n(state.monzoOverdraftLimit||200),includeOverdraftForSpend:state.includeMonzoOverdraftForSpend||'yes'}
+    ]; }catch(e){ return []; }
+  }
+  function includeFlag(a){
+    if(a&&(a.includeOverdraftForSpend==='yes'||a.includeOverdraftForSpend==='no')) return a.includeOverdraftForSpend;
+    const name=String(a&&a.name||'');
+    try{
+      if(/monzo/i.test(name)) return state.includeMonzoOverdraftForSpend||'no';
+      if(/first\s*direct/i.test(name)) return state.includeFirstDirectOverdraftForSpend||'no';
+    }catch(e){}
+    return 'no';
+  }
+  function accountBreakdown(){
+    const list=accounts(); let pot=0, net=0, odUsed=0, odLimit=0, includedBuffer=0;
+    const rows=list.map(a=>{
+      const name=String(a&&a.name||'Account');
+      const bal=n(a&&a.balance);
+      const limit=Math.max(0,n(a&&a.limit));
+      const used=Math.max(0,-bal);
+      const remaining=Math.max(0,limit-used);
+      const include=includeFlag(a)==='yes';
+      const positive=Math.max(0,bal);
+      const add=positive+(include?remaining:0);
+      pot+=add; net+=bal; odUsed+=used; odLimit+=limit; if(include) includedBuffer+=remaining;
+      return {name,bal,limit,used,remaining,include,positive,add};
+    });
+    return {list:rows,pot:Math.max(0,pot),net,odUsed,odLimit,includedBuffer};
+  }
+  function days(){ try{ if(typeof Calc!=='undefined'&&Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){} return 1; }
+  function weeks(){ return Math.max(1,Math.ceil(days()/7)); }
+  function dailySafe(){ const b=accountBreakdown(); return b.pot/days(); }
+  function weeklySafe(){ let weekly=60; try{weekly=n(state.weeklyBudget||60);}catch(e){} return Math.min(weekly,accountBreakdown().pot/weeks()); }
+  function totalDebt(){ try{return state.debts.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);}catch(e){return 0;} }
+  function activeDebts(){ try{return state.debts.filter(d=>Math.max(0,n(d&&d[1]))>0);}catch(e){return [];} }
+  function billTotal(){ try{return state.fixed.reduce((s,d)=>s+n(d&&d[1]),0);}catch(e){return 0;} }
+  function debtRepayTotal(){ try{return state.debts.reduce((s,d)=>s+n(d&&d[2]),0);}catch(e){return 0;} }
+  function emergencyInfo(){ try{return {saved:n(state.emergencyFund),target:Math.max(1,n(state.emergencyTarget||1000))};}catch(e){return {saved:0,target:1000};} }
+  function holidayInfo(){
+    try{ const target=state.holidays.reduce((s,h)=>s+n(h&&h[2]),0); const saved=state.holidays.reduce((s,h)=>s+n(h&&h[3]),0); return {target,saved,remaining:Math.max(0,target-saved)}; }catch(e){return {target:0,saved:0,remaining:0};}
+  }
+  function healthParts(){
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const active=activeDebts();
+    const debt=active.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(String(d&&d[0]||'')) || /^one/i.test(String(d&&d[4]||''))).reduce((s,d)=>s+n(d&&d[1]),0);
+    const acc=accountBreakdown(); const em=emergencyInfo();
+    const targetDaily=Math.max((n(state&&state.weeklyBudget)||60)/7,1); const st=dailySafe(); const bank=acc.net;
+    const debtPenalty=clamp((debt/(wage*6))*26,0,30);
+    const activeDebtPenalty=clamp(active.length*2.0,0,12);
+    const overdraftPenalty=acc.odUsed>0 ? clamp(8+(acc.odUsed/Math.max(acc.odLimit,acc.odUsed,1))*7,0,15) : 0;
+    const oneOffPenalty=oneOff>0 ? clamp(8+(oneOff/900)*4,0,12) : 0;
+    const emergencyPenalty=clamp((1-(em.saved/em.target))*15,0,15);
+    const safeSpendPenalty=clamp((1-(st/targetDaily))*7,0,7);
+    const bankPenalty=bank<0 ? clamp(Math.abs(bank)/(wage/2)*4,0,4) : 0;
+    const score=Math.round(clamp(100-(debtPenalty+activeDebtPenalty+overdraftPenalty+oneOffPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty),0,100));
+    return {score,active,debt,oneOff,acc,em,targetDaily,st,bank,parts:[
+      ['Debt load',30-debtPenalty,30,fmt(debt)+' total debt'],
+      ['Active debt count',12-activeDebtPenalty,12,active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15,acc.odUsed>0?fmt(acc.odUsed)+' used of '+fmt(acc.odLimit)+' limit':'No overdraft used'],
+      ['BNPL / one-off pressure',12-oneOffPenalty,12,oneOff>0?fmt(oneOff)+' short-term balance':'No BNPL pressure'],
+      ['Emergency fund',15-emergencyPenalty,15,fmt(em.saved)+' / '+fmt(em.target)],
+      ['Safe spend',7-safeSpendPenalty,7,fmt(st)+' today vs target '+fmt(targetDaily)],
+      ['Bank position',4-bankPenalty,4,fmt(bank)+' net position']
+    ]};
+  }
+  function miniFormula(text){ return `<div class="gos-formula">${text}</div>`; }
+  function safeTodayBody(){ const a=accountBreakdown(); const d=days(); const included=a.list.filter(x=>x.include).map(x=>esc(x.name)).join(', ')||'none'; const excluded=a.list.filter(x=>!x.include&&x.limit>0).map(x=>esc(x.name)).join(', ')||'none'; return kv([
+      ['Selected spend pot',fmt(a.pot)],['Days until payday',String(d)],['Included overdraft(s)',included],['Excluded overdraft(s)',excluded],['Daily safe spend',fmt(dailySafe())]
+    ])+miniFormula(`${fmt(a.pot)} ÷ ${d} day(s) = <strong>${fmt(dailySafe())}</strong>`)+`<p class="note">This uses positive balances plus overdraft buffers you have chosen to include.</p>`; }
+  function safeWeekBody(){ const a=accountBreakdown(); const w=weeks(); const target=n(state&&state.weeklyBudget||60); const raw=a.pot/w; return kv([
+      ['Selected spend pot',fmt(a.pot)],['Weeks/part-weeks until payday',String(w)],['Weekly living budget cap',fmt(target)],['Raw weekly allowance',fmt(raw)],['Shown weekly safe spend',fmt(weeklySafe())]
+    ])+miniFormula(`min(${fmt(target)}, ${fmt(a.pot)} ÷ ${w}) = <strong>${fmt(weeklySafe())}</strong>`); }
+  function netBankBody(){ const a=accountBreakdown(); return kv(a.list.map(x=>[esc(x.name),fmt(x.bal)]).concat([['Net bank position',fmt(a.net)]]))+miniFormula(a.list.map(x=>fmt(x.bal)).join(' + ')+' = <strong>'+fmt(a.net)+'</strong>'); }
+  function overdraftBody(){ const a=accountBreakdown(); return kv(a.list.map(x=>[esc(x.name),x.used>0?fmt(x.used)+' used':'£0 used']).concat([['Total overdraft used',fmt(a.odUsed)]])); }
+  function debtBody(){ const active=activeDebts(); return kv([['Active debts',String(active.length)],['Total debt remaining',fmt(totalDebt())],['Monthly debt repayments',fmt(debtRepayTotal())]])+`<p class="note">Debt balances come from the Debt Tracker. Bills are kept separate in Budget Setup.</p>`; }
+  function healthBody(){ const h=healthParts(); return `<p class="note">Score reduces when debt, overdraft, BNPL/one-off pressure, low safe spend or low emergency savings increase.</p>`+kv(h.parts.map(p=>[esc(p[0]),`${Math.round(Math.max(0,p[1]))}/${p[2]} — ${esc(p[3])}`]))+miniFormula(`Current score: <strong>${h.score}/100</strong>`); }
+  function priorityBody(){ let p=''; try{p=Calc.nextPriority();}catch(e){p='';} return `<p>Your next priority is chosen from short-term pressure points first: one-off/BNPL debt, holiday deadlines, overdraft use, emergency fund, then longer-term goals.</p>`+kv([['Current priority',esc(p||'Not set')],['Reason','Highest-impact item based on current live app data']]); }
+  function selectedBufferBody(){ const a=accountBreakdown(); const rows=a.list.map(x=>[esc(x.name),`${x.include?fmt(x.remaining)+' included':fmt(x.remaining)+' not included'}`]); rows.push(['Selected overdraft buffer',fmt(a.includedBuffer)]); return kv(rows)+`<p class="note">Only accounts marked to include overdraft buffer count towards safe spend.</p>`; }
+  function addDashboardPanels(){
+    const byId=(id)=>{ const el=document.getElementById(id); return el&&(el.closest('.card')||el.parentElement); };
+    upsert(byId('safeToday'),'gosSafeTodayBreakdown',detail('gosSafeTodayBreakdown','How is this calculated?',safeTodayBody(),'calc'));
+    upsert(byId('safeWeek'),'gosSafeWeekBreakdown',detail('gosSafeWeekBreakdown','How is this calculated?',safeWeekBody(),'calc'));
+    upsert(byId('bankPosition'),'gosBankBreakdown',detail('gosBankBreakdown','Show bank position breakdown',netBankBody(),'calc'));
+    upsert(byId('totalOverdraft'),'gosOverdraftBreakdown',detail('gosOverdraftBreakdown','Show overdraft breakdown',overdraftBody(),'calc'));
+    upsert(byId('debtRemaining'),'gosDebtBreakdown',detail('gosDebtBreakdown','Show debt breakdown',debtBody(),'calc'));
+    upsert(byId('financeHealth'),'gosHealthBreakdown',detail('gosHealthBreakdown','Show score breakdown',healthBody(),'calc'));
+    upsert(byId('nextPriority'),'gosPriorityBreakdown',detail('gosPriorityBreakdown','Why this priority?',priorityBody(),'advice'));
+    const alerts=findCardByHeading('#dashboard','Immediate Action Alerts');
+    if(alerts){
+      const old=document.getElementById('gosAlertGuidance'); if(old) old.remove();
+      upsert(alerts,'gosAlertGuidanceFixed',fixedNote('gosAlertGuidanceFixed','Alerts are action prompts. Check them after your safe-spend cards and use them to decide what needs attention first.'),'afterTitle');
+    }
+    const timeline=findCardByHeading('#dashboard','Financial Timeline');
+    if(timeline){
+      const old=document.getElementById('gosTimelineGuidance'); if(old) old.remove();
+      upsert(timeline,'gosTimelineGuidanceFixed',fixedNote('gosTimelineGuidanceFixed','The timeline shows upcoming payday, bill, debt, holiday and goal dates. Use it to spot pressure points before they arrive.'),'afterTitle');
+    }
+  }
+  function addAccountsPanels(){
+    const card=findCardByHeading('#accounts','Accounts');
+    if(card){
+      upsert(card,'gosAccountsGuide',detail('gosAccountsGuide','How do I use Accounts?','<p>Add every bank account you want included in the app. Enter the live balance, overdraft limit, and whether the remaining overdraft buffer should count towards safe spend.</p>'+aiLine(),'guide'),'afterTitle');
+      const bufferCard=document.getElementById('v25528OverdraftBuffer')?.closest('.card,.v25527-summary-card');
+      if(bufferCard) upsert(bufferCard,'gosSelectedBufferBreakdown',detail('gosSelectedBufferBreakdown','Show buffer breakdown',selectedBufferBody(),'calc'));
+    }
+  }
+  function addBudgetPanels(){
+    const core=findCardByHeading('#budget','Core Figures');
+    if(core) upsert(core,'gosBudgetCoreGuide',detail('gosBudgetCoreGuide','What should I enter here?','<p>Enter your payday, wage, weekly living budget and emergency fund. Account figures can also be managed from the Accounts tab, but these core figures feed the safe-spend and forecast logic.</p>'+aiLine(),'guide'),'afterTitle');
+    const payday=findCardByHeading('#budget','Payday Update Mode');
+    if(payday){ payday.remove(); }
+    const fixed=findCardByHeading('#budget','Monthly Fixed Costs');
+    if(fixed) upsert(fixed,'gosBillsGuide',detail('gosBillsGuide','What belongs here?','<p>Add normal recurring bills only, such as phone, subscriptions, insurance or regular household contributions. Debt repayments are managed in Debt Tracker and pulled into the calculations automatically.</p>'+kv([['Normal bills total',fmt(billTotal())],['Debt repayments pulled from Debt Tracker',fmt(debtRepayTotal())]])+aiLine(),'guide'),'afterTitle');
+    const summary=findCardByHeading('#budget','Debt Repayments from Debt Tracker');
+    if(summary) upsert(summary,'gosDebtRepayGuide',detail('gosDebtRepayGuide','Why is this read-only?','<p>This prevents duplicate entries. Add or remove debts in Debt Tracker; Budget only shows the total debt repayments used by the wider calculations.</p>','guide'));
+  }
+  function addDebtPanels(){
+    const card=findCardByHeading('#debts','Debt Tracker');
+    if(card){ const old=card.querySelector('p.note'); if(old) old.style.display='none'; upsert(card,'gosDebtGuide',detail('gosDebtGuide','How do I use Debt Tracker?','<p>Add loans, BNPL, credit cards, friend repayments and other debts here. This is the master place for debt balances and repayments.</p><ul><li><strong>Regular:</strong> normal monthly repayment.</li><li><strong>One-off:</strong> due once, such as BNPL.</li><li><strong>Flexible:</strong> repay at your pace.</li></ul>'+aiLine(),'guide'),'afterTitle'); }
+    const prGuide=document.getElementById('gosPriorityQueueGuide'); if(prGuide) prGuide.remove();
+    const progGuide=document.getElementById('gosDebtProgressGuide'); if(progGuide) progGuide.remove();
+  }
+  function addHolidayPanels(){
+    const pots=findCardByHeading('#holidays','Holiday Pots'); if(pots) upsert(pots,'gosHolidayGuide',detail('gosHolidayGuide','How do I use Holiday Pots?','<p>Add trips, spending pots, flights or ringfenced savings targets here. Enter the target, saved amount and due date so the dashboard and timeline can track funding pressure.</p>'+aiLine(),'guide'),'afterTitle');
+    const sum=findCardByHeading('#holidays','Holiday Summary'); if(sum){ const h=holidayInfo(); upsert(sum,'gosHolidaySummaryBreakdown',detail('gosHolidaySummaryBreakdown','Show holiday funding breakdown',kv([['Holiday targets',fmt(h.target)],['Saved / ringfenced',fmt(h.saved)],['Still needed',fmt(h.remaining)]]),'calc'),'afterTitle'); }
+  }
+  function addSettingsPanel(){ const card=findCardByHeading('#settings','Settings and backups'); if(card) upsert(card,'gosSettingsGuide',detail('gosSettingsGuide','How should I use backups?','<p>Export a backup before uploading a new build, changing device or testing a clean demo. Import/reset tools are part of the next data-control priority.</p>','guide'),'afterTitle'); }
+  function addStyle(){
+    if(document.getElementById('gosHelpStyles')) return;
+    const st=document.createElement('style'); st.id='gosHelpStyles'; st.textContent=`
+      .gos-help{margin-top:10px;border:1px solid rgba(148,163,184,.28);border-radius:14px;background:rgba(15,23,42,.45);overflow:hidden;}
+      .gos-help summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;font-weight:800;color:#e2e8f0;font-size:13px;}
+      .gos-help summary::-webkit-details-marker{display:none}.gos-help-chevron{opacity:.75;transition:transform .18s ease}.gos-help[open] .gos-help-chevron{transform:rotate(180deg)}
+      .gos-help-body{border-top:1px solid rgba(148,163,184,.2);padding:10px 11px;color:#cbd5e1;font-size:13px;line-height:1.45}.gos-help-body p{margin:0 0 8px}.gos-help-body ol,.gos-help-body ul{margin:6px 0 8px 18px;padding:0}.gos-help-body li{margin:4px 0}
+      .gos-help.calc{border-color:rgba(56,189,248,.35);background:rgba(8,47,73,.25)}.gos-help.guide{border-color:rgba(34,197,94,.25);background:rgba(20,83,45,.16)}.gos-help.advice{border-color:rgba(245,158,11,.35);background:rgba(120,53,15,.18)}
+      .gos-kv{display:grid;grid-template-columns:1fr;gap:7px;margin:8px 0}.gos-kv>div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(148,163,184,.20);padding-bottom:5px}.gos-kv span{color:#a9c3df}.gos-kv strong{text-align:right;color:#f8fafc}.gos-formula{margin-top:8px;padding:9px 10px;border-radius:12px;background:rgba(2,6,23,.55);border:1px solid rgba(148,163,184,.18);color:#f8fafc;font-weight:700}.gos-ai-line{margin-top:10px!important;padding:8px 10px;border-radius:12px;background:rgba(99,102,241,.18);border:1px solid rgba(129,140,248,.25);color:#dbeafe}.gos-fixed-guidance{margin:0 0 12px 0!important;color:#b6c7dc!important;line-height:1.45!important}.muted{color:#94a3b8}
+      @media (max-width:640px){.gos-help summary{font-size:12.5px;padding:9px 10px}.gos-help-body{font-size:12.5px}.gos-kv>div{display:block}.gos-kv strong{display:block;text-align:left;margin-top:2px}.gos-formula{font-size:12px;overflow-wrap:anywhere}}
+      @media (min-width:1181px){#gosSafeTodayBreakdown .gos-kv>div,#gosSafeWeekBreakdown .gos-kv>div{display:block!important;}#gosSafeTodayBreakdown .gos-kv strong,#gosSafeWeekBreakdown .gos-kv strong{display:block!important;text-align:left!important;margin-top:2px!important;white-space:normal!important;overflow-wrap:anywhere!important;}#gosSafeTodayBreakdown .gos-formula,#gosSafeWeekBreakdown .gos-formula{overflow-wrap:anywhere!important;}}
+    `; document.head.appendChild(st);
+  }
+  function render(){
+    try{ setVersion(); addStyle(); addDashboardPanels(); addAccountsPanels(); addBudgetPanels(); addDebtPanels(); addHolidayPanels(); addSettingsPanel(); setVersion(); }catch(e){ console.warn('v2.8 guidance render',e); }
+  }
+  function patchRenderers(){
+    const wrap=(obj,name)=>{ try{ if(obj&&obj[name]&&!obj[name].__gosV28){ const old=obj[name].bind(obj); obj[name]=function(){ const r=old.apply(this,arguments); setTimeout(render,0); setTimeout(render,150); return r; }; obj[name].__gosV28=true; } }catch(e){} };
+    try{ wrap(App,'render'); wrap(App,'saveAndRender'); wrap(Dashboard,'render'); wrap(Budget,'render'); wrap(Debt,'render'); wrap(Holidays,'render'); }catch(e){}
+  }
+  function boot(){ patchRenderers(); render(); [150,500,1200,2500,4000].forEach(ms=>setTimeout(()=>{patchRenderers();render();},ms)); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+})();
+</script>
+
+
+<script id="v282PatchTidyBaseline">
+/* v2.8.2 Patch Tidy Baseline
+   Non-functional cleanup release: locks the visible version label and keeps the audited v2.8.1 guidance behaviour intact.
+   Legacy runtime patch blocks are preserved because some still provide active compatibility logic for desktop/foldable/mobile layouts.
+*/
+(function(){
+  const VERSION='v2.8.2 Patch Tidy Baseline';
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  setVersion();
+  window.addEventListener('load', setVersion);
+  setTimeout(setVersion,50);
+  setTimeout(setVersion,500);
+})();
+</script>
+
+<script id="v283EstimatedSpareAfterWage">
+/* v2.8.3 Estimated Spare After Wage
+   Adds a live Budget Setup card in the space left by Payday Update Mode.
+   This is a read-only estimate, linked to wage, bills, debt repayments, weekly budget and overdraft/net position.
+*/
+(function(){
+  const VERSION='v2.8.3 Estimated Spare After Wage';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function findCardByHeading(scope, text){
+    const root=document.querySelector(scope) || document;
+    const headings=[...root.querySelectorAll('h3,h2,h4')];
+    const h=headings.find(x=>String(x.textContent||'').trim().toLowerCase()===String(text||'').trim().toLowerCase());
+    return h ? h.closest('.card') : null;
+  }
+  function normalBillTotal(){
+    try{ if(Calc && typeof Calc.normalBillTotal==='function') return n(Calc.normalBillTotal()); }catch(e){}
+    try{ return (Array.isArray(state.fixed)?state.fixed:[]).reduce((s,r)=>s+n(r&&r[1]),0); }catch(e){ return 0; }
+  }
+  function debtRepaymentTotal(){
+    try{ if(Calc && typeof Calc.debtRepaymentTotal==='function') return n(Calc.debtRepaymentTotal()); }catch(e){}
+    try{ return (Array.isArray(state.debts)?state.debts:[]).reduce((s,d)=>s+(n(d&&d[1])>0?n(d&&d[2]):0),0); }catch(e){ return 0; }
+  }
+  function totalOverdraft(){
+    try{ if(Calc && typeof Calc.totalOverdraft==='function') return n(Calc.totalOverdraft()); }catch(e){}
+    return n(state.firstDirectOverdraft)+n(state.monzoOverdraft);
+  }
+  function bankPosition(){
+    try{ if(Calc && typeof Calc.bankPosition==='function') return n(Calc.bankPosition()); }catch(e){}
+    return n(state.firstDirectBalance)+n(state.monzoBalance)-totalOverdraft();
+  }
+  function estimate(){
+    const wage=n(state.wage);
+    const bills=normalBillTotal();
+    const debt=debtRepaymentTotal();
+    const weekly=n(state.weeklyBudget||0);
+    const living=weekly*4;
+    const overdraft=totalOverdraft();
+    const bank=bankPosition();
+    const raw=wage-bills-debt-living;
+    const blocked=(overdraft>0 || bank<0);
+    const value=blocked?0:Math.max(0,raw);
+    return {wage,bills,debt,weekly,living,overdraft,bank,raw,value,blocked};
+  }
+  function cardHTML(){
+    return `
+      <h3>Estimated Spare After Wage</h3>
+      <p class="note">Live estimate after wage, normal bills, debt repayments and weekly living budget. If you are still in overdraft, spare is treated as £0.</p>
+      <div id="v283SpareValue" class="big value-soft value-warning">£0</div>
+      <div id="v283SpareStatus" class="v283-spare-status">Calculating...</div>
+      <div class="v283-spare-breakdown">
+        <div><span>Monthly wage</span><strong id="v283SpareWage">£0</strong></div>
+        <div><span>Normal bills</span><strong id="v283SpareBills">£0</strong></div>
+        <div><span>Debt repayments</span><strong id="v283SpareDebt">£0</strong></div>
+        <div><span>Weekly living budget reserve</span><strong id="v283SpareLiving">£0</strong></div>
+        <div><span>Net bank position</span><strong id="v283SpareBank">£0</strong></div>
+        <div><span>Total overdraft used</span><strong id="v283SpareOverdraft">£0</strong></div>
+      </div>
+    `;
+  }
+  function ensureCard(){
+    try{
+      const budget=document.querySelector('#budget .grid'); if(!budget) return null;
+      let card=document.getElementById('v283EstimatedSpareCard');
+      if(!card){
+        card=document.createElement('div');
+        card.id='v283EstimatedSpareCard';
+        card.className='card wide v283-spare-card';
+        card.innerHTML=cardHTML();
+        const core=findCardByHeading('#budget','Core Figures');
+        if(core) core.insertAdjacentElement('afterend',card);
+        else budget.insertBefore(card,budget.firstChild||null);
+      }
+      return card;
+    }catch(e){ console.warn('v283 ensure card',e); return null; }
+  }
+  function renderCard(){
+    try{
+      setVersion();
+      const card=ensureCard(); if(!card) return;
+      const e=estimate();
+      const val=document.getElementById('v283SpareValue');
+      const status=document.getElementById('v283SpareStatus');
+      if(val){
+        val.textContent=fmt(e.value);
+        val.className='big value-soft '+(e.value>0?'value-positive':'value-warning');
+      }
+      if(status){
+        if(e.blocked){
+          status.className='v283-spare-status v283-warn';
+          status.textContent='£0 spare shown because the app is prioritising overdraft/net negative position first.';
+        }else if(e.raw<=0){
+          status.className='v283-spare-status v283-warn';
+          status.textContent='No spare estimated after bills, debt repayments and living budget.';
+        }else{
+          status.className='v283-spare-status v283-good';
+          status.textContent='Estimated spare available after core monthly commitments.';
+        }
+      }
+      const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
+      set('v283SpareWage',e.wage);
+      set('v283SpareBills',e.bills);
+      set('v283SpareDebt',e.debt);
+      set('v283SpareLiving',e.living);
+      set('v283SpareBank',e.bank);
+      set('v283SpareOverdraft',e.overdraft);
+      // Expose for future calculation breakdown panels / AI assistant.
+      try{ window.GrantOSEstimatedSpareAfterWage=e; }catch(x){}
+    }catch(e){ console.warn('v283 render card',e); }
+  }
+  function addCSS(){
+    if(document.getElementById('v283SpareCSS')) return;
+    const st=document.createElement('style'); st.id='v283SpareCSS'; st.textContent=`
+      .v283-spare-card{background:linear-gradient(145deg,rgba(15,31,55,.96),rgba(6,13,28,.98))!important;border:1px solid rgba(56,189,248,.26)!important;}
+      .v283-spare-card .big{margin:8px 0 8px!important;}
+      .v283-spare-status{margin:8px 0 12px;padding:10px 12px;border-radius:14px;font-weight:700;line-height:1.35;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.52);color:#cbd5e1;}
+      .v283-spare-status.v283-good{border-color:rgba(34,197,94,.35);background:rgba(20,83,45,.18);color:#bbf7d0;}
+      .v283-spare-status.v283-warn{border-color:rgba(245,158,11,.35);background:rgba(120,53,15,.20);color:#fde68a;}
+      .v283-spare-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px;}
+      .v283-spare-breakdown>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;background:rgba(2,6,23,.46);border:1px solid rgba(148,163,184,.16);}
+      .v283-spare-breakdown span{color:#9fb2cc;font-size:.9rem;}
+      .v283-spare-breakdown strong{color:#f8fafc;text-align:right;white-space:nowrap;}
+      @media(max-width:640px){.v283-spare-breakdown{grid-template-columns:1fr}.v283-spare-breakdown>div{padding:11px 12px}.v283-spare-status{font-size:.92rem}}
+    `; document.head.appendChild(st);
+  }
+  function patchRenderers(){
+    const wrap=(obj,name,flag)=>{
+      try{
+        if(obj && obj[name] && !obj[name][flag]){
+          const old=obj[name].bind(obj);
+          obj[name]=function(){ const r=old.apply(this,arguments); setTimeout(renderCard,0); setTimeout(renderCard,120); return r; };
+          obj[name][flag]=true;
+        }
+      }catch(e){}
+    };
+    try{ wrap(App,'render','__v283Spare'); wrap(App,'saveAndRender','__v283Spare'); wrap(Budget,'render','__v283Spare'); wrap(Debt,'render','__v283Spare'); wrap(Dashboard,'render','__v283Spare'); }catch(e){}
+  }
+  function patchCalc(){
+    try{
+      if(Calc && !Calc.__v283EstimatedSpare){
+        Calc.estimatedSpareAfterWage=function(){ return estimate().value; };
+        Calc.estimatedSpareAfterWageBreakdown=function(){ return estimate(); };
+        Calc.__v283EstimatedSpare=true;
+      }
+    }catch(e){}
+  }
+  function boot(){ patchCalc(); addCSS(); patchRenderers(); renderCard(); [120,400,900,1800,3500].forEach(ms=>setTimeout(()=>{patchCalc();addCSS();patchRenderers();renderCard();setVersion();},ms)); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',boot);
 })();
 </script>
