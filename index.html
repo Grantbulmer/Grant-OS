@@ -1254,6 +1254,16 @@ header .pill{vertical-align:middle;}
 }
 </style>
 
+
+<style id="v283AccountBudgetCleanupCSS">
+  #accounts .v283-accounts-advice{margin:10px 0 14px;padding:11px 13px;border-radius:14px;background:rgba(8,47,73,.28);border:1px solid rgba(56,189,248,.30);color:#dbeafe;line-height:1.4;font-size:13px;}
+  #accounts .v283-accounts-advice strong{color:#fff;}
+  #accounts .v283-setup-only-card .v25527-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #accounts .v283-account-value-note{margin:0 0 10px!important;color:#bfdbfe!important;}
+  #accountsList .v25530-badge-row{display:none!important;}
+  @media(max-width:700px){#accounts .v283-setup-only-card .v25527-form-grid{grid-template-columns:1fr;}}
+</style>
+
 </head>
 <body>
 <header>
@@ -1447,15 +1457,15 @@ header .pill{vertical-align:middle;}
 <section id="accounts" class="section">
   <div class="card">
     <h3>Accounts</h3>
-    <p class="note">Manage the actual accounts here. Spend and overdraft inclusion remain controlled from Budget Setup.</p>
+    <p class="note">Use this tab to set up accounts only: add, remove, rename and choose account type. Enter balances, overdraft used, overdraft limits and safe-spend rules in Budget Setup.</p>
 
     <div class="v25527-summary-grid">
-      <div class="v25527-summary-card stat-card accent-blue">
+      <div class="v25527-summary-card stat-card accent-blue" style="display:none">
         <div class="stat-head"><div class="stat-icon">🏦</div><h3>Total Bank Balance</h3></div>
         <div id="v25527TotalBalance" class="big value-soft value-negative">£0</div>
         <p class="note">All accounts combined.</p>
       </div>
-      <div class="v25527-summary-card stat-card accent-amber">
+      <div class="v25527-summary-card stat-card accent-amber" style="display:none">
         <div class="stat-head"><div class="stat-icon">🛟</div><h3>Selected Overdraft Buffer</h3></div>
         <div id="v25528OverdraftBuffer" class="big value-soft value-positive">£0</div>
         <p class="note">Remaining overdraft included in safe spend.</p>
@@ -3377,8 +3387,9 @@ StableInputV254.patch();
       {name:'First Direct',type:'Current',balance:num(state.firstDirectBalance)-num(state.firstDirectOverdraft),limit:num(state.firstDirectOverdraftLimit||650)},
       {name:'Monzo',type:'Current',balance:num(state.monzoBalance)-num(state.monzoOverdraft),limit:num(state.monzoOverdraftLimit||200)}
     ];
-    if(!out.some(a=>isFD(a.name))) out.unshift({...defaults[0]});
-    if(!out.some(a=>isMonzo(a.name))) out.push({...defaults[1]});
+    // v2.8.3 account/budget cleanup: only seed defaults when no accounts exist.
+    // Do not force First Direct/Monzo back in after the user renames or removes them.
+    if(!out.length) out=defaults.map(a=>({...a}));
     out=out.slice(0,MAX_ACCOUNTS);
     out.forEach(a=>{ a.includeOverdraftForSpend=includeFlagFor(a); });
     return out;
@@ -3430,7 +3441,7 @@ StableInputV254.patch();
       <div class="v25531-linked-head">
         <div>
           <h3>Linked Account Figures</h3>
-          <p class="note">Pulled live from the Accounts tab. Add an account there and a new budget row appears here automatically, up to 5 accounts.</p>
+          <p class="note">Account names and types come from the Accounts tab. Update balances, overdrafts, overdraft limits and safe-spend rules here.</p>
         </div>
         <span class="v25530-badge blue">Max ${MAX_ACCOUNTS} accounts</span>
       </div>
@@ -3506,11 +3517,13 @@ StableInputV254.patch();
 
   function patchAccountsUI(){
     if(typeof AccountsUIV25527==='undefined' || AccountsUIV25527.__v25531DynamicLinked) return;
-    const oldAccounts=AccountsUIV25527.accounts.bind(AccountsUIV25527);
     AccountsUIV25527.maxAccounts=MAX_ACCOUNTS;
     AccountsUIV25527.accounts=function(){
       let data=[];
-      try{ data=oldAccounts(); }catch(e){ data=[]; }
+      try{ data=JSON.parse(localStorage.getItem(this.storeKey)||'[]'); }catch(e){ data=[]; }
+      if(!Array.isArray(data) || !data.length){
+        try{ data=this.defaults(); }catch(e){ data=[]; }
+      }
       return writeAccounts(data);
     };
     AccountsUIV25527.selectedOverdraftBuffer=function(accounts){
@@ -3536,8 +3549,8 @@ StableInputV254.patch();
     const oldDel=AccountsUIV25527.del.bind(AccountsUIV25527);
     AccountsUIV25527.del=function(i){
       const accounts=this.accounts();
-      if(accounts.length<=2 && (isFD(accounts[i]&&accounts[i].name)||isMonzo(accounts[i]&&accounts[i].name))){
-        alert('Keep at least your First Direct and Monzo base accounts. Rename or edit them instead.');
+      if(accounts.length<=1){
+        alert('Keep at least one account set up. Rename it instead, or add another before deleting this one.');
         return false;
       }
       accounts.splice(i,1);
@@ -3550,20 +3563,17 @@ StableInputV254.patch();
     AccountsUIV25527.update=function(i,k,v){
       const accounts=this.accounts();
       if(!accounts[i]) return false;
-      if(k==='balance'||k==='limit') v=num(v);
+      // v2.8.3 cleanup: Accounts is setup-only. Values are edited in Budget Setup.
+      if(k==='balance' || k==='limit' || k==='includeOverdraftForSpend'){
+        try{ Budget.render(); }catch(e){}
+        return false;
+      }
+      if(k!=='name' && k!=='type') return false;
       accounts[i][k]=v;
-      if(k==='limit' && num(v)<=0) accounts[i].includeOverdraftForSpend='no';
       writeAccounts(accounts);
 
-      // Do not re-render the Accounts tab while typing; it was replacing the input
-      // after every single digit and kicking focus out of the field.
+      // Keep typing smooth: update the visible title/count without rebuilding the card each keypress.
       try{
-        const totalValue=this.totalBalance(accounts);
-        const total=document.getElementById('v25527TotalBalance') || document.getElementById('v2554TotalBalance');
-        if(total){ total.textContent=money(totalValue); total.className='big value-soft '+(totalValue>=0?'value-positive':'value-negative'); }
-        const bufferValue=this.selectedOverdraftBuffer(accounts);
-        const buffer=document.getElementById('v25528OverdraftBuffer') || document.getElementById('v25527AvailableSpend') || document.getElementById('v2554AvailableSpend');
-        if(buffer){ buffer.textContent=money(bufferValue); buffer.className='big value-soft '+(bufferValue>0?'value-positive':bufferValue<0?'value-negative':'value-warning'); }
         const count=document.getElementById('v25527AccountCount') || document.getElementById('v2554AccountCount');
         if(count){ count.textContent=String(accounts.length); count.className='big value-soft value-info'; }
         if(k==='name'){
@@ -3573,14 +3583,64 @@ StableInputV254.patch();
         }
       }catch(e){}
       try{ Budget.render(); Dashboard.render(); ForecastV21.renderForecastTable(); GraphsV21.render(); }catch(e){}
-      try{ if(window.GrantOSVisualBadgesApply) window.GrantOSVisualBadgesApply(); }catch(e){}
       return true;
     };
-    const oldRender=AccountsUIV25527.render.bind(AccountsUIV25527);
     AccountsUIV25527.render=function(){
-      const r=oldRender();
+      const accounts=this.accounts();
+      try{ syncLegacyState(accounts); }catch(e){}
+
+      const accountsCard=document.querySelector('#accounts .card');
+      if(accountsCard){
+        const note=accountsCard.querySelector(':scope > p.note');
+        if(note) note.textContent='Use this tab to set up accounts only: add, remove, rename and choose account type. Enter balances, overdraft used, overdraft limits and safe-spend rules in Budget Setup.';
+        let advice=document.getElementById('v283AccountsSetupAdvice');
+        if(!advice){
+          advice=document.createElement('div');
+          advice.id='v283AccountsSetupAdvice';
+          advice.className='v283-accounts-advice';
+          advice.innerHTML='<strong>Where do I add the money values?</strong><br>Go to <b>Budget Setup → Linked Account Figures</b> to update balances, overdrafts and overdraft limits.';
+          const summary=accountsCard.querySelector('.v25527-summary-grid');
+          if(summary) summary.insertAdjacentElement('beforebegin',advice); else accountsCard.insertBefore(advice,accountsCard.children[1]||null);
+        }
+      }
+
       try{
-        const accounts=this.accounts();
+        const total=document.getElementById('v25527TotalBalance') || document.getElementById('v2554TotalBalance');
+        const totalCard=total && total.closest('.v25527-summary-card,.v2554-summary-card,.stat-card');
+        if(totalCard) totalCard.style.display='none';
+        const buffer=document.getElementById('v25528OverdraftBuffer') || document.getElementById('v25527AvailableSpend') || document.getElementById('v2554AvailableSpend');
+        const bufferCard=buffer && buffer.closest('.v25527-summary-card,.v2554-summary-card,.stat-card');
+        if(bufferCard) bufferCard.style.display='none';
+        const count=document.getElementById('v25527AccountCount') || document.getElementById('v2554AccountCount');
+        if(count){ count.textContent=String(accounts.length); count.className='big value-soft value-info'; }
+        const countCard=count && count.closest('.v25527-summary-card,.v2554-summary-card,.stat-card');
+        if(countCard){
+          countCard.style.display='';
+          const h=countCard.querySelector('h3'); if(h) h.textContent='Accounts Set Up';
+          const n=count.nextElementSibling; if(n && n.classList.contains('note')) n.textContent='Names and account types only. Money values stay in Budget Setup.';
+        }
+      }catch(e){}
+
+      const list=document.getElementById('accountsList');
+      if(list){
+        list.innerHTML=accounts.map((a,i)=>`
+          <div class="v25527-account-card v283-setup-only-card">
+            <h3>🏦 ${escapeHtml((a.name||'Account').toUpperCase())}</h3>
+            <p class="note v283-account-value-note">Balances, overdraft used and overdraft limits are updated in Budget Setup.</p>
+            <div class="v25527-form-grid">
+              <label>Account name<input value="${escapeHtml(a.name||'')}" oninput="AccountsUIV25527.update(${i},'name',this.value)"></label>
+              <label>Type<select onchange="AccountsUIV25527.update(${i},'type',this.value)">
+                <option ${a.type==='Current'?'selected':''}>Current</option>
+                <option ${a.type==='Savings'?'selected':''}>Savings</option>
+                <option ${a.type==='Credit'?'selected':''}>Credit</option>
+              </select></label>
+            </div>
+            <div class="v25527-actions"><button type="button" class="danger" onclick="AccountsUIV25527.del(${i})">Delete</button></div>
+          </div>
+        `).join('');
+      }
+
+      try{
         const addBtn=document.querySelector('#accounts .v25527-add');
         if(addBtn){
           addBtn.textContent=accounts.length>=MAX_ACCOUNTS?'+ Maximum 5 accounts reached':'+ Add Bank Account';
@@ -3589,7 +3649,8 @@ StableInputV254.patch();
           addBtn.title=accounts.length>=MAX_ACCOUNTS?'Maximum 5 accounts for now':'Add another account';
         }
       }catch(e){}
-      return r;
+      try{ window.GrantOSVisualBadgesApply && window.GrantOSVisualBadgesApply(); }catch(e){}
+      return true;
     };
     AccountsUIV25527.__v25531DynamicLinked=true;
   }
@@ -6629,6 +6690,24 @@ StableInputV254.patch();
   function boot(){ patchCalc(); addCSS(); patchRenderers(); renderCard(); [120,400,900,1800,3500].forEach(ms=>setTimeout(()=>{patchCalc();addCSS();patchRenderers();renderCard();setVersion();},ms)); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',boot);
+})();
+</script>
+
+
+<script id="v283AccountBudgetCleanupVersion">
+(function(){
+  const VERSION='v2.8.3 Account/Budget Cleanup';
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function render(){
+    setVersion();
+    try{ if(window.AccountsUIV25527) AccountsUIV25527.render(); }catch(e){}
+    try{ if(window.Budget && Budget.render) Budget.render(); }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(render,120); }); else setTimeout(render,120);
+  window.addEventListener('load',function(){ [250,900,2000,4200].forEach(ms=>setTimeout(setVersion,ms)); });
 })();
 </script>
 
