@@ -6571,12 +6571,15 @@ StableInputV254.patch();
 </script>
 
 <script id="v283EstimatedSpareAfterWage">
-/* v2.8.3 Estimated Spare After Wage
-   Adds a live Budget Setup card in the space left by Payday Update Mode.
-   This is a read-only estimate, linked to wage, bills, debt repayments, weekly budget and overdraft/net position.
+/* v2.8.3 True Spare After Commitments
+   Upgrades the old Estimated Spare card so it no longer shows simple available account cash.
+   The visible figure is now capped to real positive account money and then reduced by commitments
+   expected before the next payday: due bills, debt repayments/reserves, and living spend based on
+   weekly budget x days until payday. Wage is shown as a reference but is not counted until it is in
+   the linked account balances, which prevents the card from showing theoretical money as spare.
 */
 (function(){
-  const VERSION='v2.8.3 Spare Available Balance Fix';
+  const VERSION='v2.8.3 True Spare After Commitments Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6590,6 +6593,50 @@ StableInputV254.patch();
     const h=headings.find(x=>String(x.textContent||'').trim().toLowerCase()===String(text||'').trim().toLowerCase());
     return h ? h.closest('.card') : null;
   }
+  function startOfDay(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+  function clampDay(y,m,day){ return Math.max(1,Math.min(n(day)||1,new Date(y,m+1,0).getDate())); }
+  function dateForDay(y,m,day){ return new Date(y,m,clampDay(y,m,day)); }
+  function parseDay(v){
+    const str=String(v??'').trim();
+    if(!str) return 0;
+    const m=str.match(/\b([0-3]?\d)\b/);
+    const d=m?n(m[1]):0;
+    return d>=1&&d<=31?d:0;
+  }
+  function parseDateValue(v){
+    const str=String(v??'').trim();
+    if(!str) return null;
+    const direct=new Date(str);
+    if(!isNaN(direct.getTime())) return startOfDay(direct);
+    const m=str.match(/^(\d{1,2})[-\/\s]([A-Za-z]{3,}|\d{1,2})[-\/\s](\d{2,4})$/);
+    if(m){
+      const months={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
+      let mo=String(m[2]).toLowerCase();
+      let month=/^\d+$/.test(mo)?n(mo)-1:months[mo];
+      let year=n(m[3]); if(year<100) year+=2000;
+      if(month>=0&&month<=11){ const d=new Date(year,month,n(m[1])); if(!isNaN(d.getTime())) return startOfDay(d); }
+    }
+    return null;
+  }
+  function nextPaydayDate(){
+    try{ if(Calc && typeof Calc.nextPayday==='function'){ const d=Calc.nextPayday(); if(d && !isNaN(d.getTime())) return startOfDay(d); } }catch(e){}
+    const now=startOfDay(new Date());
+    const pay=Math.max(1,Math.min(31,n(state.payday||26)||26));
+    let d=dateForDay(now.getFullYear(),now.getMonth(),pay);
+    if(now.getDate()>=pay) d=dateForDay(now.getFullYear(),now.getMonth()+1,pay);
+    return startOfDay(d);
+  }
+  function daysUntilPayday(){
+    try{ if(Calc && typeof Calc.daysToPayday==='function') return Math.max(0,n(Calc.daysToPayday())); }catch(e){}
+    const now=startOfDay(new Date()), pd=nextPaydayDate();
+    return Math.max(0,Math.ceil((pd-now)/(1000*60*60*24)));
+  }
+  function nextDueDateForDay(day){
+    const now=startOfDay(new Date());
+    let d=dateForDay(now.getFullYear(),now.getMonth(),day);
+    if(d<now) d=dateForDay(now.getFullYear(),now.getMonth()+1,day);
+    return d;
+  }
   function normalBillTotal(){
     try{ if(Calc && typeof Calc.normalBillTotal==='function') return n(Calc.normalBillTotal()); }catch(e){}
     try{ return (Array.isArray(state.fixed)?state.fixed:[]).reduce((s,r)=>s+n(r&&r[1]),0); }catch(e){ return 0; }
@@ -6597,6 +6644,44 @@ StableInputV254.patch();
   function debtRepaymentTotal(){
     try{ if(Calc && typeof Calc.debtRepaymentTotal==='function') return n(Calc.debtRepaymentTotal()); }catch(e){}
     try{ return (Array.isArray(state.debts)?state.debts:[]).reduce((s,d)=>s+(n(d&&d[1])>0?n(d&&d[2]):0),0); }catch(e){ return 0; }
+  }
+  function billsDueBeforePayday(){
+    const rows=Array.isArray(state.fixed)?state.fixed:[];
+    const pd=nextPaydayDate();
+    let total=0, dated=0, undated=0, dueCount=0;
+    rows.forEach(r=>{
+      const amount=n(r&&r[1]); if(amount<=0) return;
+      const day=parseDay(r&&r[2]);
+      if(day){
+        dated++;
+        const due=nextDueDateForDay(day);
+        if(due<=pd){ total+=amount; dueCount++; }
+      }else{
+        // If a bill has no due day, include it so the spare figure stays cautious.
+        total+=amount; undated++; dueCount++;
+      }
+    });
+    return {total,dated,undated,dueCount,monthly:normalBillTotal()};
+  }
+  function debtsDueBeforePayday(){
+    const rows=Array.isArray(state.debts)?state.debts:[];
+    const pd=nextPaydayDate();
+    let total=0, monthly=0, oneOff=0, dueCount=0;
+    rows.forEach(d=>{
+      const balance=n(d&&d[1]); if(balance<=0) return;
+      const monthlyPayment=n(d&&d[2]);
+      const type=String((d&&d[4])||'Regular').toLowerCase();
+      const dueDate=parseDateValue(d&&d[5]);
+      if(type.includes('one') || type.includes('bnpl')){
+        if(dueDate && dueDate<=pd){ total+=balance; oneOff+=balance; dueCount++; }
+        return;
+      }
+      // Regular debts do not currently have a reliable monthly due-day field, so reserve one
+      // monthly payment if a balance remains. This avoids overstating spare.
+      if(monthlyPayment>0){ total+=monthlyPayment; monthly+=monthlyPayment; dueCount++; }
+    });
+    if(total<=0){ total=debtRepaymentTotal(); monthly=total; }
+    return {total,monthly,oneOff,dueCount};
   }
   function totalOverdraft(){
     try{ if(Calc && typeof Calc.totalOverdraft==='function') return n(Calc.totalOverdraft()); }catch(e){}
@@ -6608,38 +6693,42 @@ StableInputV254.patch();
   }
   function estimate(){
     const wage=n(state.wage);
-    const bills=normalBillTotal();
-    const debt=debtRepaymentTotal();
+    const days=daysUntilPayday();
     const weekly=n(state.weeklyBudget||0);
-    const living=weekly*4;
+    const living=(weekly/7)*days;
     const overdraft=totalOverdraft();
     const bank=bankPosition();
-    const commitmentTotal=bills+debt+living;
-    const raw=bank+wage-commitmentTotal;
-    // Priority 3/4 rule update: do not show future/theoretical spare as available cash.
-    // The visible spare is capped to money that is actually positive across the linked accounts
-    // after overdrafts/negative account positions are cleared. Example: balances £0 + overdraft
-    // used must show £0 even if wage minus commitments would leave a theoretical surplus.
     const cashAvailable=Math.max(0,bank);
-    const value=Math.max(0,Math.min(raw,cashAvailable));
+    const billsInfo=billsDueBeforePayday();
+    const debtInfo=debtsDueBeforePayday();
+    const commitmentsDue=billsInfo.total+debtInfo.total+living;
+    const trueSpare=Math.max(0,cashAvailable-commitmentsDue);
+    const rawProjected=bank+wage-(normalBillTotal()+debtRepaymentTotal()+weekly*4);
     const bankNegative=bank<0;
-    const capped=value<Math.max(0,raw);
-    return {wage,bills,debt,weekly,living,overdraft,bank,commitmentTotal,raw,cashAvailable,value,bankNegative,capped,blocked:false};
+    return {
+      wage,days,weekly,living,overdraft,bank,cashAvailable,
+      bills:billsInfo.total,billsMonthly:billsInfo.monthly,billsDated:billsInfo.dated,billsUndated:billsInfo.undated,billsDueCount:billsInfo.dueCount,
+      debt:debtInfo.total,debtMonthly:debtInfo.monthly,debtOneOff:debtInfo.oneOff,debtDueCount:debtInfo.dueCount,
+      commitmentsDue,rawProjected,value:trueSpare,bankNegative,
+      capped:trueSpare<cashAvailable,blocked:bank<=0||cashAvailable<=0||commitmentsDue>=cashAvailable
+    };
   }
   function cardHTML(){
     return `
       <h3>Estimated Spare After Wage</h3>
-      <p class="note">Shows spare only when your linked accounts have real positive money left after overdrafts are cleared. It still checks wage, bills, debt repayments and weekly living budget.</p>
+      <p class="note">Now shows true spare from real linked account money only. Wage is a reference; it only counts once it is actually in your accounts. The figure deducts bills due before payday, debt payments and living spend based on days until payday.</p>
       <div id="v283SpareValue" class="big value-soft value-warning">£0</div>
       <div id="v283SpareStatus" class="v283-spare-status">Calculating...</div>
       <div class="v283-spare-breakdown">
-        <div><span>Monthly wage</span><strong id="v283SpareWage">£0</strong></div>
-        <div><span>Normal bills</span><strong id="v283SpareBills">£0</strong></div>
-        <div><span>Debt repayments</span><strong id="v283SpareDebt">£0</strong></div>
-        <div><span>Weekly living budget reserve</span><strong id="v283SpareLiving">£0</strong></div>
-        <div><span>Net bank position</span><strong id="v283SpareBank">£0</strong></div>
         <div><span>Available account money</span><strong id="v283SpareAvailableCash">£0</strong></div>
+        <div><span>Days until payday</span><strong id="v283SpareDays">0</strong></div>
+        <div><span>Bills due before payday</span><strong id="v283SpareBills">£0</strong></div>
+        <div><span>Debt payments/reserve</span><strong id="v283SpareDebt">£0</strong></div>
+        <div><span>Living spend reserve</span><strong id="v283SpareLiving">£0</strong></div>
+        <div><span>Total commitments due</span><strong id="v283SpareCommitments">£0</strong></div>
+        <div><span>Net bank position</span><strong id="v283SpareBank">£0</strong></div>
         <div><span>Total overdraft used</span><strong id="v283SpareOverdraft">£0</strong></div>
+        <div><span>Monthly wage reference</span><strong id="v283SpareWage">£0</strong></div>
       </div>
     `;
   }
@@ -6655,6 +6744,8 @@ StableInputV254.patch();
         const core=findCardByHeading('#budget','Core Figures');
         if(core) core.insertAdjacentElement('afterend',card);
         else budget.insertBefore(card,budget.firstChild||null);
+      }else if(!document.getElementById('v283SpareCommitments')){
+        card.innerHTML=cardHTML();
       }
       return card;
     }catch(e){ console.warn('v283 ensure card',e); return null; }
@@ -6675,29 +6766,28 @@ StableInputV254.patch();
           status.className='v283-spare-status v283-warn';
           if(e.bank<=0){
             status.textContent='No spare showing because your linked accounts are not positive after overdrafts are cleared.';
-          }else if(e.raw<=0){
-            status.textContent='No spare estimated after bills, debt repayments and living budget.';
+          }else if(e.commitmentsDue>=e.cashAvailable){
+            status.textContent='No spare showing because bills, debt payments and living spend reserve use up the available account money before payday.';
           }else{
-            status.textContent='No spare currently available across linked accounts.';
+            status.textContent='No spare currently available after commitments due before payday.';
           }
-        }else if(e.capped){
-          status.className='v283-spare-status v283-good';
-          status.textContent='Spare is capped to the positive money currently left across your linked accounts after overdrafts are cleared.';
         }else{
           status.className='v283-spare-status v283-good';
-          status.textContent='Estimated spare available after current bank position and core monthly commitments.';
+          status.textContent='This is the estimated true spare left after overdrafts are cleared and payday commitments are reserved.';
         }
       }
-      const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
-      set('v283SpareWage',e.wage);
-      set('v283SpareBills',e.bills);
-      set('v283SpareDebt',e.debt);
-      set('v283SpareLiving',e.living);
-      set('v283SpareBank',e.bank);
-      set('v283SpareAvailableCash',e.cashAvailable);
-      set('v283SpareOverdraft',e.overdraft);
-      // Expose for future calculation breakdown panels / AI assistant.
-      try{ window.GrantOSEstimatedSpareAfterWage=e; }catch(x){}
+      const setMoney=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
+      const setText=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=String(v); };
+      setMoney('v283SpareAvailableCash',e.cashAvailable);
+      setText('v283SpareDays',e.days);
+      setMoney('v283SpareBills',e.bills);
+      setMoney('v283SpareDebt',e.debt);
+      setMoney('v283SpareLiving',e.living);
+      setMoney('v283SpareCommitments',e.commitmentsDue);
+      setMoney('v283SpareBank',e.bank);
+      setMoney('v283SpareOverdraft',e.overdraft);
+      setMoney('v283SpareWage',e.wage);
+      try{ window.GrantOSEstimatedSpareAfterWage=e; window.GrantOSTrueSpareAfterCommitments=e; }catch(x){}
     }catch(e){ console.warn('v283 render card',e); }
   }
   function addCSS(){
@@ -6732,7 +6822,14 @@ StableInputV254.patch();
       if(Calc && !Calc.__v283EstimatedSpare){
         Calc.estimatedSpareAfterWage=function(){ return estimate().value; };
         Calc.estimatedSpareAfterWageBreakdown=function(){ return estimate(); };
+        Calc.trueSpareAfterCommitments=function(){ return estimate().value; };
+        Calc.trueSpareAfterCommitmentsBreakdown=function(){ return estimate(); };
         Calc.__v283EstimatedSpare=true;
+      }else if(Calc){
+        Calc.estimatedSpareAfterWage=function(){ return estimate().value; };
+        Calc.estimatedSpareAfterWageBreakdown=function(){ return estimate(); };
+        Calc.trueSpareAfterCommitments=function(){ return estimate().value; };
+        Calc.trueSpareAfterCommitmentsBreakdown=function(){ return estimate(); };
       }
     }catch(e){}
   }
@@ -7049,11 +7146,11 @@ StableInputV254.patch();
 
 
 <script id="v2831RenderStabilityFix">
-/* v2.8.3 Render Stability Fix
-   Coalesces the older patch refresh timers on mobile so the app does not visibly shake on load.
+/* v2.8.3 True Spare After Commitments Fix
+   Includes render stability and coalesces the older patch refresh timers on mobile so the app does not visibly shake on load.
    It does not change budget/debt/account calculations. */
 (function(){
-  const VERSION='v2.8.3 Render Stability Fix';
+  const VERSION='v2.8.3 True Spare After Commitments Fix';
   const nativeSetTimeout=window.__gosNativeSetTimeout||window.setTimeout.bind(window);
   const nativeClearTimeout=window.__gosNativeClearTimeout||window.clearTimeout.bind(window);
   const bootStart=performance.now();
@@ -7152,6 +7249,1091 @@ StableInputV254.patch();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',function(){ nativeSetTimeout(function(){cancelLateBootTimers(); installBootDebounce(); setVersion();},300); });
+})();
+</script>
+
+
+<script id="v2832DateAwareBillsDebtsAndAccountSync">
+/* v2.8.3 Date-Aware Bills/Debts + Account-to-Budget Sync
+   Adds due-day/date and paid-this-cycle controls for bills and debts, then uses those
+   fields for True Spare. Also forces new accounts from Accounts to appear immediately
+   in Budget > Linked Account Figures. */
+(function(){
+  const VERSION='v2.8.3 Date-Aware True Spare Fix';
+  const MAX_ACCOUNTS=5;
+  const MS_DAY=24*60*60*1000;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function startOfDay(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+  function todayDate(){ return startOfDay(new Date()); }
+  function clampDay(y,m,day){ return Math.max(1,Math.min(n(day)||1,new Date(y,m+1,0).getDate())); }
+  function dateForDay(y,m,day){ return startOfDay(new Date(y,m,clampDay(y,m,day))); }
+  function paydayDay(){ return Math.max(1,Math.min(31,n(state&&state.payday||26)||26)); }
+  function nextPaydayDate(){
+    const now=todayDate(), pay=paydayDay();
+    let d=dateForDay(now.getFullYear(),now.getMonth(),pay);
+    if(now.getDate()>=pay) d=dateForDay(now.getFullYear(),now.getMonth()+1,pay);
+    return d;
+  }
+  function prevPaydayDate(){
+    const now=todayDate(), pay=paydayDay();
+    let d=dateForDay(now.getFullYear(),now.getMonth(),pay);
+    if(now.getDate()<pay) d=dateForDay(now.getFullYear(),now.getMonth()-1,pay);
+    return d;
+  }
+  function daysUntilPayday(){ return Math.max(0,Math.ceil((nextPaydayDate()-todayDate())/MS_DAY)); }
+  function parseDay(v){
+    const str=String(v??'').trim();
+    if(!str) return 0;
+    if(/^\d{1,2}$/.test(str)){ const d=n(str); return d>=1&&d<=31?d:0; }
+    const m=str.match(/(?:^|\b)([0-3]?\d)(?:st|nd|rd|th)?(?:\b|$)/i);
+    const d=m?n(m[1]):0;
+    return d>=1&&d<=31?d:0;
+  }
+  function parseDateValue(v){
+    const str=String(v??'').trim();
+    if(!str) return null;
+    const iso=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(iso) return startOfDay(new Date(n(iso[1]),n(iso[2])-1,n(iso[3])));
+    const uk=str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+    if(uk){ let y=n(uk[3]); if(y<100) y+=2000; return startOfDay(new Date(y,n(uk[2])-1,n(uk[1]))); }
+    const named=str.match(/^(\d{1,2})(?:st|nd|rd|th)?[\s\-/]+([A-Za-z]{3,})[\s\-/]+(\d{2,4})$/i);
+    if(named){
+      const months={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
+      const mo=months[String(named[2]).toLowerCase()]; let y=n(named[3]); if(y<100) y+=2000;
+      if(mo!=null) return startOfDay(new Date(y,mo,n(named[1])));
+    }
+    const d=new Date(str);
+    return isNaN(d.getTime())?null:startOfDay(d);
+  }
+  function isPaid(v){ return String(v??'').toLowerCase()==='yes' || v===true; }
+  function paidValue(v){ return isPaid(v)?'yes':'no'; }
+  function dueInCurrentPaydayCycle(day){
+    day=n(day);
+    if(day<1||day>31) return null;
+    const start=prevPaydayDate(), end=nextPaydayDate();
+    for(let offset=-1; offset<=2; offset++){
+      const probe=dateForDay(start.getFullYear(),start.getMonth()+offset,day);
+      if(probe>=start && probe<=end) return probe;
+    }
+    return null;
+  }
+  function dueBeforePaydayFromField(v){
+    const str=String(v??'').trim();
+    if(!str) return {due:null,dueThisCycle:true,undated:true};
+    const absolute=parseDateValue(str);
+    if(absolute){
+      return {due:absolute,dueThisCycle:absolute<=nextPaydayDate(),undated:false,absolute:true};
+    }
+    const day=parseDay(str);
+    if(day){
+      const due=dueInCurrentPaydayCycle(day);
+      return {due,dueThisCycle:!!(due && due<=nextPaydayDate()),undated:false,day};
+    }
+    return {due:null,dueThisCycle:true,undated:true};
+  }
+  function migrate(){
+    try{
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      state.fixed=state.fixed.map(r=>[
+        r&&r[0]!=null?r[0]:'New bill',
+        n(r&&r[1]),
+        r&&r[2]!=null?String(r[2]):'',
+        paidValue(r&&r[3])
+      ]);
+      if(!Array.isArray(state.debts)) state.debts=[];
+      state.debts=state.debts.map((d,i)=>[
+        d&&d[0]!=null?d[0]:'New debt',
+        n(d&&d[1]),
+        n(d&&d[2]),
+        d&&d[3]!=null?d[3]:'',
+        d&&d[4]!=null?d[4]:'Regular',
+        d&&d[5]!=null?String(d[5]):'',
+        n(d&&d[6])||i+1,
+        paidValue(d&&d[7])
+      ]);
+      try{ Data.save(); }catch(e){}
+    }catch(e){ console.warn('Grant OS date-aware migrate',e); }
+  }
+  function fixedRows(){ migrate(); return Array.isArray(state.fixed)?state.fixed:[]; }
+  function debtRows(){ migrate(); return Array.isArray(state.debts)?state.debts:[]; }
+  function paidSelect(value,onchange){
+    const v=paidValue(value);
+    return `<select onchange="${onchange}"><option value="no" ${v==='no'?'selected':''}>No - still due</option><option value="yes" ${v==='yes'?'selected':''}>Yes - already paid</option></select>`;
+  }
+  function renderFixedDesktop(){
+    try{
+      const t=document.getElementById('fixedCostsTable'); if(!t) return;
+      const rows=fixedRows();
+      t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th><th>Paid this cycle?</th><th>Remove</th></tr>'+
+        rows.map((r,i)=>`<tr>
+          <td><input value="${esc(r[0])}" oninput="state.fixed[${i}][0]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input type="number" value="${n(r[1])}" oninput="state.fixed[${i}][1]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input inputmode="numeric" placeholder="e.g. 1, 15 or 28" value="${esc(r[2]||'')}" oninput="state.fixed[${i}][2]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td>${paidSelect(r[3],`state.fixed[${i}][3]=this.value;App.saveAndRender()`)}</td>
+          <td><button class="danger" type="button" onclick="Budget.removeFixed(${i})">Remove</button></td>
+        </tr>`).join('');
+    }catch(e){ console.warn('Grant OS fixed desktop date render',e); }
+  }
+  function ensureMobileAfter(tableId, mobileId){
+    const table=document.getElementById(tableId); if(!table) return null;
+    let box=document.getElementById(mobileId);
+    if(!box){
+      box=document.createElement('div'); box.id=mobileId; box.className='v274-mobile-forms';
+      const outer=(table.parentElement&&(table.parentElement.classList.contains('v25531-table-wrap')||table.parentElement.classList.contains('v272-mobile-table-wrap')))?table.parentElement:table;
+      outer.insertAdjacentElement('afterend',box);
+    }
+    return box;
+  }
+  function renderFixedMobile(){
+    try{
+      const box=ensureMobileAfter('fixedCostsTable','v274FixedCostsMobile'); if(!box) return;
+      const rows=fixedRows();
+      box.innerHTML=rows.length?rows.map((r,i)=>`<div class="v274-mobile-card">
+        <div class="v274-mobile-title">${esc(r[0]||'Bill')}<span class="v274-mobile-sub">${isPaid(r[3])?'Paid this cycle':'Still due if before payday'}</span></div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="MobileV274.updateFixed(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="MobileV274.updateFixed(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="e.g. 1, 15 or 28" value="${esc(r[2]||'')}" oninput="MobileV274.updateFixed(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Paid this cycle?</span>${paidSelect(r[3],`MobileV274.updateFixed(${i},3,this.value);MobileV274.commit(false)`)}</label>
+        </div>
+        <div class="v274-mobile-actions"><button class="danger" type="button" onclick="Budget.removeFixed(${i})">Remove bill</button></div>
+      </div>`).join(''):`<div class="v274-mobile-empty">No normal bills yet. Tap Add bill to create one.</div>`;
+    }catch(e){ console.warn('Grant OS fixed mobile date render',e); }
+  }
+  function renderDebtDesktop(){
+    try{
+      const t=document.getElementById('debtTable'); if(!t) return;
+      const rows=debtRows();
+      t.innerHTML='<tr><th>Debt</th><th>Balance</th><th>Monthly</th><th>Finish</th><th>Type</th><th>Pay/due date</th><th>Paid this cycle?</th><th>Priority</th><th>Remove</th></tr>'+
+        rows.map((r,i)=>`<tr>
+          <td><input value="${esc(r[0])}" oninput="state.debts[${i}][0]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input type="number" value="${n(r[1])}" oninput="state.debts[${i}][1]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input type="number" value="${n(r[2])}" oninput="state.debts[${i}][2]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input value="${esc(r[3]||'')}" oninput="state.debts[${i}][3]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td><select onchange="state.debts[${i}][4]=this.value;App.saveAndRender()"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></td>
+          <td><input placeholder="Regular: day 1-31 / One-off: date" value="${esc(r[5]||'')}" oninput="state.debts[${i}][5]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td>${paidSelect(r[7],`state.debts[${i}][7]=this.value;App.saveAndRender()`)}</td>
+          <td><input type="number" value="${n(r[6]||i+1)}" oninput="state.debts[${i}][6]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>
+          <td><button class="danger" onclick="Debt.remove(${i})">Remove</button></td>
+        </tr>`).join('');
+    }catch(e){ console.warn('Grant OS debt desktop date render',e); }
+  }
+  function renderDebtMobile(){
+    try{
+      const box=ensureMobileAfter('debtTable','v274DebtMobile'); if(!box) return;
+      const rows=debtRows();
+      box.innerHTML=rows.length?rows.map((r,i)=>`<div class="v274-mobile-card">
+        <div class="v274-mobile-title">${esc(r[0]||'Debt')}<span class="v274-mobile-sub">${esc(r[4]||'Regular')} • ${isPaid(r[7])?'Paid this cycle':'Still due if before payday'}</span></div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Debt</span><input value="${esc(r[0])}" oninput="MobileV274.updateDebt(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Balance</span><input type="number" value="${n(r[1])}" oninput="MobileV274.updateDebt(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Monthly</span><input type="number" value="${n(r[2])}" oninput="MobileV274.updateDebt(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Finish</span><input value="${esc(r[3]||'')}" oninput="MobileV274.updateDebt(${i},3,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Type</span><select onchange="MobileV274.updateDebt(${i},4,this.value);MobileV274.commit(false)"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></label>
+          <label class="v274-mobile-field"><span>Pay/due date</span><input placeholder="Day 1-31 or exact date" value="${esc(r[5]||'')}" oninput="MobileV274.updateDebt(${i},5,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Paid this cycle?</span>${paidSelect(r[7],`MobileV274.updateDebt(${i},7,this.value);MobileV274.commit(false)`)}</label>
+          <label class="v274-mobile-field"><span>Priority</span><input type="number" value="${n(r[6]||i+1)}" oninput="MobileV274.updateDebt(${i},6,this.value)" onblur="MobileV274.commit(false)"></label>
+        </div>
+        <div class="v274-mobile-actions"><button class="danger" type="button" onclick="Debt.remove(${i})">Remove</button></div>
+      </div>`).join(''):`<div class="v274-mobile-empty">No debts yet. Tap Add debt to create one.</div>`;
+    }catch(e){ console.warn('Grant OS debt mobile date render',e); }
+  }
+  function billBreakdown(){
+    const pd=nextPaydayDate();
+    let total=0,dueCount=0,paidCount=0,undated=0;
+    const rows=fixedRows();
+    rows.forEach(r=>{
+      const amount=n(r[1]); if(amount<=0) return;
+      if(isPaid(r[3])){ paidCount++; return; }
+      const info=dueBeforePaydayFromField(r[2]);
+      if(info.undated){ undated++; total+=amount; dueCount++; return; }
+      if(info.due && info.due<=pd){ total+=amount; dueCount++; }
+    });
+    return {total,dueCount,paidCount,undated,monthly:rows.reduce((s,r)=>s+n(r[1]),0)};
+  }
+  function debtBreakdown(){
+    const pd=nextPaydayDate();
+    let total=0,monthly=0,oneOff=0,dueCount=0,paidCount=0,undated=0;
+    debtRows().forEach(d=>{
+      const balance=n(d[1]); if(balance<=0) return;
+      if(isPaid(d[7])){ paidCount++; return; }
+      const type=String(d[4]||'Regular').toLowerCase();
+      const monthlyPayment=Math.min(balance,Math.max(0,n(d[2])));
+      const rawDue=String(d[5]||'').trim();
+      const info=dueBeforePaydayFromField(rawDue);
+      if(type.includes('one') || type.includes('bnpl')){
+        const amt=balance;
+        if(info.undated){ undated++; total+=amt; oneOff+=amt; dueCount++; }
+        else if(info.due && info.due<=pd){ total+=amt; oneOff+=amt; dueCount++; }
+        return;
+      }
+      if(monthlyPayment<=0) return;
+      // Regular/Flexible debts use a monthly payment day. If the field contains an old full
+      // finish date such as 27-Oct-2027, use the day part (27) as the monthly due day rather
+      // than waiting until the final finish date.
+      const day=parseDay(rawDue);
+      const monthlyInfo=day ? {due:dueInCurrentPaydayCycle(day), undated:false} : info;
+      if(monthlyInfo.undated){ undated++; total+=monthlyPayment; monthly+=monthlyPayment; dueCount++; }
+      else if(monthlyInfo.due && monthlyInfo.due<=pd){ total+=monthlyPayment; monthly+=monthlyPayment; dueCount++; }
+    });
+    return {total,monthly,oneOff,dueCount,paidCount,undated};
+  }
+  function totalOverdraft(){ try{ if(Calc&&Calc.totalOverdraft) return n(Calc.totalOverdraft()); }catch(e){} return n(state.firstDirectOverdraft)+n(state.monzoOverdraft); }
+  function bankPosition(){ try{ if(Calc&&Calc.bankPosition) return n(Calc.bankPosition()); }catch(e){} return n(state.firstDirectBalance)+n(state.monzoBalance)-totalOverdraft(); }
+  function dateAwareEstimate(){
+    const wage=n(state.wage), days=daysUntilPayday(), weekly=n(state.weeklyBudget||0);
+    const living=(weekly/7)*days;
+    const bank=bankPosition(), overdraft=totalOverdraft(), cashAvailable=Math.max(0,bank);
+    const billsInfo=billBreakdown(), debtInfo=debtBreakdown();
+    const commitmentsDue=billsInfo.total+debtInfo.total+living;
+    const value=Math.max(0,cashAvailable-commitmentsDue);
+    return {
+      wage,days,weekly,living,bank,overdraft,cashAvailable,
+      bills:billsInfo.total,billsMonthly:billsInfo.monthly,billsDueCount:billsInfo.dueCount,billsPaidCount:billsInfo.paidCount,billsUndated:billsInfo.undated,
+      debt:debtInfo.total,debtMonthly:debtInfo.monthly,debtOneOff:debtInfo.oneOff,debtDueCount:debtInfo.dueCount,debtPaidCount:debtInfo.paidCount,debtUndated:debtInfo.undated,
+      commitmentsDue,value,
+      blocked:bank<=0||cashAvailable<=0||commitmentsDue>=cashAvailable
+    };
+  }
+  function renderSpareCard(){
+    try{
+      const e=dateAwareEstimate();
+      const card=document.getElementById('v283EstimatedSpareCard');
+      if(card){
+        const h=card.querySelector('h3'); if(h) h.textContent='Estimated Spare Until Payday';
+        const note=card.querySelector('p.note');
+        if(note) note.textContent='Date-aware true spare. It uses real positive linked account money, then deducts unpaid bills and debt payments due before your next payday, plus living spend for the days left until payday. Wage only counts once it is actually in the accounts.';
+      }
+      const value=document.getElementById('v283SpareValue');
+      if(value){ value.textContent=fmt(e.value); value.className='big value-soft '+(e.value>0?'value-positive':'value-warning'); }
+      const status=document.getElementById('v283SpareStatus');
+      if(status){
+        if(e.value>0){ status.className='v283-spare-status v283-good'; status.textContent=`Estimated spare after ${e.billsDueCount} bill(s), ${e.debtDueCount} debt payment(s) and living spend are reserved until payday.`; }
+        else{
+          status.className='v283-spare-status v283-warn';
+          if(e.bank<=0) status.textContent='No spare showing because your linked accounts are not positive after overdrafts are cleared.';
+          else status.textContent=`No spare showing because commitments due before payday use the available money. Bills due: ${fmt(e.bills)}. Debts due: ${fmt(e.debt)}. Living reserve: ${fmt(e.living)}.`;
+        }
+      }
+      const setMoney=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
+      const setText=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=String(v); };
+      setMoney('v283SpareAvailableCash',e.cashAvailable);
+      setText('v283SpareDays',e.days);
+      setMoney('v283SpareBills',e.bills);
+      setMoney('v283SpareDebt',e.debt);
+      setMoney('v283SpareLiving',e.living);
+      setMoney('v283SpareCommitments',e.commitmentsDue);
+      setMoney('v283SpareBank',e.bank);
+      setMoney('v283SpareOverdraft',e.overdraft);
+      setMoney('v283SpareWage',e.wage);
+      try{ window.GrantOSDateAwareTrueSpare=e; window.GrantOSTrueSpareAfterCommitments=e; window.GrantOSEstimatedSpareAfterWage=e; }catch(x){}
+    }catch(e){ console.warn('Grant OS date-aware spare render',e); }
+  }
+  function ensureGuidance(){
+    try{
+      const fixedCard=document.getElementById('fixedCostsTable')?.closest('.card');
+      if(fixedCard && !document.getElementById('v2832FixedDueGuide')){
+        const p=document.createElement('p'); p.id='v2832FixedDueGuide'; p.className='note';
+        p.innerHTML='<b>Date-aware:</b> Add the monthly due day for each bill. Mark it paid once it has gone out this payday cycle so True Spare does not reserve it twice.';
+        fixedCard.querySelector('h3')?.insertAdjacentElement('afterend',p);
+      }
+      const debtCard=document.getElementById('debtTable')?.closest('.card');
+      if(debtCard && !document.getElementById('v2832DebtDueGuide')){
+        const p=document.createElement('p'); p.id='v2832DebtDueGuide'; p.className='note';
+        p.innerHTML='<b>Date-aware:</b> For regular debts, enter the monthly payment day such as 27. For one-off debts, enter the exact due date. Mark paid once it has gone out this payday cycle.';
+        debtCard.querySelector('h3')?.insertAdjacentElement('afterend',p);
+      }
+    }catch(e){}
+  }
+  function refreshDateAwareViews(){
+    migrate();
+    renderFixedDesktop(); renderDebtDesktop(); renderFixedMobile(); renderDebtMobile(); ensureGuidance(); renderSpareCard(); setVersion();
+  }
+  function patchCalc(){
+    try{
+      if(!Calc) return;
+      Calc.billsDueBeforePaydayBreakdown=billBreakdown;
+      Calc.debtsDueBeforePaydayBreakdown=debtBreakdown;
+      Calc.dateAwareTrueSpareBreakdown=dateAwareEstimate;
+      Calc.trueSpareAfterCommitmentsBreakdown=dateAwareEstimate;
+      Calc.estimatedSpareAfterWageBreakdown=dateAwareEstimate;
+      Calc.dateAwareTrueSpare=function(){ return dateAwareEstimate().value; };
+      Calc.trueSpareAfterCommitments=function(){ return dateAwareEstimate().value; };
+      Calc.estimatedSpareAfterWage=function(){ return dateAwareEstimate().value; };
+    }catch(e){}
+  }
+  function patchBudgetDebt(){
+    try{
+      if(window.Budget && !Budget.__v2832DateAware){
+        const oldRender=Budget.render.bind(Budget);
+        Budget.render=function(){ migrate(); const r=oldRender(); setTimeout(refreshDateAwareViews,0); setTimeout(refreshDateAwareViews,180); return r; };
+        Budget.addFixed=function(){ migrate(); state.fixed.push(['New bill',0,'','no']); try{ Data.save(); }catch(e){} try{ App.saveAndRender(); }catch(e){ refreshDateAwareViews(); } };
+        Budget.removeFixed=function(i){ migrate(); i=Number(i); if(!state.fixed[i]) return; const name=state.fixed[i][0]||'this bill'; if(typeof confirm==='function'&&!confirm('Remove '+name+'?')) return; state.fixed.splice(i,1); try{ Data.save(); }catch(e){} try{ App.saveAndRender(); }catch(e){ refreshDateAwareViews(); } };
+        Budget.__v2832DateAware=true;
+      }
+      if(window.Debt && !Debt.__v2832DateAware){
+        const oldRender=Debt.render.bind(Debt);
+        Debt.render=function(){ migrate(); const r=oldRender(); setTimeout(refreshDateAwareViews,0); setTimeout(refreshDateAwareViews,180); return r; };
+        Debt.add=function(){ migrate(); state.debts.push(['New debt',0,0,'','Regular','',state.debts.length+1,'no']); try{ Data.save(); }catch(e){} try{ App.saveAndRender(); }catch(e){ refreshDateAwareViews(); } };
+        Debt.__v2832DateAware=true;
+      }
+    }catch(e){ console.warn('Grant OS date-aware patch budget/debt',e); }
+  }
+  function patchMobile(){
+    try{
+      if(window.MobileV274 && !MobileV274.__v2832DateAware){
+        const oldAll=MobileV274.renderAll&&MobileV274.renderAll.bind(MobileV274);
+        if(oldAll){ MobileV274.renderAll=function(){ const r=oldAll(); setTimeout(()=>{renderFixedMobile();renderDebtMobile();renderSpareCard();setVersion();},0); return r; }; }
+        const oldCommit=MobileV274.commit&&MobileV274.commit.bind(MobileV274);
+        if(oldCommit){ MobileV274.commit=function(full){ migrate(); const r=oldCommit(full); setTimeout(refreshDateAwareViews,50); return r; }; }
+        MobileV274.__v2832DateAware=true;
+      }
+    }catch(e){}
+  }
+  function readAccounts(){ try{ if(window.AccountsUIV25527&&AccountsUIV25527.accounts) return AccountsUIV25527.accounts().slice(0,MAX_ACCOUNTS); }catch(e){} try{ return JSON.parse(localStorage.getItem('grantOS.accounts.v2554')||'[]').slice(0,MAX_ACCOUNTS); }catch(e){ return []; } }
+  function forceBudgetAccountRefresh(){
+    try{ if(window.Budget&&Budget.render) Budget.render(); }catch(e){}
+    setTimeout(()=>{ try{ if(window.Budget&&Budget.render) Budget.render(); }catch(e){} try{ if(window.MobileV274&&MobileV274.renderAll) MobileV274.renderAll(); }catch(e){} renderSpareCard(); setVersion(); },120);
+  }
+  function patchAccountAddToBudget(){
+    try{
+      if(!window.AccountsUIV25527 || AccountsUIV25527.__v2832AddSync) return;
+      const oldAdd=AccountsUIV25527.add.bind(AccountsUIV25527);
+      AccountsUIV25527.add=function(){
+        let result=oldAdd.apply(this,arguments);
+        try{
+          const accounts=readAccounts();
+          if(accounts.length && (!accounts[accounts.length-1].name || /new account/i.test(accounts[accounts.length-1].name))){ accounts[accounts.length-1].includeOverdraftForSpend=accounts[accounts.length-1].includeOverdraftForSpend||'no'; }
+          if(window.AccountsUIV25527&&AccountsUIV25527.write) AccountsUIV25527.write(accounts); else localStorage.setItem('grantOS.accounts.v2554',JSON.stringify(accounts));
+        }catch(e){}
+        forceBudgetAccountRefresh();
+        return result;
+      };
+      const oldDel=AccountsUIV25527.del&&AccountsUIV25527.del.bind(AccountsUIV25527);
+      if(oldDel){ AccountsUIV25527.del=function(){ const r=oldDel.apply(this,arguments); forceBudgetAccountRefresh(); return r; }; }
+      const oldUpdate=AccountsUIV25527.update&&AccountsUIV25527.update.bind(AccountsUIV25527);
+      if(oldUpdate){ AccountsUIV25527.update=function(){ const r=oldUpdate.apply(this,arguments); if(arguments[1]==='name'||arguments[1]==='type') setTimeout(forceBudgetAccountRefresh,80); return r; }; }
+      AccountsUIV25527.__v2832AddSync=true;
+    }catch(e){ console.warn('Grant OS account add sync patch',e); }
+  }
+  function patchRenderers(){
+    const wrap=(obj,name,flag)=>{ try{ if(!obj||!obj[name]||obj[name][flag]) return; const old=obj[name].bind(obj); obj[name]=function(){ const r=old.apply(this,arguments); setTimeout(()=>{patchCalc();refreshDateAwareViews();},0); setTimeout(()=>{patchCalc();refreshDateAwareViews();},240); return r; }; obj[name][flag]=true; }catch(e){} };
+    wrap(window.App,'render','__v2832DateAware');
+    wrap(window.App,'saveAndRender','__v2832DateAware');
+    wrap(window.Dashboard,'render','__v2832DateAware');
+  }
+  function boot(){
+    setVersion(); migrate(); patchCalc(); patchBudgetDebt(); patchMobile(); patchAccountAddToBudget(); patchRenderers(); refreshDateAwareViews();
+    [150,500,1100,2200,4200].forEach(ms=>setTimeout(()=>{setVersion();migrate();patchCalc();patchBudgetDebt();patchMobile();patchAccountAddToBudget();patchRenderers();refreshDateAwareViews();},ms));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',()=>setTimeout(boot,250));
+})();
+</script>
+
+
+<script id="v283DateAwareTrueSpareFix">
+/* v2.8.3 Date-Aware True Spare Fix
+   Bills and debts now carry due-day/date and paid-this-cycle fields.
+   Estimated Spare After Wage is recalculated from real linked account money minus unpaid items due before next payday and living spend reserve.
+   Also hardens account sync so newly added Accounts rows immediately appear in Budget > Linked Account Figures.
+*/
+(function(){
+  const VERSION='v2.8.3 Date-Aware True Spare Fix';
+  const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
+  let baseCalcNextPaydayFn=null;
+  const MAX_ACCOUNTS=5;
+  const DAY_MS=24*60*60*1000;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function startOfDay(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+  function today(){ return startOfDay(new Date()); }
+  function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+  function clampDay(y,m,day){ return Math.max(1,Math.min(n(day)||1,daysInMonth(y,m))); }
+  function dateForDay(y,m,day){ return startOfDay(new Date(y,m,clampDay(y,m,day))); }
+  function parseDay(v){
+    const str=String(v??'').trim(); if(!str) return 0;
+    const m=str.match(/\b([0-3]?\d)\b/); const d=m?n(m[1]):0;
+    return d>=1&&d<=31?d:0;
+  }
+  function parseDateValue(v){
+    const str=String(v??'').trim(); if(!str) return null;
+    let m=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m){ const d=new Date(n(m[1]),n(m[2])-1,n(m[3])); return isNaN(d.getTime())?null:startOfDay(d); }
+    m=str.match(/^(\d{1,2})[-\/\s]([A-Za-z]{3,}|\d{1,2})[-\/\s](\d{2,4})$/);
+    if(m){
+      const months={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
+      const mo=String(m[2]).toLowerCase(); let month=/^\d+$/.test(mo)?n(mo)-1:months[mo]; let year=n(m[3]); if(year<100) year+=2000;
+      if(month>=0&&month<=11){ const d=new Date(year,month,n(m[1])); return isNaN(d.getTime())?null:startOfDay(d); }
+    }
+    const direct=new Date(str);
+    return isNaN(direct.getTime())?null:startOfDay(direct);
+  }
+  function nextDueDateForDay(day){
+    const now=today(); let d=dateForDay(now.getFullYear(),now.getMonth(),day);
+    if(d<now) d=dateForDay(now.getFullYear(),now.getMonth()+1,day);
+    return d;
+  }
+  function nextPaydayDate(){
+    const manual=parseDateValue(state&&state.nextPaydayDate);
+    if(manual && manual>=today()) return manual;
+    try{ if(baseCalcNextPaydayFn){ const d=baseCalcNextPaydayFn(); if(d&&!isNaN(d.getTime())) return startOfDay(d); } }catch(e){}
+    const now=today(); const pay=Math.max(1,Math.min(31,n(state&&state.payday)||26));
+    let d=dateForDay(now.getFullYear(),now.getMonth(),pay);
+    if(now.getDate()>=pay) d=dateForDay(now.getFullYear(),now.getMonth()+1,pay);
+    return d;
+  }
+  function isoDate(d){
+    if(!d || isNaN(d.getTime())) return '';
+    const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function daysUntilPayday(){ return Math.max(0,Math.ceil((nextPaydayDate()-today())/DAY_MS)); }
+  function paid(v){ return String(v||'no').toLowerCase()==='yes'; }
+  function dueBeforePaydayByDay(day){ const d=parseDay(day); return d?nextDueDateForDay(d)<=nextPaydayDate():null; }
+
+  function migrateData(){
+    try{
+      if(!state || typeof state!=='object') return;
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      state.fixed=state.fixed.map(r=>{
+        const row=Array.isArray(r)?r:[];
+        return [row[0]??'New bill', n(row[1]), row[2]??'', row[3]==='yes'?'yes':'no'];
+      });
+      if(!Array.isArray(state.debts)) state.debts=[];
+      state.debts=state.debts.map((d,i)=>{
+        const row=Array.isArray(d)?d:[];
+        return [row[0]??'New debt', n(row[1]), n(row[2]), row[3]??'', row[4]??'Regular', row[5]??'', row[6]??(i+1), row[7]??'', row[8]==='yes'?'yes':'no'];
+      });
+      if(!state.nextPaydayDate){
+        const pd=nextPaydayDate();
+        if(pd) state.nextPaydayDate=isoDate(pd);
+      }
+      try{ if(window.Data) Data.save(); }catch(e){}
+    }catch(e){ console.warn('v283 date aware migrate',e); }
+  }
+
+  function readAccounts(){
+    let data=[];
+    try{ data=JSON.parse(localStorage.getItem(ACCOUNT_KEY())||'[]'); }catch(e){ data=[]; }
+    if((!Array.isArray(data)||!data.length) && window.AccountsUIV25527 && AccountsUIV25527.accounts){
+      try{ data=AccountsUIV25527.accounts(); }catch(e){}
+    }
+    if(!Array.isArray(data)) data=[];
+    if(!data.length){
+      try{ data=(AccountsUIV25527&&AccountsUIV25527.defaults)?AccountsUIV25527.defaults():[]; }catch(e){ data=[]; }
+    }
+    return data.filter(Boolean).slice(0,MAX_ACCOUNTS).map((a,i)=>({
+      name:String(a.name||('Account '+(i+1))).trim()||('Account '+(i+1)),
+      type:a.type||'Current',
+      balance:n(a.balance),
+      limit:Math.max(0,n(a.limit)),
+      includeOverdraftForSpend:(a.includeOverdraftForSpend==='yes'&&n(a.limit)>0)?'yes':'no'
+    }));
+  }
+  function split(balance){ const b=n(balance); return {balance:Math.max(0,b),overdraft:Math.max(0,-b)}; }
+  function remainingOD(a){ const s=split(a&&a.balance); return Math.max(0,n(a&&a.limit)-s.overdraft); }
+  function syncLegacyState(accounts){
+    try{
+      const find=re=>accounts.find(a=>re.test(String(a.name||'')));
+      const fd=find(/first\s*direct/i), monzo=find(/monzo/i);
+      if(fd){ const s=split(fd.balance); state.firstDirectBalance=s.balance; state.firstDirectOverdraft=s.overdraft; state.firstDirectOverdraftLimit=n(fd.limit||650); state.includeFirstDirectOverdraftForSpend=fd.includeOverdraftForSpend||'no'; }
+      if(monzo){ const s=split(monzo.balance); state.monzoBalance=s.balance; state.monzoOverdraft=s.overdraft; state.monzoOverdraftLimit=n(monzo.limit||200); state.includeMonzoOverdraftForSpend=monzo.includeOverdraftForSpend||'no'; }
+    }catch(e){}
+  }
+  function writeAccounts(accounts){
+    const clean=(Array.isArray(accounts)?accounts:[]).filter(Boolean).slice(0,MAX_ACCOUNTS).map((a,i)=>({
+      name:String(a.name||('Account '+(i+1))).trim()||('Account '+(i+1)),
+      type:a.type||'Current', balance:n(a.balance), limit:Math.max(0,n(a.limit)),
+      includeOverdraftForSpend:(a.includeOverdraftForSpend==='yes'&&n(a.limit)>0)?'yes':'no'
+    }));
+    try{ localStorage.setItem(ACCOUNT_KEY(),JSON.stringify(clean)); }catch(e){}
+    syncLegacyState(clean);
+    try{ if(window.Data) Data.save(); }catch(e){}
+    return clean;
+  }
+  function bankPosition(){
+    const accounts=readAccounts();
+    if(accounts.length) return accounts.reduce((s,a)=>s+n(a.balance),0);
+    try{ if(window.Calc && Calc.bankPosition) return n(Calc.bankPosition()); }catch(e){}
+    return n(state.firstDirectBalance)+n(state.monzoBalance)-n(state.firstDirectOverdraft)-n(state.monzoOverdraft);
+  }
+  function totalOverdraft(){
+    const accounts=readAccounts();
+    if(accounts.length) return accounts.reduce((s,a)=>s+Math.max(0,-n(a.balance)),0);
+    try{ if(window.Calc && Calc.totalOverdraft) return n(Calc.totalOverdraft()); }catch(e){}
+    return n(state.firstDirectOverdraft)+n(state.monzoOverdraft);
+  }
+
+  function billsDueBeforePayday(){
+    migrateData();
+    let total=0, monthly=0, dated=0, undated=0, paidCount=0, dueCount=0, futureCount=0;
+    const rows=Array.isArray(state.fixed)?state.fixed:[];
+    rows.forEach(r=>{
+      const amount=n(r&&r[1]); if(amount<=0) return; monthly+=amount;
+      if(paid(r&&r[3])){ paidCount++; return; }
+      const d=parseDay(r&&r[2]);
+      if(d){
+        dated++;
+        if(nextDueDateForDay(d)<=nextPaydayDate()){ total+=amount; dueCount++; }
+        else futureCount++;
+      }else{
+        total+=amount; undated++; dueCount++;
+      }
+    });
+    return {total,monthly,dated,undated,paidCount,dueCount,futureCount};
+  }
+  function debtsDueBeforePayday(){
+    migrateData();
+    let total=0, monthly=0, oneOff=0, paidCount=0, dueCount=0, futureCount=0, undated=0;
+    const rows=Array.isArray(state.debts)?state.debts:[];
+    rows.forEach(d=>{
+      const balance=n(d&&d[1]); if(balance<=0) return;
+      if(paid(d&&d[8])){ paidCount++; return; }
+      const payment=Math.min(balance,Math.max(0,n(d&&d[2])));
+      const type=String((d&&d[4])||'Regular').toLowerCase();
+      if(type.includes('one') || type.includes('bnpl')){
+        const due=parseDateValue((d&&d[5])||(d&&d[3]));
+        if(due){
+          if(due<=nextPaydayDate()){ total+=balance; oneOff+=balance; dueCount++; } else futureCount++;
+        }else{ total+=balance; oneOff+=balance; undated++; dueCount++; }
+        return;
+      }
+      if(payment<=0) return;
+      const day=parseDay(d&&d[7]);
+      if(day){
+        if(nextDueDateForDay(day)<=nextPaydayDate()){ total+=payment; monthly+=payment; dueCount++; } else futureCount++;
+      }else{
+        // No due day means we reserve one payment so true spare is not overstated.
+        total+=payment; monthly+=payment; undated++; dueCount++;
+      }
+    });
+    return {total,monthly,oneOff,paidCount,dueCount,futureCount,undated};
+  }
+  function estimate(){
+    const wage=n(state&&state.wage);
+    const days=daysUntilPayday();
+    const weekly=n(state&&state.weeklyBudget);
+    const living=(weekly/7)*days;
+    const bank=bankPosition();
+    const cashAvailable=Math.max(0,bank);
+    const overdraft=totalOverdraft();
+    const bills=billsDueBeforePayday();
+    const debts=debtsDueBeforePayday();
+    const commitmentsDue=bills.total+debts.total+living;
+    const value=Math.max(0,cashAvailable-commitmentsDue);
+    return {wage,days,weekly,living,bank,cashAvailable,overdraft,bills,debts,commitmentsDue,value,payday:nextPaydayDate()};
+  }
+
+  function renderNextPaydayField(){
+    try{
+      const payday=document.getElementById('payday'); if(!payday) return;
+      const table=payday.closest('table'); if(!table) return;
+      let input=document.getElementById('nextPaydayDate');
+      if(!input){
+        const tr=document.createElement('tr'); tr.id='nextPaydayDateRow';
+        tr.innerHTML='<td>Next payday date</td><td><input id="nextPaydayDate" type="date"><div class="v283-date-note">Used for date-aware bills, debts and true spare. Leave as the next real payday.</div></td>';
+        const row=payday.closest('tr'); row.insertAdjacentElement('afterend',tr);
+        input=tr.querySelector('input');
+        input.addEventListener('input',function(){ state.nextPaydayDate=this.value; const d=parseDateValue(this.value); if(d) state.payday=d.getDate(); try{ if(window.Data) Data.save(); }catch(e){} renderSpareCard(); });
+        input.addEventListener('change',function(){ state.nextPaydayDate=this.value; const d=parseDateValue(this.value); if(d) state.payday=d.getDate(); try{ if(window.Data) Data.save(); }catch(e){} safeRender(); });
+      }
+      if(document.activeElement!==input) input.value=state.nextPaydayDate||isoDate(nextPaydayDate());
+    }catch(e){}
+  }
+
+  function renderBillsTable(){
+    try{
+      migrateData();
+      const t=document.getElementById('fixedCostsTable'); if(!t) return;
+      t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th><th>Paid this cycle?</th><th>Status</th><th>Remove</th></tr>';
+      state.fixed.forEach((r,i)=>{
+        const day=parseDay(r[2]);
+        let status='Included until due day added';
+        if(paid(r[3])) status='Already paid - excluded';
+        else if(day){ status=dueBeforePaydayByDay(day)?'Due before payday - included':'After payday - excluded'; }
+        t.innerHTML+=`<tr>
+          <td><input value="${esc(r[0])}" oninput="GrantOSDateAwareV284.updateBill(${i},0,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><input type="number" value="${n(r[1])}" oninput="GrantOSDateAwareV284.updateBill(${i},1,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDateAwareV284.updateBill(${i},2,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><select onchange="GrantOSDateAwareV284.updateBill(${i},3,this.value);GrantOSDateAwareV284.commit(false)"><option value="no" ${r[3]==='yes'?'':'selected'}>No</option><option value="yes" ${r[3]==='yes'?'selected':''}>Yes</option></select></td>
+          <td><span class="v283-date-status">${esc(status)}</span></td>
+          <td><button type="button" class="danger" onclick="GrantOSDateAwareV284.removeBill(${i})">Remove</button></td>
+        </tr>`;
+      });
+      const card=t.closest('.card');
+      if(card){
+        let tools=document.getElementById('v283BillDateTools');
+        if(!tools){
+          tools=document.createElement('div'); tools.id='v283BillDateTools'; tools.className='v283-date-tools';
+          tools.innerHTML='<button type="button" onclick="GrantOSDateAwareV284.resetPaidFlags(\'bills\')">Reset bill paid flags</button><span>Use after payday so the next cycle starts fresh.</span>';
+          t.insertAdjacentElement('afterend',tools);
+        }
+      }
+    }catch(e){ console.warn('v283 render bills',e); }
+  }
+  function renderBillsMobile(){
+    try{
+      const t=document.getElementById('fixedCostsTable'); if(!t) return;
+      let box=document.getElementById('v274FixedCostsMobile');
+      if(!box){ box=document.createElement('div'); box.id='v274FixedCostsMobile'; box.className='v274-mobile-editor'; t.insertAdjacentElement('afterend',box); }
+      box.innerHTML=(state.fixed||[]).length?state.fixed.map((r,i)=>`<div class="v274-mobile-card">
+        <div class="v274-mobile-title">${esc(r[0]||'Bill')}</div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="GrantOSDateAwareV284.updateBill(${i},0,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="GrantOSDateAwareV284.updateBill(${i},1,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDateAwareV284.updateBill(${i},2,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Paid this cycle?</span><select onchange="GrantOSDateAwareV284.updateBill(${i},3,this.value);GrantOSDateAwareV284.commit(false)"><option value="no" ${r[3]==='yes'?'':'selected'}>No</option><option value="yes" ${r[3]==='yes'?'selected':''}>Yes</option></select></label>
+        </div>
+        <div class="v274-mobile-actions"><button class="danger" type="button" onclick="GrantOSDateAwareV284.removeBill(${i})">Remove</button></div>
+      </div>`).join(''):'<div class="v274-mobile-empty">No bills yet. Tap Add bill to create one.</div>';
+    }catch(e){}
+  }
+
+  function renderDebtTable(){
+    try{
+      migrateData();
+      const t=document.getElementById('debtTable'); if(!t) return;
+      t.innerHTML='<tr><th>Debt</th><th>Balance</th><th>Monthly</th><th>Finish</th><th>Type</th><th>One-off due date</th><th>Monthly due day</th><th>Paid this cycle?</th><th>Priority</th><th>Remove</th></tr>';
+      state.debts.forEach((r,i)=>{
+        t.innerHTML+=`<tr>
+          <td><input value="${esc(r[0])}" oninput="GrantOSDateAwareV284.updateDebt(${i},0,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><input type="number" value="${n(r[1])}" oninput="GrantOSDateAwareV284.updateDebt(${i},1,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><input type="number" value="${n(r[2])}" oninput="GrantOSDateAwareV284.updateDebt(${i},2,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><input value="${esc(r[3]||'')}" oninput="GrantOSDateAwareV284.updateDebt(${i},3,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><select onchange="GrantOSDateAwareV284.updateDebt(${i},4,this.value);GrantOSDateAwareV284.commit(false)"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></td>
+          <td><input placeholder="YYYY-MM-DD" value="${esc(r[5]||'')}" oninput="GrantOSDateAwareV284.updateDebt(${i},5,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><input inputmode="numeric" placeholder="1-31" value="${esc(r[7]||'')}" oninput="GrantOSDateAwareV284.updateDebt(${i},7,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><select onchange="GrantOSDateAwareV284.updateDebt(${i},8,this.value);GrantOSDateAwareV284.commit(false)"><option value="no" ${r[8]==='yes'?'':'selected'}>No</option><option value="yes" ${r[8]==='yes'?'selected':''}>Yes</option></select></td>
+          <td><input type="number" value="${n(r[6]||i+1)}" oninput="GrantOSDateAwareV284.updateDebt(${i},6,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></td>
+          <td><button class="danger" type="button" onclick="Debt.remove(${i})">Remove</button></td>
+        </tr>`;
+      });
+      let tools=document.getElementById('v283DebtDateTools');
+      if(!tools){
+        tools=document.createElement('div'); tools.id='v283DebtDateTools'; tools.className='v283-date-tools';
+        tools.innerHTML='<button type="button" onclick="GrantOSDateAwareV284.resetPaidFlags(\'debts\')">Reset debt paid flags</button><span>Regular debts use Monthly due day. One-off/BNPL uses One-off due date.</span>';
+        t.insertAdjacentElement('afterend',tools);
+      }
+    }catch(e){ console.warn('v283 render debts',e); }
+  }
+  function renderDebtsMobile(){
+    try{
+      const t=document.getElementById('debtTable'); if(!t) return;
+      let box=document.getElementById('v274DebtMobile');
+      if(!box){ box=document.createElement('div'); box.id='v274DebtMobile'; box.className='v274-mobile-editor'; t.insertAdjacentElement('afterend',box); }
+      box.innerHTML=(state.debts||[]).length?state.debts.map((r,i)=>`<div class="v274-mobile-card">
+        <div class="v274-mobile-title">${esc(r[0]||'Debt')}<span class="v274-mobile-sub">${esc(r[4]||'Regular')}</span></div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Debt</span><input value="${esc(r[0])}" oninput="GrantOSDateAwareV284.updateDebt(${i},0,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Balance</span><input type="number" value="${n(r[1])}" oninput="GrantOSDateAwareV284.updateDebt(${i},1,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Monthly</span><input type="number" value="${n(r[2])}" oninput="GrantOSDateAwareV284.updateDebt(${i},2,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Type</span><select onchange="GrantOSDateAwareV284.updateDebt(${i},4,this.value);GrantOSDateAwareV284.commit(false)"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></label>
+          <label class="v274-mobile-field"><span>One-off due date</span><input placeholder="YYYY-MM-DD" value="${esc(r[5]||'')}" oninput="GrantOSDateAwareV284.updateDebt(${i},5,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Monthly due day</span><input inputmode="numeric" placeholder="1-31" value="${esc(r[7]||'')}" oninput="GrantOSDateAwareV284.updateDebt(${i},7,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Paid this cycle?</span><select onchange="GrantOSDateAwareV284.updateDebt(${i},8,this.value);GrantOSDateAwareV284.commit(false)"><option value="no" ${r[8]==='yes'?'':'selected'}>No</option><option value="yes" ${r[8]==='yes'?'selected':''}>Yes</option></select></label>
+          <label class="v274-mobile-field"><span>Priority</span><input type="number" value="${n(r[6]||i+1)}" oninput="GrantOSDateAwareV284.updateDebt(${i},6,this.value)" onblur="GrantOSDateAwareV284.commit(false)"></label>
+        </div>
+        <div class="v274-mobile-actions"><button class="danger" type="button" onclick="Debt.remove(${i})">Remove</button></div>
+      </div>`).join(''):'<div class="v274-mobile-empty">No debts yet. Tap Add debt to create one.</div>';
+    }catch(e){}
+  }
+
+  function forceLinkedAccountsTable(){
+    try{
+      const budget=document.getElementById('budget'); const grid=budget&&budget.querySelector('.grid'); if(!grid) return;
+      let card=document.getElementById('v25531BudgetAccountsCard');
+      if(!card){
+        card=document.createElement('div'); card.className='card full v25531-linked-card'; card.id='v25531BudgetAccountsCard';
+        card.innerHTML='<div class="v25531-linked-head"><div><h3>Linked Account Figures</h3><p class="note">Account names and types come from Accounts. Add the money values here.</p></div><span class="v25530-badge blue">Max 5 accounts</span></div><div class="v25531-table-wrap"><table id="dynamicBudgetAccountsTable"></table></div><div class="v25531-budget-actions"><span class="v25531-max-note" id="v25531BudgetAccountNote"></span><button class="primary" type="button" onclick="Budget.save()">Save linked account figures</button></div>';
+        const fixed=[...grid.children].find(el=>el.querySelector&&el.querySelector('#fixedCostsTable'));
+        grid.insertBefore(card,fixed||null);
+      }
+      const t=document.getElementById('dynamicBudgetAccountsTable'); if(!t) return;
+      const accounts=writeAccounts(readAccounts());
+      t.innerHTML='<tr><th>Account</th><th>Balance</th><th>Overdraft used</th><th>Overdraft limit</th><th>Safe-spend overdraft rule</th></tr>';
+      accounts.forEach((a,i)=>{
+        const s=split(a.balance); const rem=remainingOD(a); const canOD=n(a.limit)>0; const inc=a.includeOverdraftForSpend==='yes'?'yes':'no';
+        t.innerHTML+=`<tr data-account-index="${i}"><td><span class="v25531-account-name">${esc(a.name)}</span><span class="v25531-account-type">${esc(a.type||'Current')}</span></td><td><input id="v25531AccBal_${i}" type="number" value="${s.balance}" oninput="GrantOSDateAwareV284.updateAccount(${i})"></td><td><input id="v25531AccOd_${i}" type="number" value="${s.overdraft}" oninput="GrantOSDateAwareV284.updateAccount(${i})"></td><td><input id="v25531AccLimit_${i}" type="number" value="${n(a.limit)}" oninput="GrantOSDateAwareV284.updateAccount(${i})"><span class="v25531-account-limit-note">Remaining buffer now: ${fmt(rem)}</span></td><td><select id="v25531AccInclude_${i}" onchange="GrantOSDateAwareV284.updateAccount(${i});GrantOSDateAwareV284.commit(false)"><option value="no" ${inc==='no'?'selected':''}>No - balance only</option><option value="yes" ${inc==='yes'?'selected':''} ${canOD?'':'disabled'}>Yes - include remaining overdraft</option></select></td></tr>`;
+      });
+      const note=document.getElementById('v25531BudgetAccountNote'); if(note) note.textContent=`${accounts.length}/${MAX_ACCOUNTS} account spaces used. New accounts are added from the Accounts tab.`;
+      renderLinkedAccountsMobile(accounts);
+    }catch(e){ console.warn('v283 linked accounts render',e); }
+  }
+  function renderLinkedAccountsMobile(accounts){
+    try{
+      const t=document.getElementById('dynamicBudgetAccountsTable'); if(!t) return;
+      let box=document.getElementById('v274BudgetAccountsMobile');
+      if(!box){ box=document.createElement('div'); box.id='v274BudgetAccountsMobile'; box.className='v274-mobile-forms'; const wrap=t.closest('.v25531-table-wrap')||t; wrap.insertAdjacentElement('afterend',box); }
+      accounts=accounts||readAccounts();
+      box.innerHTML=accounts.length?accounts.map((a,i)=>{ const s=split(a.balance), rem=remainingOD(a), inc=a.includeOverdraftForSpend==='yes'?'yes':'no'; const canOD=n(a.limit)>0; return `<div class="v274-mobile-card" data-account-index="${i}"><div class="v274-mobile-title"><div>${esc(a.name||'Account')}<span class="v274-mobile-sub">${esc(a.type||'Current')}</span></div><span class="v25530-badge blue">${i+1}/${MAX_ACCOUNTS}</span></div><div class="v274-mobile-grid"><label class="v274-mobile-field"><span>Balance</span><input id="v274AccBal_${i}" type="number" value="${s.balance}" oninput="GrantOSDateAwareV284.updateAccount(${i})"></label><label class="v274-mobile-field"><span>Overdraft used</span><input id="v274AccOd_${i}" type="number" value="${s.overdraft}" oninput="GrantOSDateAwareV284.updateAccount(${i})"></label><label class="v274-mobile-field"><span>Overdraft limit</span><input id="v274AccLimit_${i}" type="number" value="${n(a.limit)}" oninput="GrantOSDateAwareV284.updateAccount(${i})"></label><label class="v274-mobile-field"><span>Safe-spend overdraft rule</span><select id="v274AccInclude_${i}" onchange="GrantOSDateAwareV284.updateAccount(${i});GrantOSDateAwareV284.commit(false)"><option value="no" ${inc==='no'?'selected':''}>No - balance only</option><option value="yes" ${inc==='yes'?'selected':''} ${canOD?'':'disabled'}>Yes - include remaining overdraft</option></select></label></div><div class="v274-note">Remaining buffer now: ${fmt(rem)}</div></div>`; }).join(''):'<div class="v274-mobile-empty">No linked accounts yet. Add accounts on the Accounts tab.</div>';
+    }catch(e){}
+  }
+
+  function renderSpareCard(){
+    try{
+      setVersion(); migrateData();
+      const e=estimate();
+      const setMoney=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
+      const setText=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=String(v); };
+      const val=document.getElementById('v283SpareValue');
+      if(val){ val.textContent=fmt(e.value); val.className='big value-soft '+(e.value>0?'value-positive':'value-warning'); }
+      const status=document.getElementById('v283SpareStatus');
+      if(status){
+        if(e.value>0){ status.className='v283-spare-status v283-good'; status.textContent='Date-aware true spare: available account money left after unpaid bills, debts and living spend reserve until payday.'; }
+        else if(e.bank<=0){ status.className='v283-spare-status v283-warn'; status.textContent='No spare because linked accounts are not positive after overdrafts are cleared.'; }
+        else { status.className='v283-spare-status v283-warn'; status.textContent='No spare because unpaid bills, debts and living spend reserve use up the available account money before payday.'; }
+      }
+      setMoney('v283SpareAvailableCash',e.cashAvailable); setText('v283SpareDays',e.days); setMoney('v283SpareBills',e.bills.total); setMoney('v283SpareDebt',e.debts.total); setMoney('v283SpareLiving',e.living); setMoney('v283SpareCommitments',e.commitmentsDue); setMoney('v283SpareBank',e.bank); setMoney('v283SpareOverdraft',e.overdraft); setMoney('v283SpareWage',e.wage);
+      const card=document.getElementById('v283EstimatedSpareCard');
+      if(card){
+        const p=card.querySelector('p.note'); if(p) p.textContent='Date-aware true spare from real linked account money only. It deducts unpaid bills and debts due before payday, plus living spend reserve based on days until payday.';
+        let extra=document.getElementById('v283DateAwareBreakdownNote');
+        if(!extra){ extra=document.createElement('div'); extra.id='v283DateAwareBreakdownNote'; extra.className='v283-date-extra'; card.appendChild(extra); }
+        extra.innerHTML=`Payday used: <strong>${isoDate(e.payday)}</strong>. Bills included: <strong>${e.bills.dueCount}</strong> due, <strong>${e.bills.paidCount}</strong> paid, <strong>${e.bills.futureCount}</strong> after payday. Debts included: <strong>${e.debts.dueCount}</strong> due, <strong>${e.debts.paidCount}</strong> paid, <strong>${e.debts.futureCount}</strong> after payday.`;
+      }
+      try{ window.GrantOSDateAwareTrueSpare=e; window.GrantOSEstimatedSpareAfterWage=e; }catch(x){}
+    }catch(e){ console.warn('v283 date aware spare render',e); }
+  }
+  function safeRender(){
+    clearTimeout(window.__gosDateAwareRenderTimer);
+    window.__gosDateAwareRenderTimer=setTimeout(()=>{
+      if(document.activeElement && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName||'')) { renderSpareCard(); return; }
+      try{ if(window.App&&App.render) App.render(); else { if(window.Budget) Budget.render(); if(window.Debt) Debt.render(); } }catch(e){ renderSpareCard(); }
+    },80);
+  }
+
+  function patchObjects(){
+    try{
+      if(window.App && !App.__v283DateAwareRender){
+        const oldAppRender=App.render?App.render.bind(App):null;
+        const oldSaveAndRender=App.saveAndRender?App.saveAndRender.bind(App):null;
+        if(oldAppRender) App.render=function(){ const r=oldAppRender.apply(this,arguments); setTimeout(renderSpareCard,180); setTimeout(renderSpareCard,320); setVersion(); return r; };
+        if(oldSaveAndRender) App.saveAndRender=function(){ const r=oldSaveAndRender.apply(this,arguments); setTimeout(renderSpareCard,180); setTimeout(renderSpareCard,320); setVersion(); return r; };
+        App.__v283DateAwareRender=true;
+      }
+    }catch(e){}
+    try{
+      if(window.Calc){
+        if(!baseCalcNextPaydayFn && typeof Calc.nextPayday==='function' && !Calc.nextPayday.__v283DateAware) baseCalcNextPaydayFn=Calc.nextPayday.bind(Calc);
+        Calc.nextPayday=function(){ return nextPaydayDate(); };
+        Calc.nextPayday.__v283DateAware=true;
+        Calc.daysToPayday=function(){ return daysUntilPayday(); };
+        Calc.normalBillTotal=function(){ migrateData(); return (state.fixed||[]).reduce((s,r)=>s+n(r&&r[1]),0); };
+        Calc.debtRepaymentTotal=function(){ migrateData(); return (state.debts||[]).reduce((s,d)=>s+(n(d&&d[1])>0?n(d&&d[2]):0),0); };
+        Calc.totalFixed=function(){ return Calc.normalBillTotal()+Calc.debtRepaymentTotal(); };
+        Calc.bankPosition=function(){ return bankPosition(); };
+        Calc.totalOverdraft=function(){ return totalOverdraft(); };
+        Calc.estimatedSpareAfterWage=function(){ return estimate().value; };
+        Calc.estimatedSpareAfterWageBreakdown=function(){ return estimate(); };
+        Calc.trueSpareAfterCommitments=function(){ return estimate().value; };
+        Calc.trueSpareAfterCommitmentsBreakdown=function(){ return estimate(); };
+      }
+    }catch(e){}
+    try{
+      if(window.Budget && !Budget.__v283DateAware){
+        const oldRender=Budget.render.bind(Budget);
+        Budget.render=function(){ const r=oldRender.apply(this,arguments); migrateData(); renderNextPaydayField(); renderBillsTable(); renderBillsMobile(); forceLinkedAccountsTable(); setTimeout(renderSpareCard,30); setVersion(); return r; };
+        Budget.addFixed=function(){ migrateData(); state.fixed.push(['New bill',0,'','no']); try{ if(window.Data) Data.save(); }catch(e){} safeRender(); };
+        const oldSave=Budget.save?Budget.save.bind(Budget):null;
+        Budget.save=function(){
+          try{ const pd=document.getElementById('nextPaydayDate'); if(pd){ state.nextPaydayDate=pd.value; const d=parseDateValue(pd.value); if(d) state.payday=d.getDate(); } }catch(e){}
+          try{ forceSaveAccountsFromInputs(); }catch(e){}
+          try{ if(oldSave) oldSave(); else if(window.Data) Data.save(); }catch(e){ try{ if(window.Data) Data.save(); }catch(x){} }
+          setTimeout(()=>{ migrateData(); forceLinkedAccountsTable(); renderBillsTable(); renderBillsMobile(); renderSpareCard(); setVersion(); },120);
+        };
+        Budget.__v283DateAware=true;
+      }
+    }catch(e){ console.warn('v283 date aware budget patch',e); }
+    try{
+      if(window.Debt && !Debt.__v283DateAware){
+        const oldRender=Debt.render.bind(Debt);
+        Debt.render=function(){ const r=oldRender.apply(this,arguments); migrateData(); renderDebtTable(); renderDebtsMobile(); setTimeout(renderSpareCard,30); setVersion(); return r; };
+        Debt.add=function(){ migrateData(); state.debts.push(['New debt',0,0,'','Regular','',state.debts.length+1,'','no']); try{ if(window.Data) Data.save(); }catch(e){} safeRender(); };
+        Debt.__v283DateAware=true;
+      }
+    }catch(e){ console.warn('v283 date aware debt patch',e); }
+    try{
+      if(window.AccountsUIV25527 && !AccountsUIV25527.__v283DateAwareSync){
+        const oldAdd=AccountsUIV25527.add?AccountsUIV25527.add.bind(AccountsUIV25527):null;
+        AccountsUIV25527.add=function(){
+          let accounts=readAccounts();
+          if(accounts.length>=MAX_ACCOUNTS){ alert('Maximum of '+MAX_ACCOUNTS+' accounts for now. Delete an account before adding another.'); return false; }
+          accounts.push({name:'New Account '+(accounts.length+1),type:'Current',balance:0,limit:0,includeOverdraftForSpend:'no'});
+          writeAccounts(accounts);
+          try{ this.render(); }catch(e){}
+          setTimeout(()=>{ forceLinkedAccountsTable(); renderSpareCard(); },80);
+          return true;
+        };
+        const oldUpdate=AccountsUIV25527.update?AccountsUIV25527.update.bind(AccountsUIV25527):null;
+        AccountsUIV25527.update=function(i,k,v){
+          const accounts=readAccounts(); if(!accounts[i]) return false;
+          if(k==='name'||k==='type'){ accounts[i][k]=v; writeAccounts(accounts); }
+          try{ if(oldUpdate && k!=='balance' && k!=='limit') oldUpdate(i,k,v); }catch(e){}
+          setTimeout(()=>{ forceLinkedAccountsTable(); renderSpareCard(); },50);
+          return true;
+        };
+        const oldDel=AccountsUIV25527.del?AccountsUIV25527.del.bind(AccountsUIV25527):null;
+        AccountsUIV25527.del=function(i){
+          let accounts=readAccounts(); if(accounts.length<=1){ alert('Keep at least one account set up.'); return false; }
+          accounts.splice(i,1); writeAccounts(accounts); try{ this.render(); }catch(e){} setTimeout(()=>{ forceLinkedAccountsTable(); renderSpareCard(); },80); return true;
+        };
+        AccountsUIV25527.__v283DateAwareSync=true;
+      }
+    }catch(e){ console.warn('v283 account sync patch',e); }
+  }
+  function forceSaveAccountsFromInputs(){
+    const accounts=readAccounts();
+    accounts.forEach((a,i)=>{
+      const bal=document.getElementById('v25531AccBal_'+i)||document.getElementById('v274AccBal_'+i);
+      const od=document.getElementById('v25531AccOd_'+i)||document.getElementById('v274AccOd_'+i);
+      const lim=document.getElementById('v25531AccLimit_'+i)||document.getElementById('v274AccLimit_'+i);
+      const inc=document.getElementById('v25531AccInclude_'+i)||document.getElementById('v274AccInclude_'+i);
+      if(bal||od||lim||inc){ a.balance=Math.max(0,n(bal&&bal.value))-Math.max(0,n(od&&od.value)); a.limit=Math.max(0,n(lim&&lim.value)); a.includeOverdraftForSpend=(inc&&inc.value==='yes'&&a.limit>0)?'yes':'no'; }
+    });
+    return writeAccounts(accounts);
+  }
+  function addCSS(){
+    if(document.getElementById('v283DateAwareCSS')) return;
+    const st=document.createElement('style'); st.id='v283DateAwareCSS'; st.textContent=`
+      .v283-date-note{font-size:.82rem;color:#9fb2cc;margin-top:4px;line-height:1.35}.v283-date-status{display:inline-block;padding:6px 8px;border-radius:10px;background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.18);color:#cbd5e1;font-size:.82rem;line-height:1.2}.v283-date-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;color:#9fb2cc;font-size:.88rem}.v283-date-tools button{padding:8px 10px}.v283-date-extra{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(2,6,23,.45);border:1px solid rgba(148,163,184,.16);color:#bfd0e5;font-size:.86rem;line-height:1.35}#fixedCostsTable th,#debtTable th{white-space:nowrap}@media(max-width:760px){#fixedCostsTable,#debtTable{display:none!important}.v283-date-extra{font-size:.82rem}}
+    `; document.head.appendChild(st);
+  }
+  function boot(){
+    try{ migrateData(); addCSS(); patchObjects(); setVersion(); renderNextPaydayField(); forceLinkedAccountsTable(); renderBillsTable(); renderBillsMobile(); renderDebtTable(); renderDebtsMobile(); renderSpareCard(); }catch(e){ console.warn('v283 date aware boot',e); }
+    [150,500,1200,2500].forEach(ms=>setTimeout(()=>{ try{ patchObjects(); addCSS(); setVersion(); forceLinkedAccountsTable(); renderNextPaydayField(); renderSpareCard(); }catch(e){} },ms));
+  }
+  window.GrantOSDateAwareV284={
+    estimate, renderSpareCard, forceLinkedAccountsTable,
+    updateBill(i,k,v){ migrateData(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; if(k===3) state.fixed[i][3]=v==='yes'?'yes':'no'; try{ if(window.Data) Data.save(); }catch(e){} renderSpareCard(); },
+    removeBill(i){ if(confirm('Remove this bill?')){ migrateData(); state.fixed.splice(i,1); try{ if(window.Data) Data.save(); }catch(e){} safeRender(); } },
+    updateDebt(i,k,v){ migrateData(); if(!state.debts[i]) return; state.debts[i][k]=([1,2,6].includes(k))?n(v):v; if(k===8) state.debts[i][8]=v==='yes'?'yes':'no'; try{ if(window.Data) Data.save(); }catch(e){} renderSpareCard(); },
+    updateAccount(i){ const accounts=readAccounts(); const a=accounts[i]; if(!a) return; const bal=document.getElementById('v25531AccBal_'+i)||document.getElementById('v274AccBal_'+i); const od=document.getElementById('v25531AccOd_'+i)||document.getElementById('v274AccOd_'+i); const lim=document.getElementById('v25531AccLimit_'+i)||document.getElementById('v274AccLimit_'+i); const inc=document.getElementById('v25531AccInclude_'+i)||document.getElementById('v274AccInclude_'+i); a.balance=Math.max(0,n(bal&&bal.value))-Math.max(0,n(od&&od.value)); a.limit=Math.max(0,n(lim&&lim.value)); a.includeOverdraftForSpend=(inc&&inc.value==='yes'&&a.limit>0)?'yes':'no'; writeAccounts(accounts); renderSpareCard(); },
+    resetPaidFlags(type){ migrateData(); if(type==='bills') (state.fixed||[]).forEach(r=>r[3]='no'); if(type==='debts') (state.debts||[]).forEach(d=>d[8]='no'); try{ if(window.Data) Data.save(); }catch(e){} safeRender(); },
+    commit(full){ try{ if(window.Data) Data.save(); }catch(e){} if(full!==false) safeRender(); else setTimeout(()=>{ renderSpareCard(); forceLinkedAccountsTable(); },60); }
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+  document.addEventListener('click',function(e){ const b=e.target&&e.target.closest&&e.target.closest('button'); if(b && /budget|accounts|debt/i.test(b.textContent||'')) setTimeout(()=>{ forceLinkedAccountsTable(); renderSpareCard(); },180); },true);
+})();
+</script>
+
+
+<script id="v2833DateOnlyTrueSpareFix">
+/* v2.8.3 Date-Only True Spare Fix
+   Removes the normal "paid this cycle" requirement. Bills and regular debts are now
+   included only when their next due day falls from today through the next payday.
+   Passed due days are assumed to have already left the account. One-off debts use
+   their one-off due date the same way. Undated items are still included cautiously.
+*/
+(function(){
+  const VERSION='v2.8.3 Date-Only True Spare Fix';
+  const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
+  const MAX_ACCOUNTS=5;
+  const DAY_MS=24*60*60*1000;
+  const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function setVersion(){ try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){} }
+  function startOfDay(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+  function today(){ return startOfDay(new Date()); }
+  function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+  function clampDay(y,m,day){ return Math.max(1,Math.min(n(day)||1,daysInMonth(y,m))); }
+  function dateForDay(y,m,day){ return startOfDay(new Date(y,m,clampDay(y,m,day))); }
+  function parseDay(v){
+    const str=String(v??'').trim();
+    if(!str) return 0;
+    let m=str.match(/^(\d{1,2})(?:st|nd|rd|th)?$/i);
+    if(m){ const d=n(m[1]); return d>=1&&d<=31?d:0; }
+    m=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m){ const d=n(m[3]); return d>=1&&d<=31?d:0; }
+    m=str.match(/^(\d{1,2})(?:st|nd|rd|th)?[-\/\s]+([A-Za-z]{3,}|\d{1,2})(?:[-\/\s]+\d{2,4})?$/i);
+    if(m){ const d=n(m[1]); return d>=1&&d<=31?d:0; }
+    m=str.match(/^(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)[A-Za-z]*[-\/\s]+(\d{1,2})(?:st|nd|rd|th)?(?:[-\/\s]+\d{2,4})?$/i);
+    if(m){ const d=n(m[2]); return d>=1&&d<=31?d:0; }
+    return 0;
+  }
+  function parseDateValue(v){
+    const str=String(v??'').trim(); if(!str) return null;
+    let m=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m){ const d=new Date(n(m[1]),n(m[2])-1,n(m[3])); return isNaN(d.getTime())?null:startOfDay(d); }
+    m=str.match(/^(\d{1,2})(?:st|nd|rd|th)?[-\/\s]+([A-Za-z]{3,}|\d{1,2})[-\/\s]+(\d{2,4})$/i);
+    if(m){ const mo=String(m[2]).toLowerCase(); let month=/^\d+$/.test(mo)?n(mo)-1:MONTHS[mo]; let year=n(m[3]); if(year<100) year+=2000; if(month>=0&&month<=11){ const d=new Date(year,month,n(m[1])); return isNaN(d.getTime())?null:startOfDay(d); } }
+    m=str.match(/^(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)[A-Za-z]*[-\/\s]+(\d{1,2})(?:st|nd|rd|th)?[-\/\s]+(\d{2,4})$/i);
+    if(m){ let month=MONTHS[String(m[1]).toLowerCase()]; let year=n(m[3]); if(year<100) year+=2000; const d=new Date(year,month,n(m[2])); return isNaN(d.getTime())?null:startOfDay(d); }
+    const direct=new Date(str); return isNaN(direct.getTime())?null:startOfDay(direct);
+  }
+  function isoDate(d){ if(!d||isNaN(d.getTime())) return ''; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function nextPaydayDate(){
+    const manual=parseDateValue(state&&state.nextPaydayDate);
+    if(manual && manual>=today()) return manual;
+    const now=today(); const pay=Math.max(1,Math.min(31,n(state&&state.payday)||26));
+    let d=dateForDay(now.getFullYear(),now.getMonth(),pay);
+    if(now.getDate()>=pay) d=dateForDay(now.getFullYear(),now.getMonth()+1,pay);
+    return d;
+  }
+  function daysUntilPayday(){ return Math.max(0,Math.ceil((nextPaydayDate()-today())/DAY_MS)); }
+  function nextDueDateForDay(day){ const now=today(); let d=dateForDay(now.getFullYear(),now.getMonth(),day); if(d<now) d=dateForDay(now.getFullYear(),now.getMonth()+1,day); return d; }
+  function inWindow(d){ const t=today(), p=nextPaydayDate(); return !!(d && d>=t && d<=p); }
+  function monthlyStatus(day){
+    const d=parseDay(day);
+    if(!d) return {include:true, status:'No due day - included cautiously', cls:'warn', due:null, undated:true};
+    const due=nextDueDateForDay(d), include=inWindow(due);
+    return {include, status:include?`Due ${isoDate(due)} before payday - included`:`Next due ${isoDate(due)} after payday - excluded`, cls:include?'due':'future', due, undated:false};
+  }
+  function oneOffStatus(raw){
+    const due=parseDateValue(raw);
+    if(!due) return {include:true, status:'No one-off due date - included cautiously', cls:'warn', due:null, undated:true};
+    if(due<today()) return {include:false, status:`Due date ${isoDate(due)} has passed - excluded`, cls:'passed', due, undated:false};
+    const include=due<=nextPaydayDate();
+    return {include, status:include?`Due ${isoDate(due)} before payday - included`:`Due ${isoDate(due)} after payday - excluded`, cls:include?'due':'future', due, undated:false};
+  }
+  function migrateData(){
+    try{
+      if(!state||typeof state!=='object') return;
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      state.fixed=state.fixed.map(r=>{ const row=Array.isArray(r)?r:[]; return [row[0]??'New bill', n(row[1]), row[2]??'', 'no']; });
+      if(!Array.isArray(state.debts)) state.debts=[];
+      state.debts=state.debts.map((d,i)=>{ const row=Array.isArray(d)?d:[]; return [row[0]??'New debt', n(row[1]), n(row[2]), row[3]??'', row[4]??'Regular', row[5]??'', row[6]??(i+1), row[7]??'', 'no']; });
+      if(!state.nextPaydayDate){ const pd=nextPaydayDate(); if(pd) state.nextPaydayDate=isoDate(pd); }
+      try{ if(window.Data) Data.save(); }catch(e){}
+    }catch(e){ console.warn('Grant OS date-only migrate',e); }
+  }
+  function readAccounts(){
+    let data=[]; try{data=JSON.parse(localStorage.getItem(ACCOUNT_KEY())||'[]');}catch(e){data=[];}
+    if((!Array.isArray(data)||!data.length)&&window.AccountsUIV25527&&AccountsUIV25527.accounts){ try{data=AccountsUIV25527.accounts();}catch(e){} }
+    if(!Array.isArray(data)) data=[];
+    if(!data.length){ try{data=(AccountsUIV25527&&AccountsUIV25527.defaults)?AccountsUIV25527.defaults():[];}catch(e){data=[];} }
+    return data.filter(Boolean).slice(0,MAX_ACCOUNTS).map((a,i)=>({name:String(a.name||('Account '+(i+1))).trim()||('Account '+(i+1)),type:a.type||'Current',balance:n(a.balance),limit:Math.max(0,n(a.limit)),includeOverdraftForSpend:(a.includeOverdraftForSpend==='yes'&&n(a.limit)>0)?'yes':'no'}));
+  }
+  function split(balance){ const b=n(balance); return {balance:Math.max(0,b),overdraft:Math.max(0,-b)}; }
+  function syncLegacyState(accounts){
+    try{
+      const find=re=>accounts.find(a=>re.test(String(a.name||''))); const fd=find(/first\s*direct/i), monzo=find(/monzo/i);
+      if(fd){const s=split(fd.balance); state.firstDirectBalance=s.balance; state.firstDirectOverdraft=s.overdraft; state.firstDirectOverdraftLimit=n(fd.limit||650); state.includeFirstDirectOverdraftForSpend=fd.includeOverdraftForSpend||'no';}
+      if(monzo){const s=split(monzo.balance); state.monzoBalance=s.balance; state.monzoOverdraft=s.overdraft; state.monzoOverdraftLimit=n(monzo.limit||200); state.includeMonzoOverdraftForSpend=monzo.includeOverdraftForSpend||'no';}
+    }catch(e){}
+  }
+  function writeAccounts(accounts){ const clean=(Array.isArray(accounts)?accounts:[]).filter(Boolean).slice(0,MAX_ACCOUNTS).map((a,i)=>({name:String(a.name||('Account '+(i+1))).trim()||('Account '+(i+1)),type:a.type||'Current',balance:n(a.balance),limit:Math.max(0,n(a.limit)),includeOverdraftForSpend:(a.includeOverdraftForSpend==='yes'&&n(a.limit)>0)?'yes':'no'})); try{localStorage.setItem(ACCOUNT_KEY(),JSON.stringify(clean));}catch(e){} syncLegacyState(clean); try{if(window.Data) Data.save();}catch(e){} return clean; }
+  function bankPosition(){ const accounts=readAccounts(); if(accounts.length) return accounts.reduce((s,a)=>s+n(a.balance),0); return n(state.firstDirectBalance)+n(state.monzoBalance)-n(state.firstDirectOverdraft)-n(state.monzoOverdraft); }
+  function totalOverdraft(){ const accounts=readAccounts(); if(accounts.length) return accounts.reduce((s,a)=>s+Math.max(0,-n(a.balance)),0); return n(state.firstDirectOverdraft)+n(state.monzoOverdraft); }
+  function billsDueBeforePayday(){
+    migrateData(); let total=0, monthly=0, dated=0, undated=0, dueCount=0, futureCount=0, passedCount=0;
+    (state.fixed||[]).forEach(r=>{ const amount=n(r&&r[1]); if(amount<=0) return; monthly+=amount; const st=monthlyStatus(r&&r[2]); if(st.undated) undated++; else dated++; if(st.include){ total+=amount; dueCount++; } else { futureCount++; if(st.cls==='passed') passedCount++; } });
+    return {total,monthly,dated,undated,dueCount,futureCount,passedCount,paidCount:0};
+  }
+  function debtStatus(row){
+    const type=String((row&&row[4])||'Regular').toLowerCase();
+    if(type.includes('one')||type.includes('bnpl')) return oneOffStatus((row&&row[5])||(row&&row[3]));
+    return monthlyStatus((row&&row[7])||(row&&row[5])||'');
+  }
+  function debtsDueBeforePayday(){
+    migrateData(); let total=0, monthly=0, oneOff=0, dueCount=0, futureCount=0, passedCount=0, undated=0;
+    (state.debts||[]).forEach(d=>{
+      const balance=n(d&&d[1]); if(balance<=0) return;
+      const type=String((d&&d[4])||'Regular').toLowerCase(); const st=debtStatus(d);
+      if(st.undated) undated++;
+      if(type.includes('one')||type.includes('bnpl')){ if(st.include){ total+=balance; oneOff+=balance; dueCount++; } else { futureCount++; if(st.cls==='passed') passedCount++; } return; }
+      const payment=Math.min(balance,Math.max(0,n(d&&d[2]))); if(payment<=0) return;
+      if(st.include){ total+=payment; monthly+=payment; dueCount++; } else { futureCount++; if(st.cls==='passed') passedCount++; }
+    });
+    return {total,monthly,oneOff,dueCount,futureCount,passedCount,undated,paidCount:0};
+  }
+  function estimate(){
+    const wage=n(state&&state.wage), days=daysUntilPayday(), weekly=n(state&&state.weeklyBudget), living=(weekly/7)*days;
+    const bank=bankPosition(), cashAvailable=Math.max(0,bank), overdraft=totalOverdraft(), bills=billsDueBeforePayday(), debts=debtsDueBeforePayday();
+    const commitmentsDue=bills.total+debts.total+living, value=Math.max(0,cashAvailable-commitmentsDue);
+    return {wage,days,weekly,living,bank,cashAvailable,overdraft,bills,debts,commitmentsDue,value,payday:nextPaydayDate()};
+  }
+  function renderNextPaydayField(){
+    try{
+      const payday=document.getElementById('payday'); if(!payday) return; const table=payday.closest('table'); if(!table) return;
+      let input=document.getElementById('nextPaydayDate');
+      if(!input){ const tr=document.createElement('tr'); tr.id='nextPaydayDateRow'; tr.innerHTML='<td>Next payday date</td><td><input id="nextPaydayDate" type="date"><div class="v283-date-note">Used for date-aware bills, debts and true spare. The app looks from today up to this payday.</div></td>'; const row=payday.closest('tr'); row.insertAdjacentElement('afterend',tr); input=tr.querySelector('input'); input.addEventListener('input',function(){state.nextPaydayDate=this.value; const d=parseDateValue(this.value); if(d) state.payday=d.getDate(); try{if(window.Data)Data.save();}catch(e){} renderSpareCard();}); input.addEventListener('change',function(){state.nextPaydayDate=this.value; const d=parseDateValue(this.value); if(d) state.payday=d.getDate(); try{if(window.Data)Data.save();}catch(e){} safeRender();}); }
+      if(document.activeElement!==input) input.value=state.nextPaydayDate||isoDate(nextPaydayDate());
+    }catch(e){}
+  }
+  function renderBillsTable(){
+    try{
+      migrateData(); const t=document.getElementById('fixedCostsTable'); if(!t) return;
+      t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th><th>Status</th><th>Remove</th></tr>';
+      (state.fixed||[]).forEach((r,i)=>{ const st=monthlyStatus(r[2]); t.innerHTML+=`<tr><td><input value="${esc(r[0])}" oninput="GrantOSDateOnlyV283.updateBill(${i},0,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><input type="number" value="${n(r[1])}" oninput="GrantOSDateOnlyV283.updateBill(${i},1,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDateOnlyV283.updateBill(${i},2,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><span class="v283-date-status v283-${esc(st.cls)}">${esc(st.status)}</span></td><td><button type="button" class="danger" onclick="GrantOSDateOnlyV283.removeBill(${i})">Remove</button></td></tr>`; });
+      const old=document.getElementById('v283BillDateTools'); if(old) old.remove();
+      if(!document.getElementById('v283DateOnlyBillNote')){ const note=document.createElement('div'); note.id='v283DateOnlyBillNote'; note.className='v283-date-tools'; note.innerHTML='<span>Bills are calculated from due day automatically. If the due day has passed this cycle, it is treated as already paid and excluded.</span>'; t.insertAdjacentElement('afterend',note); }
+    }catch(e){ console.warn('Grant OS date-only bills render',e); }
+  }
+  function renderBillsMobile(){
+    try{
+      const t=document.getElementById('fixedCostsTable'); if(!t) return; let box=document.getElementById('v274FixedCostsMobile'); if(!box){ box=document.createElement('div'); box.id='v274FixedCostsMobile'; box.className='v274-mobile-editor'; t.insertAdjacentElement('afterend',box); }
+      box.innerHTML=(state.fixed||[]).length?state.fixed.map((r,i)=>{ const st=monthlyStatus(r[2]); return `<div class="v274-mobile-card"><div class="v274-mobile-title">${esc(r[0]||'Bill')}<span class="v274-mobile-sub">${esc(st.status)}</span></div><div class="v274-mobile-grid"><label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="GrantOSDateOnlyV283.updateBill(${i},0,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="GrantOSDateOnlyV283.updateBill(${i},1,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDateOnlyV283.updateBill(${i},2,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label></div><div class="v274-mobile-actions"><button class="danger" type="button" onclick="GrantOSDateOnlyV283.removeBill(${i})">Remove</button></div></div>`; }).join(''):'<div class="v274-mobile-empty">No bills yet. Tap Add bill to create one.</div>';
+    }catch(e){}
+  }
+  function renderDebtTable(){
+    try{
+      migrateData(); const t=document.getElementById('debtTable'); if(!t) return;
+      t.innerHTML='<tr><th>Debt</th><th>Balance</th><th>Monthly</th><th>Finish</th><th>Type</th><th>One-off due date</th><th>Monthly due day</th><th>Status</th><th>Priority</th><th>Remove</th></tr>';
+      (state.debts||[]).forEach((r,i)=>{ const st=debtStatus(r); t.innerHTML+=`<tr><td><input value="${esc(r[0])}" oninput="GrantOSDateOnlyV283.updateDebt(${i},0,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><input type="number" value="${n(r[1])}" oninput="GrantOSDateOnlyV283.updateDebt(${i},1,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><input type="number" value="${n(r[2])}" oninput="GrantOSDateOnlyV283.updateDebt(${i},2,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><input value="${esc(r[3]||'')}" oninput="GrantOSDateOnlyV283.updateDebt(${i},3,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><select onchange="GrantOSDateOnlyV283.updateDebt(${i},4,this.value);GrantOSDateOnlyV283.commit(false)"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></td><td><input placeholder="YYYY-MM-DD" value="${esc(r[5]||'')}" oninput="GrantOSDateOnlyV283.updateDebt(${i},5,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><input inputmode="numeric" placeholder="1-31" value="${esc(r[7]||'')}" oninput="GrantOSDateOnlyV283.updateDebt(${i},7,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><span class="v283-date-status v283-${esc(st.cls)}">${esc(st.status)}</span></td><td><input type="number" value="${n(r[6]||i+1)}" oninput="GrantOSDateOnlyV283.updateDebt(${i},6,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></td><td><button class="danger" type="button" onclick="GrantOSDateOnlyV283.removeDebt(${i})">Remove</button></td></tr>`; });
+      const old=document.getElementById('v283DebtDateTools'); if(old) old.remove();
+      if(!document.getElementById('v283DateOnlyDebtNote')){ const note=document.createElement('div'); note.id='v283DateOnlyDebtNote'; note.className='v283-date-tools'; note.innerHTML='<span>Regular debts use Monthly due day. One-off/BNPL debts use One-off due date. Passed dates are treated as already handled and excluded.</span>'; t.insertAdjacentElement('afterend',note); }
+    }catch(e){ console.warn('Grant OS date-only debt render',e); }
+  }
+  function renderDebtsMobile(){
+    try{
+      const t=document.getElementById('debtTable'); if(!t) return; let box=document.getElementById('v274DebtMobile'); if(!box){ box=document.createElement('div'); box.id='v274DebtMobile'; box.className='v274-mobile-editor'; t.insertAdjacentElement('afterend',box); }
+      box.innerHTML=(state.debts||[]).length?state.debts.map((r,i)=>{ const st=debtStatus(r); return `<div class="v274-mobile-card"><div class="v274-mobile-title">${esc(r[0]||'Debt')}<span class="v274-mobile-sub">${esc(r[4]||'Regular')} • ${esc(st.status)}</span></div><div class="v274-mobile-grid"><label class="v274-mobile-field"><span>Debt</span><input value="${esc(r[0])}" oninput="GrantOSDateOnlyV283.updateDebt(${i},0,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Balance</span><input type="number" value="${n(r[1])}" oninput="GrantOSDateOnlyV283.updateDebt(${i},1,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Monthly</span><input type="number" value="${n(r[2])}" oninput="GrantOSDateOnlyV283.updateDebt(${i},2,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Type</span><select onchange="GrantOSDateOnlyV283.updateDebt(${i},4,this.value);GrantOSDateOnlyV283.commit(false)"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></label><label class="v274-mobile-field"><span>One-off due date</span><input placeholder="YYYY-MM-DD" value="${esc(r[5]||'')}" oninput="GrantOSDateOnlyV283.updateDebt(${i},5,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Monthly due day</span><input inputmode="numeric" placeholder="1-31" value="${esc(r[7]||'')}" oninput="GrantOSDateOnlyV283.updateDebt(${i},7,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label><label class="v274-mobile-field"><span>Priority</span><input type="number" value="${n(r[6]||i+1)}" oninput="GrantOSDateOnlyV283.updateDebt(${i},6,this.value)" onblur="GrantOSDateOnlyV283.commit(false)"></label></div><div class="v274-mobile-actions"><button class="danger" type="button" onclick="GrantOSDateOnlyV283.removeDebt(${i})">Remove</button></div></div>`; }).join(''):'<div class="v274-mobile-empty">No debts yet. Tap Add debt to create one.</div>';
+    }catch(e){}
+  }
+  function renderSpareCard(){
+    try{
+      setVersion(); migrateData(); const e=estimate();
+      const setMoney=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=fmt(v);}; const setText=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=String(v);};
+      const val=document.getElementById('v283SpareValue'); if(val){val.textContent=fmt(e.value); val.className='big value-soft '+(e.value>0?'value-positive':'value-warning');}
+      const status=document.getElementById('v283SpareStatus'); if(status){ if(e.value>0){status.className='v283-spare-status v283-good'; status.textContent='Date-only true spare: available account money left after bills/debts still due before payday and living spend reserve.';} else if(e.bank<=0){status.className='v283-spare-status v283-warn'; status.textContent='No spare because linked accounts are not positive after overdrafts are cleared.';} else {status.className='v283-spare-status v283-warn'; status.textContent='No spare because upcoming bills, debts and living spend reserve use up the available money before payday.';} }
+      setMoney('v283SpareAvailableCash',e.cashAvailable); setText('v283SpareDays',e.days); setMoney('v283SpareBills',e.bills.total); setMoney('v283SpareDebt',e.debts.total); setMoney('v283SpareLiving',e.living); setMoney('v283SpareCommitments',e.commitmentsDue); setMoney('v283SpareBank',e.bank); setMoney('v283SpareOverdraft',e.overdraft); setMoney('v283SpareWage',e.wage);
+      const card=document.getElementById('v283EstimatedSpareCard'); if(card){ const p=card.querySelector('p.note'); if(p) p.textContent='Date-only true spare from real linked account money. Bills/debts are deducted only if their next due date is from today up to payday; dates that have already passed are treated as already handled.'; let extra=document.getElementById('v283DateAwareBreakdownNote'); if(!extra){extra=document.createElement('div'); extra.id='v283DateAwareBreakdownNote'; extra.className='v283-date-extra'; card.appendChild(extra);} extra.innerHTML=`Payday used: <strong>${isoDate(e.payday)}</strong>. Bills included: <strong>${e.bills.dueCount}</strong>, excluded after payday/passed: <strong>${e.bills.futureCount}</strong>, undated included cautiously: <strong>${e.bills.undated}</strong>. Debts included: <strong>${e.debts.dueCount}</strong>, excluded after payday/passed: <strong>${e.debts.futureCount}</strong>, undated included cautiously: <strong>${e.debts.undated}</strong>.`; }
+      try{window.GrantOSDateOnlyTrueSpare=e; window.GrantOSDateAwareTrueSpare=e; window.GrantOSEstimatedSpareAfterWage=e;}catch(x){}
+    }catch(e){ console.warn('Grant OS date-only spare render',e); }
+  }
+  function forceSaveAccountsFromInputs(){
+    const accounts=readAccounts(); accounts.forEach((a,i)=>{ const bal=document.getElementById('v25531AccBal_'+i)||document.getElementById('v274AccBal_'+i); const od=document.getElementById('v25531AccOd_'+i)||document.getElementById('v274AccOd_'+i); const lim=document.getElementById('v25531AccLimit_'+i)||document.getElementById('v274AccLimit_'+i); const inc=document.getElementById('v25531AccInclude_'+i)||document.getElementById('v274AccInclude_'+i); if(bal||od||lim||inc){ a.balance=Math.max(0,n(bal&&bal.value))-Math.max(0,n(od&&od.value)); a.limit=Math.max(0,n(lim&&lim.value)); a.includeOverdraftForSpend=(inc&&inc.value==='yes'&&a.limit>0)?'yes':'no'; } }); return writeAccounts(accounts);
+  }
+  function forceLinkedAccountsTable(){ if(window.GrantOSDateAwareV284&&GrantOSDateAwareV284.forceLinkedAccountsTable){ try{GrantOSDateAwareV284.forceLinkedAccountsTable();}catch(e){} } }
+  function safeRender(){ clearTimeout(window.__gosDateOnlyRenderTimer); window.__gosDateOnlyRenderTimer=setTimeout(()=>{ if(document.activeElement && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName||'')){ renderSpareCard(); return; } try{ if(window.App&&App.render) App.render(); else { if(window.Budget) Budget.render(); if(window.Debt) Debt.render(); } }catch(e){ renderSpareCard(); } },80); }
+  function patchObjects(){
+    try{ if(window.Calc){ Calc.nextPayday=function(){return nextPaydayDate();}; Calc.daysToPayday=function(){return daysUntilPayday();}; Calc.bankPosition=function(){return bankPosition();}; Calc.totalOverdraft=function(){return totalOverdraft();}; Calc.normalBillTotal=function(){return (state.fixed||[]).reduce((s,r)=>s+n(r&&r[1]),0);}; Calc.debtRepaymentTotal=function(){return (state.debts||[]).reduce((s,d)=>s+(n(d&&d[1])>0?n(d&&d[2]):0),0);}; Calc.estimatedSpareAfterWage=function(){return estimate().value;}; Calc.estimatedSpareAfterWageBreakdown=function(){return estimate();}; Calc.trueSpareAfterCommitments=function(){return estimate().value;}; Calc.trueSpareAfterCommitmentsBreakdown=function(){return estimate();}; } }catch(e){}
+    try{ if(window.Budget&&!Budget.__v2833DateOnly){ const oldRender=Budget.render?Budget.render.bind(Budget):null; Budget.render=function(){ const r=oldRender?oldRender.apply(this,arguments):undefined; migrateData(); renderNextPaydayField(); renderBillsTable(); renderBillsMobile(); forceLinkedAccountsTable(); setTimeout(renderSpareCard,40); setVersion(); return r; }; Budget.addFixed=function(){ migrateData(); state.fixed.push(['New bill',0,'','no']); try{if(window.Data)Data.save();}catch(e){} safeRender();}; const oldSave=Budget.save?Budget.save.bind(Budget):null; Budget.save=function(){ try{const pd=document.getElementById('nextPaydayDate'); if(pd){state.nextPaydayDate=pd.value; const d=parseDateValue(pd.value); if(d) state.payday=d.getDate();}}catch(e){} try{forceSaveAccountsFromInputs();}catch(e){} try{if(oldSave) oldSave(); else if(window.Data) Data.save();}catch(e){try{if(window.Data)Data.save();}catch(x){}} setTimeout(()=>{migrateData(); forceLinkedAccountsTable(); renderBillsTable(); renderBillsMobile(); renderSpareCard(); setVersion();},120);}; Budget.__v2833DateOnly=true; } }catch(e){console.warn('Grant OS date-only Budget patch',e);}
+    try{ if(window.Debt&&!Debt.__v2833DateOnly){ const oldRender=Debt.render?Debt.render.bind(Debt):null; Debt.render=function(){ const r=oldRender?oldRender.apply(this,arguments):undefined; migrateData(); renderDebtTable(); renderDebtsMobile(); setTimeout(renderSpareCard,40); setVersion(); return r; }; Debt.add=function(){ migrateData(); state.debts.push(['New debt',0,0,'','Regular','',state.debts.length+1,'','no']); try{if(window.Data)Data.save();}catch(e){} safeRender(); }; const oldRemove=Debt.remove?Debt.remove.bind(Debt):null; Debt.remove=function(i){ if(oldRemove) return oldRemove(i); if(confirm('Remove this debt?')){ state.debts.splice(Number(i),1); try{if(window.Data)Data.save();}catch(e){} safeRender(); } }; Debt.__v2833DateOnly=true; } }catch(e){console.warn('Grant OS date-only Debt patch',e);}
+    try{ if(window.App&&!App.__v2833DateOnly){ const oldApp=App.render?App.render.bind(App):null; const oldSave=App.saveAndRender?App.saveAndRender.bind(App):null; if(oldApp) App.render=function(){ const r=oldApp.apply(this,arguments); setTimeout(()=>{boot(false);},180); setTimeout(renderSpareCard,420); return r; }; if(oldSave) App.saveAndRender=function(){ const r=oldSave.apply(this,arguments); setTimeout(()=>{boot(false);},180); setTimeout(renderSpareCard,420); return r; }; App.__v2833DateOnly=true; } }catch(e){}
+  }
+  function addCSS(){
+    if(document.getElementById('v2833DateOnlyCSS')) return; const st=document.createElement('style'); st.id='v2833DateOnlyCSS'; st.textContent='.v283-date-status.v283-due{border-color:rgba(34,197,94,.35);color:#bbf7d0}.v283-date-status.v283-future,.v283-date-status.v283-passed{border-color:rgba(148,163,184,.25);color:#cbd5e1}.v283-date-status.v283-warn{border-color:rgba(245,158,11,.35);color:#fde68a}'; document.head.appendChild(st);
+  }
+  function boot(runRender){
+    try{ migrateData(); addCSS(); patchObjects(); setVersion(); renderNextPaydayField(); renderBillsTable(); renderBillsMobile(); renderDebtTable(); renderDebtsMobile(); forceLinkedAccountsTable(); renderSpareCard(); }catch(e){console.warn('Grant OS date-only boot',e);}
+  }
+  window.GrantOSDateOnlyV283={
+    estimate, renderSpareCard, renderBillsTable, renderDebtTable,
+    updateBill(i,k,v){ migrateData(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; state.fixed[i][3]='no'; try{if(window.Data)Data.save();}catch(e){} renderSpareCard(); },
+    removeBill(i){ if(confirm('Remove this bill?')){ migrateData(); state.fixed.splice(i,1); try{if(window.Data)Data.save();}catch(e){} safeRender(); } },
+    updateDebt(i,k,v){ migrateData(); if(!state.debts[i]) return; state.debts[i][k]=([1,2,6].includes(k))?n(v):v; state.debts[i][8]='no'; try{if(window.Data)Data.save();}catch(e){} renderSpareCard(); },
+    removeDebt(i){ if(confirm('Remove this debt?')){ migrateData(); state.debts.splice(Number(i),1); try{if(window.Data)Data.save();}catch(e){} safeRender(); } },
+    commit(full){ try{if(window.Data)Data.save();}catch(e){} if(full!==false) safeRender(); else setTimeout(()=>{renderSpareCard();},60); }
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>boot(true)); else boot(true);
+  window.addEventListener('load',()=>boot(true));
+  [200,600,1400,3000,5000].forEach(ms=>setTimeout(()=>boot(false),ms));
 })();
 </script>
 
