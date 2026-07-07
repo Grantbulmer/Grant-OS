@@ -1,34 +1,29 @@
-const CACHE_NAME = 'grant-os-v265-live-safe-spend-date-logic';
-const FILES = [
-  './',
-  './index.html?v=265',
-  './manifest.json?v=265',
-  './icon-192.png?v=265',
-  './icon-512.png?v=265',
-  './apple-touch-icon.png?v=265',
-  './favicon-32.png?v=265',
-  './favicon.ico?v=265'
-];
+// Grant OS v2.8.3 Render Stability Fix service worker
+// Network-first and clears older cached builds so GitHub Pages/PWA installs do not keep stale code.
+const GRANT_OS_CACHE_VERSION = 'grant-os-v2-8-3-render-stability-fix';
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(FILES)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-    )).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-      return response;
-    }).catch(() => caches.match(event.request))
+    fetch(request).catch(() => caches.match(request))
   );
 });

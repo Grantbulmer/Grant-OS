@@ -3,6 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script id="v2831EarlyRenderGuard">
+(function(){
+  try{document.documentElement.classList.add('gos-render-booting');}catch(e){}
+  const nativeSetTimeout=window.setTimeout.bind(window);
+  const nativeClearTimeout=window.clearTimeout.bind(window);
+  const bootTimers=[];
+  window.__gosNativeSetTimeout=nativeSetTimeout;
+  window.__gosNativeClearTimeout=nativeClearTimeout;
+  window.__gosBootTimerStart=Date.now();
+  window.__gosBootTimers=bootTimers;
+  window.setTimeout=function(cb,delay){
+    const args=Array.prototype.slice.call(arguments,2);
+    const id=nativeSetTimeout.apply(window,[cb,delay].concat(args));
+    try{
+      const d=Number(delay)||0;
+      if(Date.now()-window.__gosBootTimerStart<9000 && d>=0 && d<=9000){
+        let src='';
+        try{src=(cb&&cb.name?cb.name:'')+' '+String(cb).slice(0,260);}catch(x){}
+        bootTimers.push({id:id,delay:d,created:Date.now(),src:src});
+      }
+    }catch(e){}
+    return id;
+  };
+  window.clearTimeout=function(id){
+    try{ for(const t of bootTimers){ if(t.id===id) t.cleared=true; } }catch(e){}
+    return nativeClearTimeout(id);
+  };
+})();
+</script>
+<style id="v2831RenderBootCSS">
+  html.gos-render-booting body{opacity:0!important;overflow-anchor:none;}
+  html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
+</style>
+
 <title>Grant OS v2.8.2 Patch Tidy Baseline</title>
 <style>
 :root{
@@ -228,16 +262,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=276">
+<link rel="manifest" href="manifest.json?v=283-render-stability">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=276">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=276">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=276">
-<link rel="shortcut icon" href="favicon.ico?v=276">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=283-render-stability">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=283-render-stability">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=283-render-stability">
+<link rel="shortcut icon" href="favicon.ico?v=283-render-stability">
 
 
 <style>
@@ -7010,6 +7044,114 @@ StableInputV254.patch();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',boot);
+})();
+</script>
+
+
+<script id="v2831RenderStabilityFix">
+/* v2.8.3 Render Stability Fix
+   Coalesces the older patch refresh timers on mobile so the app does not visibly shake on load.
+   It does not change budget/debt/account calculations. */
+(function(){
+  const VERSION='v2.8.3 Render Stability Fix';
+  const nativeSetTimeout=window.__gosNativeSetTimeout||window.setTimeout.bind(window);
+  const nativeClearTimeout=window.__gosNativeClearTimeout||window.clearTimeout.bind(window);
+  const bootStart=performance.now();
+  function setVersion(){
+    try{document.title='Grant OS '+VERSION;}catch(e){}
+    try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){}
+  }
+  function isTyping(){
+    try{
+      const a=document.activeElement;
+      return !!(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName||''));
+    }catch(e){return false;}
+  }
+  function debounceBootRender(obj,name,label,delay){
+    try{
+      if(!obj || !obj[name] || obj[name].__v2831RenderStable) return;
+      const old=obj[name].bind(obj);
+      let timer=0,lastArgs=null,lastThis=null,running=false;
+      obj[name]=function(){
+        if(window.__gosForceRender || performance.now()-bootStart>2100 || isTyping()){
+          return old.apply(this,arguments);
+        }
+        lastArgs=arguments; lastThis=this;
+        if(timer) nativeClearTimeout(timer);
+        timer=nativeSetTimeout(function(){
+          timer=0;
+          if(running) return;
+          running=true;
+          try{ old.apply(lastThis,lastArgs||[]); }catch(e){ console.warn('Grant OS render stability '+label,e); }
+          running=false;
+        }, delay||110);
+        return undefined;
+      };
+      obj[name].__v2831RenderStable=true;
+    }catch(e){}
+  }
+  function installBootDebounce(){
+    debounceBootRender(window.App,'render','App.render',120);
+    debounceBootRender(window.App,'saveAndRender','App.saveAndRender',120);
+    debounceBootRender(window.Dashboard,'render','Dashboard.render',90);
+    debounceBootRender(window.Budget,'render','Budget.render',90);
+    debounceBootRender(window.ForecastV21,'renderForecastTable','Forecast.renderForecastTable',90);
+    debounceBootRender(window.GraphsV21,'render','Graphs.render',120);
+    debounceBootRender(window.MobileV274,'renderAll','Mobile.renderAll',120);
+    debounceBootRender(window.HealthV21,'render','Health.render',90);
+    debounceBootRender(window.SnapshotV24,'render','Snapshot.render',90);
+    debounceBootRender(window.Timeline,'render','Timeline.render',90);
+  }
+  function cancelLateBootTimers(){
+    try{
+      const list=window.__gosBootTimers||[];
+      const now=Date.now();
+      list.forEach(t=>{
+        if(t.cleared) return;
+        const age=now-(t.created||now);
+        const pending=(t.delay||0)>age;
+        if(!pending) return;
+        const src=String(t.src||'');
+        const looksVisual=/boot|render|refresh|apply|decorate|paintHealth|setVersion|patchRender|patchMobile|patchBudget|patchCalc|updateGuidance/i.test(src);
+        if((t.delay>=1150 || (t.delay>=500 && looksVisual && age<100)) && looksVisual){
+          try{nativeClearTimeout(t.id); t.cleared=true; t.cancelledByRenderStability=true;}catch(e){}
+        }
+      });
+    }catch(e){}
+  }
+  function finalRender(){
+    if(isTyping()) return;
+    window.__gosForceRender=true;
+    try{ if(window.App && App.render) App.render(); }catch(e){
+      try{ if(window.Dashboard&&Dashboard.render) Dashboard.render(); }catch(x){}
+      try{ if(window.Budget&&Budget.render) Budget.render(); }catch(x){}
+      try{ if(window.ForecastV21&&ForecastV21.renderForecastTable) ForecastV21.renderForecastTable(); }catch(x){}
+      try{ if(window.GraphsV21&&GraphsV21.render) GraphsV21.render(); }catch(x){}
+    }
+    try{ if(window.MobileV274&&MobileV274.renderAll) MobileV274.renderAll(); }catch(e){}
+    try{ if(window.GrantOSEstimatedSpareAfterWage){} }catch(e){}
+    setVersion();
+    window.__gosForceRender=false;
+  }
+  function reveal(){
+    try{
+      document.documentElement.classList.remove('gos-render-booting');
+      document.documentElement.classList.add('gos-render-ready');
+    }catch(e){}
+    setVersion();
+  }
+  function boot(){
+    setVersion();
+    installBootDebounce();
+    nativeSetTimeout(installBootDebounce,80);
+    nativeSetTimeout(function(){cancelLateBootTimers(); installBootDebounce();},650);
+    nativeSetTimeout(function(){cancelLateBootTimers(); finalRender();},1050);
+    nativeSetTimeout(reveal,1250);
+    nativeSetTimeout(function(){cancelLateBootTimers(); installBootDebounce(); setVersion();},1800);
+    nativeSetTimeout(reveal,2200); // fail-safe: never leave the app hidden
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',function(){ nativeSetTimeout(function(){cancelLateBootTimers(); installBootDebounce(); setVersion();},300); });
 })();
 </script>
 

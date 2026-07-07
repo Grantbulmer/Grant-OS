@@ -1,38 +1,15 @@
 {
-  "id": "/Grant-OS/?v=265",
-  "name": "Grant OS v2.6.5 Live Safe Spend Date Logic",
+  "name": "Grant OS",
   "short_name": "Grant OS",
-  "description": "Grant's personal finance, debt, holiday, relocation and career operating system.",
-  "start_url": "./index.html?v=265",
+  "description": "Grant OS personal finance board",
+  "start_url": "./?v=283-render-stability",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#020617",
   "theme_color": "#020617",
   "icons": [
-    {
-      "src": "icon-192.png?v=265",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png?v=265",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png?v=265",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-512.png?v=265",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "icon-192.png?v=283-render-stability", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png?v=283-render-stability", "sizes": "512x512", "type": "image/png" },
+    { "src": "apple-touch-icon.png?v=283-render-stability", "sizes": "180x180", "type": "image/png" }
   ]
 }
