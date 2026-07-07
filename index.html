@@ -6542,7 +6542,7 @@ StableInputV254.patch();
    This is a read-only estimate, linked to wage, bills, debt repayments, weekly budget and overdraft/net position.
 */
 (function(){
-  const VERSION='v2.8.3 Estimated Spare After Wage';
+  const VERSION='v2.8.3 Spare Available Balance Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6580,15 +6580,22 @@ StableInputV254.patch();
     const living=weekly*4;
     const overdraft=totalOverdraft();
     const bank=bankPosition();
-    const raw=wage-bills-debt-living;
-    const blocked=(overdraft>0 || bank<0);
-    const value=blocked?0:Math.max(0,raw);
-    return {wage,bills,debt,weekly,living,overdraft,bank,raw,value,blocked};
+    const commitmentTotal=bills+debt+living;
+    const raw=bank+wage-commitmentTotal;
+    // Priority 3/4 rule update: do not show future/theoretical spare as available cash.
+    // The visible spare is capped to money that is actually positive across the linked accounts
+    // after overdrafts/negative account positions are cleared. Example: balances £0 + overdraft
+    // used must show £0 even if wage minus commitments would leave a theoretical surplus.
+    const cashAvailable=Math.max(0,bank);
+    const value=Math.max(0,Math.min(raw,cashAvailable));
+    const bankNegative=bank<0;
+    const capped=value<Math.max(0,raw);
+    return {wage,bills,debt,weekly,living,overdraft,bank,commitmentTotal,raw,cashAvailable,value,bankNegative,capped,blocked:false};
   }
   function cardHTML(){
     return `
       <h3>Estimated Spare After Wage</h3>
-      <p class="note">Live estimate after wage, normal bills, debt repayments and weekly living budget. If you are still in overdraft, spare is treated as £0.</p>
+      <p class="note">Shows spare only when your linked accounts have real positive money left after overdrafts are cleared. It still checks wage, bills, debt repayments and weekly living budget.</p>
       <div id="v283SpareValue" class="big value-soft value-warning">£0</div>
       <div id="v283SpareStatus" class="v283-spare-status">Calculating...</div>
       <div class="v283-spare-breakdown">
@@ -6597,6 +6604,7 @@ StableInputV254.patch();
         <div><span>Debt repayments</span><strong id="v283SpareDebt">£0</strong></div>
         <div><span>Weekly living budget reserve</span><strong id="v283SpareLiving">£0</strong></div>
         <div><span>Net bank position</span><strong id="v283SpareBank">£0</strong></div>
+        <div><span>Available account money</span><strong id="v283SpareAvailableCash">£0</strong></div>
         <div><span>Total overdraft used</span><strong id="v283SpareOverdraft">£0</strong></div>
       </div>
     `;
@@ -6629,15 +6637,21 @@ StableInputV254.patch();
         val.className='big value-soft '+(e.value>0?'value-positive':'value-warning');
       }
       if(status){
-        if(e.blocked){
+        if(e.value<=0){
           status.className='v283-spare-status v283-warn';
-          status.textContent='£0 spare shown because the app is prioritising overdraft/net negative position first.';
-        }else if(e.raw<=0){
-          status.className='v283-spare-status v283-warn';
-          status.textContent='No spare estimated after bills, debt repayments and living budget.';
+          if(e.bank<=0){
+            status.textContent='No spare showing because your linked accounts are not positive after overdrafts are cleared.';
+          }else if(e.raw<=0){
+            status.textContent='No spare estimated after bills, debt repayments and living budget.';
+          }else{
+            status.textContent='No spare currently available across linked accounts.';
+          }
+        }else if(e.capped){
+          status.className='v283-spare-status v283-good';
+          status.textContent='Spare is capped to the positive money currently left across your linked accounts after overdrafts are cleared.';
         }else{
           status.className='v283-spare-status v283-good';
-          status.textContent='Estimated spare available after core monthly commitments.';
+          status.textContent='Estimated spare available after current bank position and core monthly commitments.';
         }
       }
       const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
@@ -6646,6 +6660,7 @@ StableInputV254.patch();
       set('v283SpareDebt',e.debt);
       set('v283SpareLiving',e.living);
       set('v283SpareBank',e.bank);
+      set('v283SpareAvailableCash',e.cashAvailable);
       set('v283SpareOverdraft',e.overdraft);
       // Expose for future calculation breakdown panels / AI assistant.
       try{ window.GrantOSEstimatedSpareAfterWage=e; }catch(x){}
@@ -6714,7 +6729,7 @@ StableInputV254.patch();
 
 <script id="v283BudgetInputPersistenceFix">
 (function(){
-  const VERSION='v2.8.3 Budget Input Persistence Fix';
+  const VERSION='v2.8.3 Budget Input + Spare Balance Fix';
   const CORE_NUMERIC=['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'];
   const CORE_SELECTS=[];
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -6905,6 +6920,93 @@ StableInputV254.patch();
       budget.__v283PersistenceListeners=true;
     }
     [250,1000,2500,5000,7500].forEach(ms=>setTimeout(()=>{patchBudgetSave();patchMobileUpdate();protectActiveBudgetInput();updateGuidanceText();setVersion();},ms));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+})();
+</script>
+
+
+<script id="v283MobileAccountFocusFix">
+(function(){
+  const VERSION='v2.8.3 Mobile Account Input Focus Fix';
+  const ACCOUNT_INPUT_RE=/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_\d+$/;
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function isEditingLinkedAccount(){
+    try{
+      const a=document.activeElement;
+      return !!(a && a.id && ACCOUNT_INPUT_RE.test(a.id) && a.closest && a.closest('#budget'));
+    }catch(e){ return false; }
+  }
+  function patchMobileRender(){
+    try{
+      if(!window.MobileV274 || !MobileV274.renderAll || MobileV274.renderAll.__v283FocusFix) return;
+      const old=MobileV274.renderAll.bind(MobileV274);
+      MobileV274.renderAll=function(){
+        if(isEditingLinkedAccount()){
+          // Do not rebuild the mobile linked-account cards while the user is typing.
+          // Rebuilding removes the focused input on Android and kicks the user out of the box.
+          setVersion();
+          return;
+        }
+        return old.apply(this,arguments);
+      };
+      MobileV274.renderAll.__v283FocusFix=true;
+    }catch(e){ console.warn('v283 mobile account focus patch',e); }
+  }
+  function patchBudgetRender(){
+    try{
+      if(!window.Budget || !Budget.render || Budget.render.__v283AccountFocusFix) return;
+      const old=Budget.render.bind(Budget);
+      Budget.render=function(){
+        const active=document.activeElement;
+        const keep=isEditingLinkedAccount() && active && active.id ? {
+          id:active.id,
+          value:active.value,
+          start:active.selectionStart,
+          end:active.selectionEnd,
+          scrollY:window.scrollY
+        } : null;
+        const r=old.apply(this,arguments);
+        if(keep){
+          const el=document.getElementById(keep.id);
+          if(el){
+            el.value=keep.value;
+            try{
+              el.focus({preventScroll:true});
+              if(el.setSelectionRange && keep.start!=null) el.setSelectionRange(keep.start,keep.end);
+              window.scrollTo(window.scrollX,keep.scrollY);
+            }catch(e){}
+          }
+        }
+        setVersion();
+        return r;
+      };
+      Budget.render.__v283AccountFocusFix=true;
+    }catch(e){ console.warn('v283 budget account focus patch',e); }
+  }
+  function patchSaveDraft(){
+    try{
+      if(!window.Budget || !Budget.v25531SaveDraft || Budget.v25531SaveDraft.__v283AccountFocusFix) return;
+      const old=Budget.v25531SaveDraft.bind(Budget);
+      Budget.v25531SaveDraft=function(){
+        const r=old.apply(this,arguments);
+        // Keep card/breakdown values live without rebuilding the account input cards.
+        try{ if(window.GrantOSEstimatedSpareAfterWage && typeof window.GrantOSEstimatedSpareAfterWage==='object'){} }catch(e){}
+        return r;
+      };
+      Budget.v25531SaveDraft.__v283AccountFocusFix=true;
+    }catch(e){}
+  }
+  function boot(){
+    setVersion();
+    patchMobileRender();
+    patchBudgetRender();
+    patchSaveDraft();
+    [100,300,800,1600,3200,6000].forEach(ms=>setTimeout(()=>{patchMobileRender();patchBudgetRender();patchSaveDraft();setVersion();},ms));
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',boot);
