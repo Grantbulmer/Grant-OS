@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.7.10 Foldable Dashboard Width Fix</title>
+<title>Grant OS v2.7.13 Health Direction + Foldable Debt Columns</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -5617,6 +5617,623 @@ StableInputV254.patch();
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(updateVersion,900));
   else setTimeout(updateVersion,900);
   setTimeout(updateVersion,1800);
+})();
+</script>
+
+
+
+<style id="v2711FoldableDebtCSS">
+/* v2.7.11 Foldable Debt Tracker + Health Live Fix
+   Keep laptop and normal phone views as they are, but use readable card editors on foldable/tablet width. */
+@media (min-width:641px) and (max-width:1250px){
+  #debt #debtTable{display:none!important;}
+  #debt #v274DebtMobile.v274-mobile-forms,
+  #debt #v274DebtMobile.v274-mobile-editor,
+  #debt #v274DebtMobile{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:14px 0!important;
+  }
+  #debt #v274DebtMobile .v274-mobile-card{
+    margin:0!important;
+    padding:16px!important;
+    border-radius:22px!important;
+    min-width:0!important;
+  }
+  #debt #v274DebtMobile .v274-mobile-grid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  #debt #v274DebtMobile .v274-mobile-field input,
+  #debt #v274DebtMobile .v274-mobile-field select{
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  #debt #v274DebtMobile .v274-mobile-actions{grid-column:1/-1!important;}
+  #debt #v274DebtMobile .v274-mobile-actions button{width:100%!important;}
+  #debt #priorityQueue,
+  #debt #debtProgressList{max-width:100%!important;overflow:hidden!important;}
+  #debt #debtProgressList strong{display:block!important;margin-bottom:8px!important;}
+  #debt #debtProgressList .pill{display:inline-flex!important;max-width:100%!important;white-space:normal!important;margin:0 6px 6px 0!important;line-height:1.2!important;}
+}
+@media (min-width:641px) and (max-width:850px){
+  #debt #v274DebtMobile.v274-mobile-forms,
+  #debt #v274DebtMobile.v274-mobile-editor,
+  #debt #v274DebtMobile{grid-template-columns:1fr!important;}
+}
+</style>
+
+<script id="v2711HealthLivePatch">
+/* v2.7.11 Health Live + Foldable Debt Tracker Fix
+   Uses a stricter score that is sensitive to new debt and forces Finance Health to re-render after debt changes. */
+(function(){
+  const VERSION='v2.7.11 Health Live + Foldable Debt Tracker Fix';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function readAccounts(){
+    try{ if(window.AccountsUIV25527 && AccountsUIV25527.accounts) return AccountsUIV25527.accounts(); }catch(e){}
+    try{ const raw=JSON.parse(localStorage.getItem('grantOS.accounts.v2554')||'[]'); if(Array.isArray(raw)) return raw; }catch(e){}
+    return [];
+  }
+  function overdraftInfo(){
+    let used=0, limit=0;
+    try{
+      readAccounts().forEach(a=>{
+        const bal=n(a&&a.balance), lim=n(a&&a.limit);
+        used+=Math.max(0,-bal);
+        limit+=Math.max(0,lim);
+      });
+    }catch(e){}
+    const legacyUsed=n(window.state&&state.firstDirectOverdraft)+n(window.state&&state.monzoOverdraft);
+    const legacyLimit=n(window.state&&state.firstDirectOverdraftLimit)+n(window.state&&state.monzoOverdraftLimit);
+    if(legacyUsed>used) used=legacyUsed;
+    if(legacyLimit>limit) limit=legacyLimit;
+    return {used, limit:Math.max(limit,used,1)};
+  }
+  function debts(){ try{return Array.isArray(state&&state.debts)?state.debts:[];}catch(e){return [];} }
+  function debtType(d){ try{return (window.Calc&&Calc.debtType)?Calc.debtType(d):String(d&&d[4]||'Regular');}catch(e){return String(d&&d[4]||'Regular');} }
+  function debtName(d){ return String(d&&d[0]||''); }
+  function debtBalance(d){ return Math.max(0,n(d&&d[1])); }
+  function debtMonthly(d){ return Math.max(0,n(d&&d[2])); }
+  function bankPosition(){ try{return (window.Calc&&Calc.bankPosition)?n(Calc.bankPosition()):0;}catch(e){return 0;} }
+  function safeToday(){ try{return (window.Calc&&Calc.safeToday)?n(Calc.safeToday()):0;}catch(e){return 0;} }
+  function statusFor(score){
+    if(score>=75) return {label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'};
+    if(score>=55) return {label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'};
+    if(score>=35) return {label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'};
+    return {label:'Critical',type:'red',detail:'Debt, BNPL, overdraft use, low safe spend or a low emergency fund are pulling the score down.'};
+  }
+  function calcScore(){
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const rows=debts();
+    const active=rows.filter(d=>debtBalance(d)>0);
+    const totalDebt=active.reduce((s,d)=>s+debtBalance(d),0);
+    const bnpl=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(debtName(d)) || debtType(d)==='One-off').reduce((s,d)=>s+debtBalance(d),0);
+    const regularMonthly=active.filter(d=>debtType(d)!=='One-off').reduce((s,d)=>s+debtMonthly(d),0);
+    const od=overdraftInfo();
+    const bank=bankPosition();
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const targetDaily=(Math.max(n(state&&state.weeklyBudget)||60,1))/7;
+    const st=safeToday();
+
+    // Penalty-based score. This makes each extra active debt and extra balance reduce the score.
+    const debtPenalty=clamp((totalDebt/(wage*6))*22,0,22);
+    const activeDebtPenalty=clamp(active.length*1.8,0,10);
+    const overdraftPenalty=od.used>0 ? clamp(7+(od.used/od.limit)*10,0,17) : 0;
+    const bnplPenalty=bnpl>0 ? clamp(8+(bnpl/600)*6,0,14) : 0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*18,0,18);
+    const safeSpendPenalty=clamp((1-(st/targetDaily))*8,0,8);
+    const bankPenalty=bank<0 ? clamp(Math.abs(bank)/(wage/2)*5,0,5) : 0;
+    const repaymentCredit= totalDebt>0 ? clamp((regularMonthly/(wage*0.25))*4,0,4) : 0;
+    const raw=100-(debtPenalty+activeDebtPenalty+overdraftPenalty+bnplPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty)+repaymentCredit;
+    const total=Math.round(clamp(raw,0,100));
+    const status=statusFor(total);
+    const next = bnpl>0 ? 'Clear BNPL/one-off debt first to remove short-term pressure.'
+      : od.used>0 ? 'Reduce overdraft reliance before increasing discretionary spend.'
+      : emergency<emergencyTarget ? 'Build emergency fund towards '+moneySafe(emergencyTarget)+'.'
+      : totalDebt>0 ? 'Keep debt reducing and protect the repayment plan.'
+      : 'Maintain the plan and build longer-term savings.';
+    return {total,status,next,parts:[
+      ['Debt load',22-debtPenalty,22, moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',10-activeDebtPenalty,10, active.length+' active debt(s)'],
+      ['Overdraft pressure',17-overdraftPenalty,17, od.used>0 ? moneySafe(od.used)+' used of '+moneySafe(od.limit)+' limit' : 'No overdraft used'],
+      ['BNPL / one-off pressure',14-bnplPenalty,14, bnpl>0 ? moneySafe(bnpl)+' short-term/BNPL balance' : 'No BNPL pressure'],
+      ['Emergency fund',18-emergencyPenalty,18, moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',8-safeSpendPenalty,8, moneySafe(st)+' today vs target '+moneySafe(targetDaily)],
+      ['Bank position',5-bankPenalty,5, moneySafe(bank)+' net position'],
+      ['Repayment plan bonus',repaymentCredit,4, regularMonthly>0 ? moneySafe(regularMonthly)+' monthly repayments' : 'No active repayment plan']
+    ]};
+  }
+  function renderHealth(){
+    try{
+      const data=calcScore();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+data.status.label+'<br><span class="muted">'+data.status.detail+'</span>';
+      try{
+        const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement);
+        const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+data.status.label+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){
+        box.innerHTML=data.parts.map(p=>`<div class="score-box"><span class="small">${p[0]}</span><strong>${Math.round(Math.max(0,p[1]))}/${p[2]}</strong><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,(p[1]/p[2])*100))}%"></div></div><div class="note">${p[3]}</div></div>`).join('');
+      }
+    }catch(e){ console.warn('v2711 render health',e); }
+  }
+  function renderMobileDebt(){ try{ if(window.MobileV274&&typeof MobileV274.renderAll==='function') MobileV274.renderAll(); }catch(e){} }
+  function liveRefresh(){
+    try{ Data.save(); }catch(e){}
+    renderHealth(); updateVersion();
+    try{ if(window.Dashboard&&Dashboard.render&&!Dashboard.__v2711Rendering){ /* do not force full render while typing */ } }catch(e){}
+  }
+  function patch(){
+    updateVersion();
+    try{ if(window.HealthV21){ HealthV21.score=calcScore; HealthV21.render=renderHealth; HealthV21.__v2711=true; } }catch(e){}
+    try{
+      if(window.Dashboard&&Dashboard.render&&!Dashboard.render.__v2711HealthLive){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ Dashboard.__v2711Rendering=true; const r=old(); Dashboard.__v2711Rendering=false; renderHealth(); updateVersion(); return r; };
+        Dashboard.render.__v2711HealthLive=true;
+      }
+    }catch(e){}
+    try{
+      if(window.Debt&&!Debt.__v2711HealthLive){
+        const oldRender=Debt.render&&Debt.render.bind(Debt);
+        if(oldRender){ Debt.render=function(){ const r=oldRender(); setTimeout(()=>{renderMobileDebt();renderHealth();updateVersion();},30); return r; }; }
+        ['add','remove'].forEach(name=>{ if(Debt[name]){ const old=Debt[name].bind(Debt); Debt[name]=function(){ const r=old.apply(Debt,arguments); setTimeout(()=>{renderHealth();updateVersion();},80); return r; }; }});
+        Debt.__v2711HealthLive=true;
+      }
+    }catch(e){}
+    try{
+      if(window.MobileV274&&!MobileV274.__v2711HealthLive){
+        if(MobileV274.updateDebt){ const old=MobileV274.updateDebt.bind(MobileV274); MobileV274.updateDebt=function(){ const r=old.apply(MobileV274,arguments); setTimeout(liveRefresh,40); return r; }; }
+        if(MobileV274.commit){ const oldC=MobileV274.commit.bind(MobileV274); MobileV274.commit=function(){ const r=oldC.apply(MobileV274,arguments); setTimeout(liveRefresh,70); return r; }; }
+        MobileV274.__v2711HealthLive=true;
+      }
+    }catch(e){}
+    renderHealth(); renderMobileDebt();
+  }
+  document.addEventListener('input',function(e){
+    const t=e.target;
+    if(t && (t.closest&& (t.closest('#debtTable') || t.closest('#v274DebtMobile')))) setTimeout(liveRefresh,80);
+  },true);
+  document.addEventListener('change',function(e){
+    const t=e.target;
+    if(t && (t.closest&& (t.closest('#debtTable') || t.closest('#v274DebtMobile')))) setTimeout(liveRefresh,80);
+  },true);
+  function boot(){ patch(); setTimeout(patch,250); setTimeout(patch,900); setTimeout(()=>{patch();updateVersion();},1800); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,650)); else setTimeout(boot,650);
+})();
+</script>
+
+
+
+<style id="v2712FoldableDebtTableCSS">
+/* v2.7.12 Foldable Debt Tracker Width Tweak
+   Foldable/tablet only: keep desktop and phone views unchanged. */
+@media (min-width:641px) and (max-width:1250px){
+  /* Use the table on foldable, but make the columns readable and prevent input clipping. */
+  #debt #debtTable{
+    display:table!important;
+    width:100%!important;
+    max-width:100%!important;
+    table-layout:fixed!important;
+    border-collapse:collapse!important;
+  }
+  #debt #v274DebtMobile{display:none!important;}
+  #debt #debtTable th,#debt #debtTable td{
+    padding:8px 6px!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  #debt #debtTable input,#debt #debtTable select{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    font-size:15px!important;
+    padding:10px 10px!important;
+  }
+  #debt #debtTable button.danger{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    padding:10px 8px!important;
+    font-size:14px!important;
+  }
+  #debt #debtTable th:nth-child(1), #debt #debtTable td:nth-child(1){width:13%!important;}
+  #debt #debtTable th:nth-child(2), #debt #debtTable td:nth-child(2){width:12%!important;}
+  #debt #debtTable th:nth-child(3), #debt #debtTable td:nth-child(3){width:12%!important;}
+  #debt #debtTable th:nth-child(4), #debt #debtTable td:nth-child(4){width:15%!important;}
+  #debt #debtTable th:nth-child(5), #debt #debtTable td:nth-child(5){width:13%!important;}
+  #debt #debtTable th:nth-child(6), #debt #debtTable td:nth-child(6){width:13%!important;}
+  #debt #debtTable th:nth-child(7), #debt #debtTable td:nth-child(7){width:8%!important;}
+  #debt #debtTable th:nth-child(8), #debt #debtTable td:nth-child(8){width:14%!important;}
+}
+</style>
+
+<script id="v2712HealthLiveCalibration">
+/* v2.7.12 Health Live Calibration
+   Makes the Finance Health score calculate from the live debt inputs, so added/removed/increased debts immediately affect the score. */
+(function(){
+  const VERSION='v2.7.12 Health Live + Foldable Debt Tweak';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function debtRowsFromTable(){
+    const out=[];
+    try{
+      const rows=[...document.querySelectorAll('#debtTable tr')].slice(1);
+      rows.forEach((tr,i)=>{
+        const cells=[...tr.querySelectorAll('td')];
+        if(!cells.length) return;
+        const val=(idx)=>{ const el=cells[idx]&&cells[idx].querySelector('input,select'); return el?el.value:''; };
+        const name=val(0); const bal=n(val(1)); const monthly=n(val(2)); const finish=val(3); const type=val(4)||'Regular'; const due=val(5); const pri=n(val(6)||i+1);
+        if(name || bal || monthly) out.push([name,bal,monthly,finish,type,due,pri]);
+      });
+    }catch(e){}
+    return out;
+  }
+  function debtRowsLive(){
+    const fromDom=debtRowsFromTable();
+    if(fromDom.length) return fromDom;
+    try{ if(Array.isArray(state&&state.debts)) return state.debts; }catch(e){}
+    return [];
+  }
+  function debtType(d){ try{return (window.Calc&&Calc.debtType)?Calc.debtType(d):String(d&&d[4]||'Regular');}catch(e){return String(d&&d[4]||'Regular');} }
+  function debtName(d){ return String(d&&d[0]||''); }
+  function debtBalance(d){ return Math.max(0,n(d&&d[1])); }
+  function debtMonthly(d){ return Math.max(0,n(d&&d[2])); }
+  function overdraftInfo(){
+    let used=0, limit=0;
+    try{
+      const accounts=(window.AccountsUIV25527&&AccountsUIV25527.accounts)?AccountsUIV25527.accounts():[];
+      accounts.forEach(a=>{ const bal=n(a&&a.balance), lim=n(a&&a.limit); used+=Math.max(0,-bal); limit+=Math.max(0,lim); });
+    }catch(e){}
+    const legacyUsed=n(window.state&&state.firstDirectOverdraft)+n(window.state&&state.monzoOverdraft);
+    const legacyLimit=n(window.state&&state.firstDirectOverdraftLimit)+n(window.state&&state.monzoOverdraftLimit);
+    if(legacyUsed>used) used=legacyUsed;
+    if(legacyLimit>limit) limit=legacyLimit;
+    return {used, limit:Math.max(limit,used,1)};
+  }
+  function bankPosition(){ try{return (window.Calc&&Calc.bankPosition)?n(Calc.bankPosition()):0;}catch(e){return 0;} }
+  function safeToday(){ try{return (window.Calc&&Calc.safeToday)?n(Calc.safeToday()):0;}catch(e){return 0;} }
+  function statusFor(score){
+    if(score>=75) return {label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'};
+    if(score>=55) return {label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'};
+    if(score>=35) return {label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'};
+    return {label:'Critical',type:'red',detail:'Debt, BNPL, overdraft use, low safe spend or a low emergency fund are pulling the score down.'};
+  }
+  function calcScore(){
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const rows=debtRowsLive();
+    const active=rows.filter(d=>debtBalance(d)>0);
+    const totalDebt=active.reduce((s,d)=>s+debtBalance(d),0);
+    const bnpl=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(debtName(d)) || debtType(d)==='One-off').reduce((s,d)=>s+debtBalance(d),0);
+    const regularMonthly=active.filter(d=>debtType(d)!=='One-off').reduce((s,d)=>s+debtMonthly(d),0);
+    const od=overdraftInfo();
+    const bank=bankPosition();
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const targetDaily=(Math.max(n(state&&state.weeklyBudget)||60,1))/7;
+    const st=safeToday();
+
+    /* Calibrated so your current overdraft + BNPL + multiple debts + no emergency fund lands in Critical,
+       while still moving clearly when debt is added/removed. */
+    const debtPenalty=clamp((totalDebt/(wage*6))*30,0,34);
+    const activeDebtPenalty=clamp(active.length*2.5,0,14);
+    const overdraftPenalty=od.used>0 ? clamp(7+(od.used/od.limit)*8,0,15) : 0;
+    const bnplPenalty=bnpl>0 ? clamp(10+(bnpl/700)*4,0,14) : 0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*16,0,16);
+    const safeSpendPenalty=clamp((1-(st/targetDaily))*7,0,7);
+    const bankPenalty=bank<0 ? clamp(Math.abs(bank)/(wage/2)*5,0,5) : 0;
+    const repaymentCredit= totalDebt>0 ? clamp((regularMonthly/(wage*0.25))*5,0,5) : 0;
+    const raw=100-(debtPenalty+activeDebtPenalty+overdraftPenalty+bnplPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty)+repaymentCredit;
+    const total=Math.round(clamp(raw,0,100));
+    const status=statusFor(total);
+    const next = bnpl>0 ? 'Clear BNPL/one-off debt first to remove short-term pressure.'
+      : od.used>0 ? 'Reduce overdraft reliance before increasing discretionary spend.'
+      : emergency<emergencyTarget ? 'Build emergency fund towards '+moneySafe(emergencyTarget)+'.'
+      : totalDebt>0 ? 'Keep debt reducing and protect the repayment plan.'
+      : 'Maintain the plan and build longer-term savings.';
+    return {total,status,next,parts:[
+      ['Debt load',30-debtPenalty,30, moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',14-activeDebtPenalty,14, active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15, od.used>0 ? moneySafe(od.used)+' used of '+moneySafe(od.limit)+' limit' : 'No overdraft used'],
+      ['BNPL / one-off pressure',14-bnplPenalty,14, bnpl>0 ? moneySafe(bnpl)+' short-term/BNPL balance' : 'No BNPL pressure'],
+      ['Emergency fund',16-emergencyPenalty,16, moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',7-safeSpendPenalty,7, moneySafe(st)+' today vs target '+moneySafe(targetDaily)],
+      ['Bank position',5-bankPenalty,5, moneySafe(bank)+' net position'],
+      ['Repayment plan bonus',repaymentCredit,5, regularMonthly>0 ? moneySafe(regularMonthly)+' monthly repayments' : 'No active repayment plan']
+    ]};
+  }
+  function renderHealth(){
+    try{
+      const data=calcScore();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+data.status.label+'<br><span class="muted">'+data.status.detail+'</span>';
+      try{
+        const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement);
+        const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+data.status.label+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){
+        box.innerHTML=data.parts.map(p=>`<div class="score-box"><span class="small">${p[0]}</span><strong>${Math.round(Math.max(0,p[1]))}/${p[2]}</strong><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,(p[1]/p[2])*100))}%"></div></div><div class="note">${p[3]}</div></div>`).join('');
+      }
+      window.__grantOSHealthScoreV2712=data.total;
+    }catch(e){ console.warn('v2712 render health',e); }
+  }
+  function syncStateFromDebtTable(){
+    try{
+      const rows=debtRowsFromTable();
+      if(rows.length){ state.debts=rows; Data.save(); }
+    }catch(e){}
+  }
+  function patch(){
+    updateVersion();
+    try{ if(window.HealthV21){ HealthV21.score=calcScore; HealthV21.render=renderHealth; HealthV21.__v2712=true; } }catch(e){}
+    try{
+      if(window.Dashboard&&Dashboard.render&&!Dashboard.render.__v2712Health){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=old(); renderHealth(); updateVersion(); return r; };
+        Dashboard.render.__v2712Health=true;
+      }
+    }catch(e){}
+    try{
+      if(window.App&&App.saveAndRender&&!App.saveAndRender.__v2712Health){
+        const old=App.saveAndRender.bind(App);
+        App.saveAndRender=function(){ syncStateFromDebtTable(); const r=old(); setTimeout(()=>{renderHealth();updateVersion();},30); return r; };
+        App.saveAndRender.__v2712Health=true;
+      }
+    }catch(e){}
+    try{
+      if(window.Debt&&!Debt.__v2712Health){
+        ['add','remove'].forEach(name=>{ if(Debt[name]){ const old=Debt[name].bind(Debt); Debt[name]=function(){ const r=old.apply(Debt,arguments); setTimeout(()=>{syncStateFromDebtTable();renderHealth();updateVersion();},100); return r; }; }});
+        Debt.__v2712Health=true;
+      }
+    }catch(e){}
+    renderHealth();
+  }
+  document.addEventListener('input',function(e){ const t=e.target; if(t&&t.closest&&t.closest('#debt')) setTimeout(()=>{syncStateFromDebtTable();renderHealth();updateVersion();},50); },true);
+  document.addEventListener('change',function(e){ const t=e.target; if(t&&t.closest&&t.closest('#debt')) setTimeout(()=>{syncStateFromDebtTable();renderHealth();updateVersion();},50); },true);
+  function boot(){ patch(); setTimeout(patch,250); setTimeout(patch,900); setTimeout(patch,1800); setTimeout(patch,2600); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,700)); else setTimeout(boot,700);
+})();
+</script>
+
+
+
+<style id="v2713FoldableDebtColumns">
+/* v2.7.13 Foldable Debt Tracker Column Tweak
+   Tablet/foldable only: keep normal phone cards and large desktop table unchanged. */
+@media (min-width:700px) and (max-width:1400px){
+  #debt #debtTable{
+    display:table!important;
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+  #debt #v274DebtMobile{display:none!important;}
+  #debt #debtTable th,#debt #debtTable td{
+    padding:8px 5px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+  #debt #debtTable input,#debt #debtTable select{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    font-size:15px!important;
+    padding:10px 9px!important;
+    text-overflow:clip!important;
+  }
+  #debt #debtTable th:nth-child(1), #debt #debtTable td:nth-child(1){width:12%!important;}
+  #debt #debtTable th:nth-child(2), #debt #debtTable td:nth-child(2){width:12%!important;}
+  #debt #debtTable th:nth-child(3), #debt #debtTable td:nth-child(3){width:12%!important;}
+  #debt #debtTable th:nth-child(4), #debt #debtTable td:nth-child(4){width:17%!important;}
+  #debt #debtTable th:nth-child(5), #debt #debtTable td:nth-child(5){width:14%!important;}
+  #debt #debtTable th:nth-child(6), #debt #debtTable td:nth-child(6){width:14%!important;}
+  #debt #debtTable th:nth-child(7), #debt #debtTable td:nth-child(7){width:7%!important;}
+  #debt #debtTable th:nth-child(8), #debt #debtTable td:nth-child(8){width:12%!important;}
+  #debt #debtTable td:nth-child(7) input{padding:10px 6px!important;text-align:center!important;}
+  #debt #debtTable button.danger{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    padding:10px 7px!important;
+    font-size:13px!important;
+  }
+}
+</style>
+
+<script id="v2713HealthDirectionFix">
+/* v2.7.13 Health Direction Fix
+   Final locked health score: adding/increasing debt must lower the score; reducing/removing debt must raise it. */
+(function(){
+  const VERSION='v2.7.13 Health Direction + Foldable Debt Columns';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function rowsFromDebtTable(){
+    const out=[];
+    try{
+      const table=document.querySelector('#debtTable');
+      if(!table) return out;
+      [...table.querySelectorAll('tr')].slice(1).forEach((tr,i)=>{
+        const cells=[...tr.querySelectorAll('td')];
+        if(cells.length<3) return;
+        const val=(idx)=>{ const el=cells[idx]&&cells[idx].querySelector('input,select,textarea'); return el?el.value:''; };
+        const name=val(0); const bal=n(val(1)); const monthly=n(val(2));
+        const finish=val(3); const type=val(4)||'Regular'; const due=val(5); const pri=n(val(6)||i+1);
+        if(String(name).trim() || bal>0 || monthly>0) out.push([name,bal,monthly,finish,type,due,pri]);
+      });
+    }catch(e){}
+    return out;
+  }
+  function rowsFromMobileCards(){
+    const out=[];
+    try{
+      const cards=[...document.querySelectorAll('#v274DebtMobile .v274-mobile-card')];
+      cards.forEach((card,i)=>{
+        const vals=[...card.querySelectorAll('input,select')].map(el=>el.value);
+        if(!vals.length) return;
+        // mobile card order: debt, balance, monthly, finish, type, due date, priority
+        const name=vals[0]||''; const bal=n(vals[1]); const monthly=n(vals[2]);
+        const finish=vals[3]||''; const type=vals[4]||'Regular'; const due=vals[5]||''; const pri=n(vals[6]||i+1);
+        if(String(name).trim() || bal>0 || monthly>0) out.push([name,bal,monthly,finish,type,due,pri]);
+      });
+    }catch(e){}
+    return out;
+  }
+  function debtRowsLive(){
+    // Prefer the visible/current editor values, then fall back to saved state.
+    const fromCards=rowsFromMobileCards();
+    const fromTable=rowsFromDebtTable();
+    if(fromCards.length && window.matchMedia && window.matchMedia('(max-width:640px)').matches) return fromCards;
+    if(fromTable.length) return fromTable;
+    if(fromCards.length) return fromCards;
+    try{ if(Array.isArray(state&&state.debts)) return state.debts; }catch(e){}
+    return [];
+  }
+  function syncStateFromVisibleDebtInputs(){
+    try{
+      const rows=debtRowsLive();
+      if(rows.length){ state.debts=rows; if(window.Data&&Data.save) Data.save(); }
+    }catch(e){}
+  }
+  function debtName(d){ return String(d&&d[0]||''); }
+  function debtBal(d){ return Math.max(0,n(d&&d[1])); }
+  function debtMonthly(d){ return Math.max(0,n(d&&d[2])); }
+  function debtType(d){
+    try{ return (window.Calc&&Calc.debtType)?String(Calc.debtType(d)||d&&d[4]||'Regular'):String(d&&d[4]||'Regular'); }
+    catch(e){ return String(d&&d[4]||'Regular'); }
+  }
+  function overdraftInfo(){
+    let used=0, limit=0;
+    try{
+      const accounts=(window.AccountsUIV25527&&AccountsUIV25527.accounts)?AccountsUIV25527.accounts():[];
+      accounts.forEach(a=>{ const bal=n(a&&a.balance); const lim=n(a&&a.limit); used+=Math.max(0,-bal); limit+=Math.max(0,lim); });
+    }catch(e){}
+    try{
+      const legacyUsed=n(state&&state.firstDirectOverdraft)+n(state&&state.monzoOverdraft);
+      const legacyLimit=n(state&&state.firstDirectOverdraftLimit)+n(state&&state.monzoOverdraftLimit);
+      used=Math.max(used,legacyUsed); limit=Math.max(limit,legacyLimit);
+    }catch(e){}
+    return {used,limit:Math.max(limit,used,1)};
+  }
+  function bankPosition(){ try{return (window.Calc&&Calc.bankPosition)?n(Calc.bankPosition()):0;}catch(e){return 0;} }
+  function safeToday(){ try{return (window.Calc&&Calc.safeToday)?n(Calc.safeToday()):0;}catch(e){return 0;} }
+  function statusFor(score){
+    if(score>=75) return {label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'};
+    if(score>=55) return {label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'};
+    if(score>=35) return {label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'};
+    return {label:'Critical',type:'red',detail:'Debt, BNPL, overdraft use, low safe spend and/or a low emergency fund are pulling the score down.'};
+  }
+  function calcHealth(){
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const rows=debtRowsLive();
+    const active=rows.filter(d=>debtBal(d)>0);
+    const totalDebt=active.reduce((s,d)=>s+debtBal(d),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(debtName(d)) || /^one/i.test(debtType(d))).reduce((s,d)=>s+debtBal(d),0);
+    const od=overdraftInfo();
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const targetDaily=Math.max((n(state&&state.weeklyBudget)||60)/7,1);
+    const st=safeToday();
+    const bank=bankPosition();
+
+    // Monotonic penalties: increasing debt/overdraft/BNPL cannot improve the score.
+    const debtPenalty=clamp((totalDebt/(wage*6))*26,0,30);          // roughly 2 points per £1k at £2.2k wage
+    const activeDebtPenalty=clamp(active.length*2.0,0,12);         // more active debts = more pressure
+    const overdraftPenalty=od.used>0 ? clamp(8+(od.used/od.limit)*7,0,15) : 0;
+    const oneOffPenalty=oneOff>0 ? clamp(8+(oneOff/900)*4,0,12) : 0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*15,0,15);
+    const safeSpendPenalty=clamp((1-(st/targetDaily))*7,0,7);
+    const bankPenalty=bank<0 ? clamp(Math.abs(bank)/(wage/2)*4,0,4) : 0;
+    const raw=100-(debtPenalty+activeDebtPenalty+overdraftPenalty+oneOffPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty);
+    const total=Math.round(clamp(raw,0,100));
+    const status=statusFor(total);
+    const next= oneOff>0 ? 'Clear BNPL/one-off debt first to remove short-term pressure.'
+      : od.used>0 ? 'Reduce overdraft reliance before increasing discretionary spend.'
+      : emergency<emergencyTarget ? 'Build emergency fund towards '+moneySafe(emergencyTarget)+'.'
+      : totalDebt>0 ? 'Keep debt reducing and protect the repayment plan.'
+      : 'Maintain the plan and build longer-term savings.';
+    return {total,status,next,parts:[
+      ['Debt load',30-debtPenalty,30,moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',12-activeDebtPenalty,12,active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15,od.used>0?moneySafe(od.used)+' used of '+moneySafe(od.limit)+' limit':'No overdraft used'],
+      ['BNPL / one-off pressure',12-oneOffPenalty,12,oneOff>0?moneySafe(oneOff)+' short-term/BNPL balance':'No BNPL pressure'],
+      ['Emergency fund',15-emergencyPenalty,15,moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',7-safeSpendPenalty,7,moneySafe(st)+' today vs target '+moneySafe(targetDaily)],
+      ['Bank position',4-bankPenalty,4,moneySafe(bank)+' net position']
+    ]};
+  }
+  function paintHealth(){
+    try{
+      const data=calcHealth();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+data.status.label+'<br><span class="muted">'+data.status.detail+'</span>';
+      try{
+        const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement);
+        const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+data.status.label+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){ box.innerHTML=data.parts.map(p=>`<div class="score-box"><span class="small">${p[0]}</span><strong>${Math.round(Math.max(0,p[1]))}/${p[2]}</strong><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,(p[1]/p[2])*100))}%"></div></div><div class="note">${p[3]}</div></div>`).join(''); }
+      window.__grantOSHealthScoreV2713=data.total;
+      setVersion();
+    }catch(e){ console.warn('v2713 health paint',e); }
+  }
+  function patch(){
+    setVersion();
+    try{ window.financeHealth=function(){ return calcHealth().total; }; }catch(e){}
+    try{ if(window.HealthV21){ HealthV21.score=calcHealth; HealthV21.render=paintHealth; } }catch(e){}
+    try{
+      if(window.Dashboard&&Dashboard.render&&!Dashboard.render.__v2713){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=old(); setTimeout(paintHealth,0); setTimeout(paintHealth,100); setTimeout(paintHealth,500); return r; };
+        Dashboard.render.__v2713=true;
+      }
+    }catch(e){}
+    try{
+      if(window.App&&App.saveAndRender&&!App.saveAndRender.__v2713){
+        const old=App.saveAndRender.bind(App);
+        App.saveAndRender=function(){ syncStateFromVisibleDebtInputs(); const r=old(); setTimeout(paintHealth,0); setTimeout(paintHealth,120); setTimeout(paintHealth,600); return r; };
+        App.saveAndRender.__v2713=true;
+      }
+    }catch(e){}
+    paintHealth();
+  }
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt')) setTimeout(()=>{syncStateFromVisibleDebtInputs();paintHealth();},50); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt')) setTimeout(()=>{syncStateFromVisibleDebtInputs();paintHealth();},50); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(patch,750)); else setTimeout(patch,750);
+  [1200,2200,4000].forEach(ms=>setTimeout(patch,ms));
 })();
 </script>
 
