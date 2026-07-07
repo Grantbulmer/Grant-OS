@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grant OS v2.6.5 Live Safe Spend Date Logic</title>
+<title>Grant OS v2.7.10 Foldable Dashboard Width Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -228,16 +228,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=263">
+<link rel="manifest" href="manifest.json?v=276">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=261">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=261">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=261">
-<link rel="shortcut icon" href="favicon.ico?v=261">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=276">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=276">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=276">
+<link rel="shortcut icon" href="favicon.ico?v=276">
 
 
 <style>
@@ -1091,10 +1091,173 @@ tr:hover td{background:rgba(56,189,248,.045);}
 }
 </style>
 
+
+
+<style>
+/* v2.7 Responsive Device Layout Pass
+   One build across desktop, tablet, foldable and standard phone. Desktop/foldable layout is preserved;
+   phone widths become a streamlined app-style layout with safe-spend first. */
+:root{--v27-phone:640px;}
+
+/* Desktop/foldable polish without changing the layout the user likes */
+header .pill{vertical-align:middle;}
+#dashboard .dashboard-single-layout{align-items:start!important;}
+#dashboard .dashboard-right{position:relative;}
+#dashboard .timeline-dashboard-card button[onclick="Timeline.scrollToday()"]{display:none!important;}
+#dashboard .timeline-dashboard-card .note{margin-bottom:12px!important;}
+#dashboard .dashboard-cards > .card{min-width:0!important;}
+#dashboard .dashboard-cards .stat-card{min-height:180px;}
+#dashboard .dashboard-cards .stat-card.wide{min-height:180px;}
+#dashboard .dashboard-cards .stat-head h3{line-height:1.08!important;}
+#dashboard .dashboard-cards .note{line-height:1.42!important;}
+#dashboard .forecast-dashboard-card{margin-top:0!important;}
+#dashboard .forecast-dashboard-card .graph-table-wrap,
+#dashboard .forecast-dashboard-card{overflow-x:auto!important;}
+
+/* Keep the current foldable/tablet layout, but make mid-size screens less cramped. */
+@media (min-width:641px) and (max-width:1100px){
+  main{padding:18px!important;}
+  #dashboard .dashboard-single-layout{grid-template-columns:minmax(0,1fr) minmax(0,.98fr)!important;gap:12px!important;}
+  #dashboard .dashboard-cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;}
+  #dashboard .card{padding:13px!important;}
+  #dashboard .dashboard-cards .big{font-size:clamp(26px,3.6vw,42px)!important;}
+  #dashboard .dashboard-cards h3{font-size:clamp(10px,1.45vw,14px)!important;}
+  #dashboard .timeline-dashboard-card{min-height:520px!important;}
+  #dashboard .timeline-dashboard-card #timelineList{max-height:440px!important;}
+}
+
+/* Standard phone layout */
+@media (max-width:640px){
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{background:radial-gradient(circle at top,#11203a 0%,#081120 36%,#020617 100%)!important;}
+  header{padding:18px 16px 16px!important;}
+  header h1{font-size:clamp(32px,10vw,42px)!important;line-height:1.04!important;}
+  header .pill{display:inline-flex!important;margin-top:10px;font-size:12px!important;padding:6px 10px!important;max-width:100%;white-space:normal!important;line-height:1.2!important;}
+  header .sub{font-size:clamp(15px,4.3vw,18px)!important;line-height:1.35!important;margin-top:10px!important;}
+  main{padding:12px!important;max-width:100%!important;}
+
+  /* Phone navigation: single-row horizontal app nav instead of a tall wrapped block */
+  .tabs{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    gap:8px!important;
+    padding:8px!important;
+    margin:0 0 14px!important;
+    border-radius:18px!important;
+    -webkit-overflow-scrolling:touch!important;
+    scroll-snap-type:x proximity!important;
+    scrollbar-width:none!important;
+  }
+  .tabs::-webkit-scrollbar{display:none!important;}
+  .tabs .tab,.tabs button{
+    flex:0 0 auto!important;
+    min-height:40px!important;
+    padding:8px 12px!important;
+    font-size:14px!important;
+    white-space:nowrap!important;
+    scroll-snap-align:start!important;
+  }
+
+  /* Dashboard order: figures first, alerts after, timeline lower down */
+  #dashboard .dashboard-single-layout{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+  #dashboard .dashboard-left{display:flex!important;flex-direction:column!important;gap:12px!important;}
+  #dashboard .dashboard-left > .card:first-child{order:2!important;}
+  #dashboard .dashboard-left > .dashboard-cards{order:1!important;}
+  #dashboard .dashboard-right{order:3!important;display:flex!important;flex-direction:column!important;gap:12px!important;}
+  #dashboard .forecast-dashboard-card{order:4!important;width:100%!important;}
+
+  #dashboard .dashboard-cards{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    width:100%!important;
+  }
+  #dashboard .dashboard-cards .card{min-width:0!important;overflow:hidden!important;}
+  #dashboard .dashboard-cards .wide{grid-column:1/-1!important;}
+  #dashboard .dashboard-cards .stat-card{
+    min-height:auto!important;
+    padding:13px!important;
+    border-radius:20px!important;
+  }
+  #dashboard .stat-head{gap:8px!important;margin-bottom:8px!important;align-items:flex-start!important;}
+  #dashboard .stat-icon{width:34px!important;height:34px!important;min-width:34px!important;border-radius:12px!important;font-size:17px!important;}
+  #dashboard .stat-head h3{font-size:clamp(11px,3.25vw,15px)!important;line-height:1.1!important;letter-spacing:.075em!important;}
+  #dashboard .dashboard-cards .big,
+  #dashboard .dashboard-cards .value-soft{font-size:clamp(28px,8.8vw,40px)!important;line-height:1.05!important;word-break:normal!important;}
+  #dashboard #nextPriority{font-size:clamp(34px,11vw,52px)!important;line-height:1.02!important;}
+  #dashboard .note,#dashboard .v26-card-detail,#dashboard .v261-card-note{font-size:clamp(12px,3.45vw,15px)!important;line-height:1.42!important;}
+  #dashboard .v25530-badge-row{gap:6px!important;margin-top:10px!important;}
+  #dashboard .v25530-badge{font-size:10px!important;padding:5px 8px!important;}
+  #dashboard .bar{height:10px!important;}
+
+  /* Card-by-card sizing on phone */
+  #dashboard #safeToday,#dashboard #safeWeek{font-size:clamp(30px,9.5vw,44px)!important;}
+  #dashboard #daysPayday{font-size:clamp(36px,11vw,48px)!important;}
+  #dashboard #bankPosition,#dashboard #totalOverdraft,#dashboard #debtRemaining{font-size:clamp(28px,8.5vw,40px)!important;}
+
+  /* Funds/health: keep useful but stop it dominating phone screens */
+  #dashboard .v261-funds-health-section{padding:13px!important;border-radius:20px!important;}
+  #dashboard .v261-section-head{margin-bottom:10px!important;padding-bottom:10px!important;}
+  #dashboard .v261-section-head h3{font-size:14px!important;line-height:1.15!important;}
+  #dashboard .v261-section-head p{font-size:13px!important;}
+  #dashboard .v261-funds-health-row{grid-template-columns:1fr!important;gap:10px!important;}
+  #dashboard .v261-funds-health-row > .card{padding:13px!important;}
+  #dashboard .v261-funds-health-row .big{font-size:clamp(30px,9.2vw,42px)!important;}
+  #dashboard .v261-funds-health-row #financeHealthNote{font-size:12px!important;}
+
+  /* Timeline on phone: useful, but lower and contained */
+  #dashboard .dashboard-right > .card:first-child{padding:13px!important;}
+  #dashboard .timeline-dashboard-card{min-height:0!important;padding:13px!important;}
+  #dashboard .timeline-dashboard-card #timelineList{max-height:420px!important;overflow:auto!important;}
+  #dashboard .timeline{padding-left:19px!important;margin-top:8px!important;}
+  #dashboard .timeline:before{left:7px!important;}
+  #dashboard .timeline-item{padding:10px 11px!important;margin-bottom:10px!important;border-radius:14px!important;}
+  #dashboard .timeline-item:before{left:-19px!important;top:17px!important;width:11px!important;height:11px!important;}
+  #dashboard .timeline-title{font-size:15px!important;line-height:1.25!important;}
+  #dashboard .timeline-meta{font-size:12px!important;line-height:1.35!important;}
+  #dashboard .timeline-badge{font-size:10px!important;padding:2px 7px!important;}
+
+  /* Forecast/table sections should scroll horizontally rather than crushing columns */
+  #dashboard .forecast-dashboard-card{padding:13px!important;border-radius:20px!important;overflow-x:auto!important;}
+  #dashboard .forecast-dashboard-card table{min-width:760px!important;font-size:12px!important;}
+  #dashboard .forecast-dashboard-card th,#dashboard .forecast-dashboard-card td{padding:8px!important;}
+  #dashboard .range-toggle{gap:6px!important;}
+  #dashboard .range-toggle button{min-height:34px!important;padding:7px 10px!important;font-size:12px!important;}
+
+  /* Other tabs: cleaner standard phone behaviour */
+  .grid{grid-template-columns:1fr!important;gap:12px!important;}
+  .wide,.full{grid-column:auto!important;}
+  .card{padding:14px!important;border-radius:20px!important;}
+  .card>h3{font-size:14px!important;line-height:1.2!important;}
+  .big{font-size:clamp(28px,9vw,40px)!important;}
+  .minirow{grid-template-columns:1fr!important;gap:7px!important;}
+  .graph-grid,.snapshot-grid,.score-breakdown{grid-template-columns:1fr!important;}
+  .v2554-summary-grid,.v25527-summary-grid{grid-template-columns:1fr!important;gap:10px!important;}
+  .v2554-accounts-grid,.v25527-accounts-grid{grid-template-columns:1fr!important;gap:12px!important;}
+  .v2554-form-grid,.v25527-form-grid{grid-template-columns:1fr!important;}
+  table{font-size:13px!important;}
+  th,td{padding:8px!important;}
+  input,select{min-height:42px!important;font-size:16px!important;}
+}
+
+@media (max-width:380px){
+  #dashboard .dashboard-cards{gap:8px!important;}
+  #dashboard .dashboard-cards .stat-card{padding:11px!important;}
+  #dashboard .stat-icon{width:30px!important;height:30px!important;min-width:30px!important;font-size:15px!important;}
+  #dashboard .stat-head h3{font-size:10.5px!important;}
+  #dashboard .note{font-size:12px!important;}
+}
+</style>
+
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.6.4 Dashboard Card Order</span></h1>
+  <h1>Grant OS <span class="pill">v2.7.3 Mobile Full Form Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -4087,6 +4250,1373 @@ StableInputV254.patch();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(boot,160); });
   else setTimeout(boot,160);
+})();
+</script>
+
+
+
+<script>
+/* v2.7 Responsive Device Layout Pass runtime tidy */
+(function(){
+  const VERSION='v2.7 Responsive Device Layout Pass';
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function cardFor(id){ const el=document.getElementById(id); return el ? el.closest('.card') : null; }
+  function reorderDashboardCardsV27(){
+    try{
+      const wrap=document.querySelector('#dashboard .dashboard-cards');
+      if(!wrap) return;
+      // Final v2.7 order keeps safe-spend first, then payday/debt context, then priority and supporting figures.
+      const order=['safeToday','safeWeek','daysPayday','debtRemaining','nextPriority','bankPosition','totalOverdraft'];
+      order.map(cardFor).filter(Boolean).forEach(card=>wrap.appendChild(card));
+      const next=cardFor('nextPriority'); if(next) next.classList.add('wide');
+      ['safeToday','safeWeek','daysPayday','debtRemaining','bankPosition','totalOverdraft'].forEach(id=>{ const c=cardFor(id); if(c) c.classList.remove('wide'); });
+      // Funds/health section, when created by v2.6.1, should remain after the main dashboard figures.
+      const funds=document.querySelector('#dashboard .v261-funds-health-section');
+      if(funds && funds.parentElement===wrap) wrap.appendChild(funds);
+    }catch(e){ console.warn('v2.7 card order',e); }
+  }
+  function removeTimelineJumpButton(){
+    try{
+      document.querySelectorAll('#dashboard .timeline-dashboard-card button').forEach(btn=>{
+        const txt=(btn.textContent||'').toLowerCase();
+        const oc=(btn.getAttribute('onclick')||'').toLowerCase();
+        if(txt.includes('jump') || txt.includes('today') || oc.includes('scrolltoday')) btn.remove();
+      });
+    }catch(e){}
+  }
+  function apply(){ updateVersion(); reorderDashboardCardsV27(); removeTimelineJumpButton(); }
+  function boot(){
+    apply();
+    try{
+      if(typeof Dashboard!=='undefined' && Dashboard.render && !Dashboard.render.__v27ResponsiveLayout){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=old(); apply(); setTimeout(apply,30); return r; };
+        Dashboard.render.__v27ResponsiveLayout=true;
+      }
+    }catch(e){}
+    setTimeout(apply,100);
+    setTimeout(apply,500);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(boot,180); });
+  else setTimeout(boot,180);
+})();
+</script>
+
+
+
+<style>
+/* v2.7.2 Mobile Form Access Fix
+   Desktop/tablet/foldable layout remains unchanged; standard phones get safer Budget/Debt/Holiday forms. */
+@media (max-width:640px){
+  #budget,#debts,#holidays{overflow-x:hidden!important;}
+  #budget .card,#debts .card,#holidays .card{max-width:100%!important;}
+
+  /* Core Budget figures stack vertically so inputs never sit off-screen. */
+  #budget .grid > .card.wide:first-child > table{display:block!important;width:100%!important;}
+  #budget .grid > .card.wide:first-child > table tbody{display:block!important;width:100%!important;}
+  #budget .grid > .card.wide:first-child > table tr{display:block!important;width:100%!important;margin:0 0 10px!important;padding:10px!important;border:1px solid rgba(148,163,184,.18)!important;border-radius:15px!important;background:rgba(2,6,23,.38)!important;}
+  #budget .grid > .card.wide:first-child > table tr.v25531-hidden-row{display:none!important;}
+  #budget .grid > .card.wide:first-child > table td{display:block!important;width:100%!important;padding:0!important;border:0!important;}
+  #budget .grid > .card.wide:first-child > table td:first-child{margin-bottom:6px!important;color:#bfdbfe!important;font-size:12px!important;font-weight:900!important;text-transform:uppercase!important;letter-spacing:.07em!important;}
+  #budget .grid > .card.wide:first-child > table input,
+  #budget .grid > .card.wide:first-child > table select{width:100%!important;max-width:100%!important;min-width:0!important;}
+
+  /* Wide editable tables stay intact but are contained in a sideways-scroll box. */
+  .v272-mobile-table-wrap,
+  #budget .v25531-table-wrap{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:0 0 8px!important;
+    margin-top:10px!important;
+    border-radius:16px!important;
+    border:1px solid rgba(148,163,184,.16)!important;
+    background:rgba(2,6,23,.22)!important;
+  }
+  #budget .v25531-table-wrap::before,
+  .v272-mobile-table-wrap::before{
+    content:'Swipe sideways to edit all fields';
+    display:block!important;
+    position:sticky!important;
+    left:0!important;
+    width:max-content!important;
+    padding:8px 10px 2px!important;
+    color:#93c5fd!important;
+    font-size:12px!important;
+    font-weight:900!important;
+    letter-spacing:.04em!important;
+    z-index:2!important;
+  }
+  #dynamicBudgetAccountsTable,
+  #fixedCostsTable,
+  #debtTable,
+  #holidayTable,
+  #holidayControlTable{
+    display:table!important;
+    width:max-content!important;
+    max-width:none!important;
+    border-collapse:collapse!important;
+    table-layout:auto!important;
+    margin:0!important;
+  }
+  #dynamicBudgetAccountsTable{min-width:760px!important;}
+  #fixedCostsTable{min-width:520px!important;}
+  #debtTable{min-width:1040px!important;}
+  #holidayTable{min-width:860px!important;}
+  #holidayControlTable{min-width:900px!important;}
+  #dynamicBudgetAccountsTable tr,
+  #fixedCostsTable tr,
+  #debtTable tr,
+  #holidayTable tr,
+  #holidayControlTable tr{display:table-row!important;}
+  #dynamicBudgetAccountsTable th,#dynamicBudgetAccountsTable td,
+  #fixedCostsTable th,#fixedCostsTable td,
+  #debtTable th,#debtTable td,
+  #holidayTable th,#holidayTable td,
+  #holidayControlTable th,#holidayControlTable td{
+    display:table-cell!important;
+    width:auto!important;
+    min-width:120px!important;
+    max-width:none!important;
+    padding:8px!important;
+    border-bottom:1px solid rgba(148,163,184,.14)!important;
+    white-space:nowrap!important;
+    vertical-align:middle!important;
+  }
+  #dynamicBudgetAccountsTable td:first-child,
+  #fixedCostsTable td:first-child,
+  #debtTable td:first-child,
+  #holidayTable td:first-child,
+  #holidayControlTable td:first-child,
+  #dynamicBudgetAccountsTable th:first-child,
+  #fixedCostsTable th:first-child,
+  #debtTable th:first-child,
+  #holidayTable th:first-child,
+  #holidayControlTable th:first-child{
+    position:sticky!important;
+    left:0!important;
+    z-index:3!important;
+    background:#071122!important;
+    min-width:135px!important;
+  }
+  #dynamicBudgetAccountsTable input,#dynamicBudgetAccountsTable select,
+  #fixedCostsTable input,#fixedCostsTable select,
+  #debtTable input,#debtTable select,
+  #holidayTable input,#holidayTable select{
+    min-width:125px!important;
+    width:125px!important;
+    max-width:170px!important;
+    font-size:16px!important;
+  }
+  #fixedCostsTable input{width:170px!important;min-width:170px!important;}
+  #debtTable input,#debtTable select{width:118px!important;min-width:118px!important;}
+  #holidayTable input{width:120px!important;min-width:120px!important;}
+  #dynamicBudgetAccountsTable .v25531-account-name{display:block!important;white-space:normal!important;line-height:1.15!important;}
+  #dynamicBudgetAccountsTable .v25531-account-type,
+  #dynamicBudgetAccountsTable .v25531-account-limit-note{display:block!important;white-space:normal!important;font-size:11px!important;line-height:1.25!important;}
+  #debtTable button.danger,#holidayTable button.danger{min-width:90px!important;white-space:nowrap!important;}
+  #budget button,#debts button,#holidays button{max-width:100%!important;}
+}
+</style>
+
+<script>
+/* v2.7.2 Mobile Form Access Fix runtime */
+(function(){
+  const VERSION='v2.7.2 Mobile Form Access Fix';
+  const TABLES=['fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function wrapTable(id){
+    try{
+      const t=document.getElementById(id);
+      if(!t || t.dataset.v272Wrapped==='yes') return;
+      if(t.parentElement && t.parentElement.classList.contains('v272-mobile-table-wrap')){ t.dataset.v272Wrapped='yes'; return; }
+      const wrap=document.createElement('div');
+      wrap.className='v272-mobile-table-wrap';
+      t.parentNode.insertBefore(wrap,t);
+      wrap.appendChild(t);
+      t.dataset.v272Wrapped='yes';
+    }catch(e){}
+  }
+  function apply(){ updateVersion(); TABLES.forEach(wrapTable); }
+  function patchRenderer(obj){
+    try{
+      if(!obj || !obj.render || obj.render.__v272MobileFormAccess) return;
+      const old=obj.render.bind(obj);
+      obj.render=function(){ const r=old(); setTimeout(apply,0); setTimeout(apply,80); return r; };
+      obj.render.__v272MobileFormAccess=true;
+    }catch(e){}
+  }
+  function patchUiTable(){
+    try{
+      if(typeof UI==='undefined' || !UI.table || UI.table.__v272MobileFormAccess) return;
+      const old=UI.table.bind(UI);
+      UI.table=function(id,heads,rows,fn){ const r=old(id,heads,rows,fn); setTimeout(apply,0); setTimeout(apply,80); return r; };
+      UI.table.__v272MobileFormAccess=true;
+    }catch(e){}
+  }
+  function boot(){
+    patchUiTable();
+    try{ patchRenderer(Budget); }catch(e){}
+    try{ patchRenderer(Debt); }catch(e){}
+    try{ patchRenderer(Holidays); }catch(e){}
+    try{ patchRenderer(App); }catch(e){}
+    apply();
+    setTimeout(apply,100);
+    setTimeout(apply,500);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(boot,220); });
+  else setTimeout(boot,220);
+})();
+</script>
+
+
+
+<style>
+/* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates
+   Keeps desktop/tablet/foldable layout intact. On standard phone screens, editable Budget,
+   Debt and Holiday tables become full-width stacked cards instead of sideways tables. */
+@media (max-width:640px){
+  main,.section,.grid,.card{min-width:0!important;max-width:100%!important;}
+  #budget,#debts,#holidays{overflow-x:hidden!important;}
+  #budget .card,#debts .card,#holidays .card{overflow:visible!important;}
+
+  /* Stop the v2.7.2 sideways table behaviour on phones. */
+  .v272-mobile-table-wrap,
+  #budget .v25531-table-wrap{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    overflow:visible!important;overflow-x:visible!important;
+    padding:0!important;margin-top:10px!important;border:0!important;background:transparent!important;
+  }
+  .v272-mobile-table-wrap::before,
+  #budget .v25531-table-wrap::before{content:none!important;display:none!important;}
+
+  /* Core figures stay as simple stacked inputs. */
+  #budget .grid > .card.wide:first-child{padding:18px!important;}
+  #budget .grid > .card.wide:first-child > table,
+  #budget .grid > .card.wide:first-child > table tbody{display:block!important;width:100%!important;max-width:100%!important;}
+  #budget .grid > .card.wide:first-child > table tr{display:block!important;width:100%!important;max-width:100%!important;}
+  #budget .grid > .card.wide:first-child > table input,
+  #budget .grid > .card.wide:first-child > table select{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;}
+
+  /* Editable/data tables become mobile cards. */
+  #dynamicBudgetAccountsTable,
+  #fixedCostsTable,
+  #debtTable,
+  #holidayTable,
+  #holidayControlTable{
+    display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+    table-layout:auto!important;border-collapse:separate!important;margin:0!important;
+  }
+  #dynamicBudgetAccountsTable tbody,#fixedCostsTable tbody,#debtTable tbody,#holidayTable tbody,#holidayControlTable tbody{display:block!important;width:100%!important;}
+  #dynamicBudgetAccountsTable tr:first-child,
+  #fixedCostsTable tr:first-child,
+  #debtTable tr:first-child,
+  #holidayTable tr:first-child,
+  #holidayControlTable tr:first-child{display:none!important;}
+
+  #dynamicBudgetAccountsTable tr:not(:first-child),
+  #fixedCostsTable tr:not(:first-child),
+  #debtTable tr:not(:first-child),
+  #holidayTable tr:not(:first-child),
+  #holidayControlTable tr:not(:first-child){
+    display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+    margin:0 0 14px!important;padding:14px!important;border:1px solid rgba(148,163,184,.18)!important;
+    border-radius:18px!important;background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(2,6,23,.82))!important;
+    box-shadow:0 10px 22px rgba(0,0,0,.16)!important;
+  }
+  #dynamicBudgetAccountsTable th,#fixedCostsTable th,#debtTable th,#holidayTable th,#holidayControlTable th{display:none!important;}
+
+  #dynamicBudgetAccountsTable td,
+  #fixedCostsTable td,
+  #debtTable td,
+  #holidayTable td,
+  #holidayControlTable td{
+    display:block!important;position:static!important;left:auto!important;z-index:auto!important;
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    padding:0 0 12px!important;margin:0!important;border:0!important;background:transparent!important;
+    white-space:normal!important;vertical-align:top!important;color:var(--text)!important;
+  }
+  #dynamicBudgetAccountsTable td:last-child,#fixedCostsTable td:last-child,#debtTable td:last-child,#holidayTable td:last-child,#holidayControlTable td:last-child{padding-bottom:0!important;}
+  #dynamicBudgetAccountsTable td::before,
+  #fixedCostsTable td::before,
+  #debtTable td::before,
+  #holidayTable td::before,
+  #holidayControlTable td::before{
+    content:attr(data-label);display:block;margin:0 0 6px;color:#93a8c4!important;
+    font-size:11px!important;font-weight:900!important;text-transform:uppercase!important;letter-spacing:.08em!important;
+  }
+  #dynamicBudgetAccountsTable input,#dynamicBudgetAccountsTable select,
+  #fixedCostsTable input,#fixedCostsTable select,
+  #debtTable input,#debtTable select,
+  #holidayTable input,#holidayTable select{
+    display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+    font-size:16px!important;padding:12px 14px!important;border-radius:14px!important;
+  }
+  #debtTable button.danger,#holidayTable button.danger{width:100%!important;min-width:0!important;margin-top:2px!important;}
+  #dynamicBudgetAccountsTable .v25531-account-name{font-size:18px!important;color:#dbeafe!important;}
+  #dynamicBudgetAccountsTable .v25531-account-type,
+  #dynamicBudgetAccountsTable .v25531-account-limit-note{font-size:13px!important;color:#93a8c4!important;line-height:1.35!important;}
+
+  /* Linked account header/action area. */
+  #budget .v25531-linked-head{display:block!important;}
+  #budget .v25531-linked-head .note{max-width:100%!important;white-space:normal!important;}
+  #budget .v25531-budget-actions{display:block!important;}
+  #budget .v25531-budget-actions button{width:100%!important;margin-top:12px!important;}
+  #budget .v25531-max-note{display:block!important;white-space:normal!important;line-height:1.35!important;}
+
+  /* Debt progress and priority panels should wrap instead of cutting off. */
+  #priorityQueue,#debtProgressList{max-width:100%!important;overflow:hidden!important;}
+  #priorityQueue > div,#debtProgressList > div{max-width:100%!important;overflow:hidden!important;}
+  #debtProgressList strong{display:block!important;margin-bottom:8px!important;line-height:1.2!important;}
+  #debtProgressList .pill{display:inline-flex!important;white-space:normal!important;max-width:100%!important;margin:0 6px 6px 0!important;line-height:1.25!important;}
+  #debtProgressList .bar{width:100%!important;max-width:100%!important;}
+
+  #holidays .status-badge{white-space:normal!important;line-height:1.25!important;}
+}
+</style>
+
+<script>
+/* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates runtime */
+(function(){
+  const VERSION='v2.7.3 Mobile Full Form Fix';
+  const TABLES=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function normaliseFixedCosts(){
+    try{
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      state.fixed=state.fixed.map(r=>[r&&r[0]!=null?r[0]:'New bill', Number(r&&r[1]||0), r&&r[2]!=null?String(r[2]):'']);
+    }catch(e){}
+  }
+  function decorateTable(id){
+    const t=document.getElementById(id); if(!t) return;
+    const first=t.querySelector('tr'); if(!first) return;
+    const heads=[...first.children].map(x=>(x.textContent||'').trim());
+    [...t.querySelectorAll('tr')].slice(1).forEach(tr=>{
+      [...tr.children].forEach((td,i)=>{ td.setAttribute('data-label',heads[i]||''); });
+    });
+  }
+  function decorateAll(){ TABLES.forEach(decorateTable); }
+  function renderFixedCostDates(){
+    try{
+      normaliseFixedCosts();
+      const t=document.getElementById('fixedCostsTable'); if(!t) return;
+      t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th></tr>';
+      state.fixed.forEach((r,i)=>{
+        t.innerHTML += `<tr>
+          <td><input value="${escapeHtml(r[0])}" oninput="state.fixed[${i}][0]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input type="number" value="${Number(r[1]||0)}" oninput="state.fixed[${i}][1]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input inputmode="numeric" placeholder="e.g. 1 or 26" value="${escapeHtml(r[2]||'')}" oninput="state.fixed[${i}][2]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+        </tr>`;
+      });
+      decorateTable('fixedCostsTable');
+    }catch(e){ console.warn('fixed cost dates render',e); }
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function patchBudget(){
+    try{
+      if(typeof Budget==='undefined' || Budget.__v273MobileFullFormFix) return;
+      const oldRender=Budget.render.bind(Budget);
+      Budget.render=function(){
+        const r=oldRender();
+        renderFixedCostDates();
+        setTimeout(decorateAll,0); setTimeout(decorateAll,80);
+        return r;
+      };
+      Budget.addFixed=function(){
+        normaliseFixedCosts();
+        state.fixed.push(['New bill',0,'']);
+        App.saveAndRender();
+      };
+      Budget.__v273MobileFullFormFix=true;
+    }catch(e){}
+  }
+  function patchTimeline(){
+    try{
+      if(typeof Timeline==='undefined' || Timeline.__v273FixedBillsLive) return;
+      const oldBuild=Timeline.build.bind(Timeline);
+      Timeline.build=function(){
+        normaliseFixedCosts();
+        let items=oldBuild();
+        const now=new Date();
+        const horizon=new Date(now.getTime()+90*24*60*60*1000);
+        const toDueDay=(v)=>{
+          if(v==null || String(v).trim()==='') return null;
+          const m=String(v).trim().match(/\d{1,2}/);
+          if(!m) return null;
+          const n=Number(m[0]);
+          return n>=1 && n<=31 ? n : null;
+        };
+        (state.fixed||[]).forEach(row=>{
+          const name=String(row[0]||'Bill');
+          const amount=Number(row[1]||0);
+          const day=toDueDay(row[2]);
+          if(!day || amount<=0) return;
+          for(let offset=0; offset<5; offset++){
+            const d=new Date(now.getFullYear(), now.getMonth()+offset, day);
+            if(d<now) continue;
+            if(d>horizon) break;
+            items.push({
+              date:d,title:name,type:'Bill',amount:amount,
+              detail:`${money(amount)} monthly bill`,
+              subdetail:'Fixed cost from Budget Setup.', cls:'amber', fixedBill:true
+            });
+          }
+        });
+        return items.sort((a,b)=>{
+          if(a.date&&b.date) return a.date-b.date;
+          if(a.date&&!b.date) return -1;
+          if(!a.date&&b.date) return 1;
+          return String(a.title||'').localeCompare(String(b.title||''));
+        });
+      };
+      Timeline.summary=function(items){
+        const now=new Date();
+        const in90=new Date(now.getTime()+90*24*60*60*1000);
+        const dated=items.filter(x=>x.date && x.date>=now && x.date<=in90);
+        const paydays=dated.filter(x=>x.type==='Income').length;
+        const holidays=dated.filter(x=>x.type==='Holiday').length;
+        const debts=dated.filter(x=>x.type==='Debt'||x.type==='Debt finish').length;
+        const bills=dated.filter(x=>x.type==='Bill').length;
+        const red=dated.filter(x=>x.cls==='red').length;
+        const amber=dated.filter(x=>x.cls==='amber').length;
+        const status=red>0?'Risk items need attention':amber>0?'Everything covered, but watch amber items':'Everything currently safe';
+        const cls=red>0?'red':amber>0?'amber':'green';
+        return `<div class="alert ${cls==='red'?'red':cls==='green'?'green':''}"><strong>${status}</strong><br><span class="note">${paydays} payday(s), ${bills} bill(s), ${holidays} holiday item(s), ${debts} debt milestone(s) in the next 90 days.</span></div>`;
+      };
+      Timeline.__v273FixedBillsLive=true;
+    }catch(e){ console.warn('timeline fixed bills patch',e); }
+  }
+  function patchRenderers(){
+    try{
+      if(typeof UI!=='undefined' && UI.table && !UI.table.__v273DecorateLabels){
+        const old=UI.table.bind(UI);
+        UI.table=function(id,heads,rows,fn){
+          const r=old(id,heads,rows,fn);
+          setTimeout(()=>decorateTable(id),0); setTimeout(()=>decorateTable(id),80);
+          return r;
+        };
+        UI.table.__v273DecorateLabels=true;
+      }
+    }catch(e){}
+    try{
+      if(typeof App!=='undefined' && App.render && !App.render.__v273MobileFullFormFix){
+        const old=App.render.bind(App);
+        App.render=function(){
+          const r=old();
+          normaliseFixedCosts(); renderFixedCostDates(); updateVersion(); decorateAll();
+          setTimeout(()=>{renderFixedCostDates(); decorateAll(); try{ if(Timeline&&Timeline.render) Timeline.render(); }catch(e){}},80);
+          return r;
+        };
+        App.render.__v273MobileFullFormFix=true;
+      }
+    }catch(e){}
+  }
+  function boot(){
+    updateVersion(); normaliseFixedCosts(); patchBudget(); patchTimeline(); patchRenderers();
+    try{ renderFixedCostDates(); }catch(e){}
+    try{ decorateAll(); }catch(e){}
+    try{ if(typeof Timeline!=='undefined' && Timeline.render) Timeline.render(); }catch(e){}
+    setTimeout(()=>{updateVersion(); renderFixedCostDates(); decorateAll(); try{Timeline.render();}catch(e){}},150);
+    setTimeout(()=>{updateVersion(); renderFixedCostDates(); decorateAll(); try{Timeline.render();}catch(e){}},600);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,260)); else setTimeout(boot,260);
+})();
+</script>
+
+
+
+<style>
+/* v2.7.4 Mobile Data Visibility Fix
+   On narrow phone screens, do not rely on wide tables or hidden table-row CSS.
+   Keep desktop/foldable tables unchanged, but show separate native mobile editor cards. */
+.v274-mobile-forms{display:none;}
+@media (max-width:640px){
+  *,*::before,*::after{box-sizing:border-box!important;}
+  main,.section,.grid,.card{min-width:0!important;max-width:100%!important;}
+  #budget,#debts,#holidays{overflow-x:hidden!important;}
+  #budget .card,#debts .card,#holidays .card{overflow:visible!important;}
+  #budget input,#budget select,#debts input,#debts select,#holidays input,#holidays select{max-width:100%!important;min-width:0!important;box-sizing:border-box!important;}
+
+  /* Hide only the original wide tables on phone. The mobile mirrors below hold the live editable data. */
+  #dynamicBudgetAccountsTable,
+  #fixedCostsTable,
+  #debtTable,
+  #holidayTable,
+  #holidayControlTable{display:none!important;}
+  .v25531-table-wrap.v274-original-table-wrap,
+  .v272-mobile-table-wrap.v274-original-table-wrap{display:none!important;}
+
+  .v274-mobile-forms{display:block!important;width:100%!important;max-width:100%!important;margin:12px 0 0!important;}
+  .v274-mobile-empty{color:#93a8c4;font-size:14px;line-height:1.4;padding:12px 0;}
+  .v274-mobile-card{
+    display:block;width:100%;max-width:100%;margin:0 0 14px;padding:14px;
+    border:1px solid rgba(148,163,184,.18);border-radius:18px;
+    background:linear-gradient(180deg,rgba(15,23,42,.94),rgba(2,6,23,.86));
+    box-shadow:0 12px 26px rgba(0,0,0,.18);
+  }
+  .v274-mobile-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;color:#dbeafe;font-weight:900;font-size:18px;line-height:1.15;}
+  .v274-mobile-sub{display:block;color:#93a8c4;font-size:13px;font-weight:700;margin-top:3px;}
+  .v274-mobile-grid{display:grid;grid-template-columns:1fr;gap:10px;width:100%;}
+  .v274-mobile-grid.two{grid-template-columns:1fr 1fr;}
+  .v274-mobile-field{display:block;width:100%;min-width:0;}
+  .v274-mobile-field span{display:block;margin:0 0 6px;color:#93a8c4;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;}
+  .v274-mobile-field input,.v274-mobile-field select{
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    font-size:16px!important;padding:12px 14px!important;border-radius:14px!important;
+  }
+  .v274-mobile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  .v274-mobile-actions button{width:100%;min-width:0!important;}
+  .v274-summary-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(148,163,184,.12);padding:8px 0;color:#e5f0ff;}
+  .v274-summary-row span:first-child{color:#93a8c4;font-weight:800;}
+  .v274-note{color:#93a8c4;font-size:13px;line-height:1.35;margin-top:8px;}
+
+  /* Existing non-table dashboard/list items that were cutting off. */
+  #priorityQueue,#debtProgressList{max-width:100%!important;overflow:hidden!important;}
+  #priorityQueue > div,#debtProgressList > div{max-width:100%!important;overflow:hidden!important;}
+  #debtProgressList strong{display:block!important;margin-bottom:8px!important;line-height:1.2!important;}
+  #debtProgressList .pill{display:inline-flex!important;white-space:normal!important;max-width:100%!important;margin:0 6px 6px 0!important;line-height:1.25!important;}
+  #debtProgressList .bar{width:100%!important;max-width:100%!important;}
+}
+@media (max-width:380px){
+  .v274-mobile-grid.two{grid-template-columns:1fr;}
+}
+</style>
+
+<script>
+/* v2.7.4 Mobile Data Visibility Fix runtime
+   Creates live mobile editor cards for Budget linked accounts, fixed costs, debts and holidays.
+   Desktop/foldable keeps the existing table layout. */
+(function(){
+  const VERSION='v2.7.5 Mobile Add Remove Fix';
+  const MAX_ACCOUNTS=5;
+  const tableIds=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
+  const isPhone=()=>window.matchMedia && window.matchMedia('(max-width:640px)').matches;
+  function esc(s){ return String(s==null?'':s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function n(v){ return Number(v||0); }
+  function updateVersion(){ try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){} }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB');} }
+  function outerForTable(id){ const t=document.getElementById(id); if(!t) return null; const p=t.parentElement; if(p && (p.classList.contains('v25531-table-wrap') || p.classList.contains('v272-mobile-table-wrap'))) return p; return t; }
+  function ensureAfter(id, mobileId){
+    const outer=outerForTable(id); if(!outer) return null;
+    outer.classList.add('v274-original-table-wrap');
+    let box=document.getElementById(mobileId);
+    if(!box){ box=document.createElement('div'); box.id=mobileId; box.className='v274-mobile-forms'; outer.insertAdjacentElement('afterend',box); }
+    return box;
+  }
+  function accountIncludeFlag(a){
+    const name=String(a&&a.name||'').toLowerCase();
+    if(a && (a.includeOverdraftForSpend==='yes' || a.includeOverdraftForSpend==='no')) return a.includeOverdraftForSpend;
+    if(/first\s*direct/.test(name)) return state.includeFirstDirectOverdraftForSpend||'no';
+    if(/monzo/.test(name)) return state.includeMonzoOverdraftForSpend||'no';
+    return 'no';
+  }
+  function accountWrite(accounts){
+    try{ if(window.AccountsUIV25527 && AccountsUIV25527.write) AccountsUIV25527.write(accounts); }
+    catch(e){ try{ localStorage.setItem('grantOS.accounts.v2554',JSON.stringify(accounts)); Data.save(); }catch(err){} }
+  }
+  function accountsRead(){
+    try{ if(window.AccountsUIV25527 && AccountsUIV25527.accounts) return AccountsUIV25527.accounts().slice(0,MAX_ACCOUNTS); }catch(e){}
+    return [];
+  }
+  function splitNet(balance){ const b=n(balance); return {balance:Math.max(0,b), overdraft:Math.max(0,-b)}; }
+  function remainingBuffer(a){ const s=splitNet(a&&a.balance); return Math.max(0,n(a&&a.limit)-s.overdraft); }
+  function normaliseFixed(){
+    try{ if(!Array.isArray(state.fixed)) state.fixed=[]; state.fixed=state.fixed.map(r=>[r&&r[0]!=null?r[0]:'New bill', n(r&&r[1]), r&&r[2]!=null?String(r[2]):'']); }catch(e){}
+  }
+  function renderBudgetAccountsMobile(){
+    const box=ensureAfter('dynamicBudgetAccountsTable','v274BudgetAccountsMobile'); if(!box) return;
+    const accounts=accountsRead();
+    box.innerHTML=accounts.length?accounts.map((a,i)=>{
+      const s=splitNet(a.balance); const limit=n(a.limit); const inc=accountIncludeFlag(a); const rem=remainingBuffer(a);
+      return `<div class="v274-mobile-card" data-account-index="${i}">
+        <div class="v274-mobile-title"><div>${esc(a.name||'Account')}<span class="v274-mobile-sub">${esc(a.type||'Current')}</span></div><span class="v25530-badge blue">${i+1}/${MAX_ACCOUNTS}</span></div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Balance</span><input id="v274AccBal_${i}" type="number" value="${s.balance}" oninput="MobileV274.updateAccount(${i})" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Overdraft used</span><input id="v274AccOd_${i}" type="number" value="${s.overdraft}" oninput="MobileV274.updateAccount(${i})" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Overdraft limit</span><input id="v274AccLimit_${i}" type="number" value="${limit}" oninput="MobileV274.updateAccount(${i})" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Safe-spend overdraft rule</span><select id="v274AccInclude_${i}" onchange="MobileV274.updateAccount(${i});MobileV274.commit(false)"><option value="no" ${inc==='no'?'selected':''}>No - balance only</option><option value="yes" ${inc==='yes'?'selected':''} ${limit>0?'':'disabled'}>Yes - include remaining overdraft</option></select></label>
+        </div>
+        <div class="v274-note">Remaining buffer now: ${moneySafe(rem)}</div>
+      </div>`;
+    }).join(''):`<div class="v274-mobile-empty">No linked accounts yet. Add accounts on the Accounts tab.</div>`;
+  }
+  function renderFixedMobile(){
+    const box=ensureAfter('fixedCostsTable','v274FixedCostsMobile'); if(!box) return;
+    normaliseFixed();
+    box.innerHTML=state.fixed.length?state.fixed.map((r,i)=>`<div class="v274-mobile-card">
+      <div class="v274-mobile-title">${esc(r[0]||'Bill')}</div>
+      <div class="v274-mobile-grid">
+        <label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="MobileV274.updateFixed(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="MobileV274.updateFixed(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="e.g. 1 or 26" value="${esc(r[2]||'')}" oninput="MobileV274.updateFixed(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+      </div>
+    </div>`).join(''):`<div class="v274-mobile-empty">No fixed costs yet. Tap Add bill to create one.</div>`;
+  }
+  function renderDebtsMobile(){
+    const box=ensureAfter('debtTable','v274DebtMobile'); if(!box) return;
+    const rows=Array.isArray(state.debts)?state.debts:[];
+    box.innerHTML=rows.length?rows.map((r,i)=>`<div class="v274-mobile-card">
+      <div class="v274-mobile-title">${esc(r[0]||'Debt')}<span class="v274-mobile-sub">${esc(r[4]||'Regular')}</span></div>
+      <div class="v274-mobile-grid">
+        <label class="v274-mobile-field"><span>Debt</span><input value="${esc(r[0])}" oninput="MobileV274.updateDebt(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Balance</span><input type="number" value="${n(r[1])}" oninput="MobileV274.updateDebt(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Monthly</span><input type="number" value="${n(r[2])}" oninput="MobileV274.updateDebt(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Finish</span><input value="${esc(r[3]||'')}" oninput="MobileV274.updateDebt(${i},3,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Type</span><select onchange="MobileV274.updateDebt(${i},4,this.value);MobileV274.commit(false)"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></label>
+        <label class="v274-mobile-field"><span>Due date</span><input value="${esc(r[5]||'')}" oninput="MobileV274.updateDebt(${i},5,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Priority</span><input type="number" value="${n(r[6]||i+1)}" oninput="MobileV274.updateDebt(${i},6,this.value)" onblur="MobileV274.commit(false)"></label>
+      </div>
+      <div class="v274-mobile-actions"><button class="danger" type="button" onclick="Debt.remove(${i})">Remove</button></div>
+    </div>`).join(''):`<div class="v274-mobile-empty">No debts yet. Tap Add debt to create one.</div>`;
+  }
+  function renderHolidayMobile(){
+    const box=ensureAfter('holidayTable','v274HolidayMobile'); if(!box) return;
+    const rows=Array.isArray(state.holidays)?state.holidays:[];
+    box.innerHTML=rows.length?rows.map((r,i)=>`<div class="v274-mobile-card">
+      <div class="v274-mobile-title">${esc(r[0]||'Holiday')}</div>
+      <div class="v274-mobile-grid">
+        <label class="v274-mobile-field"><span>Holiday</span><input value="${esc(r[0])}" oninput="MobileV274.updateHoliday(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Note</span><input value="${esc(r[1]||'')}" oninput="MobileV274.updateHoliday(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Target</span><input type="number" value="${n(r[2])}" oninput="MobileV274.updateHoliday(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Saved / Ringfenced</span><input type="number" value="${n(r[3])}" oninput="MobileV274.updateHoliday(${i},3,this.value)" onblur="MobileV274.commit(false)"></label>
+        <label class="v274-mobile-field"><span>Date / Due date</span><input value="${esc(r[4]||'')}" oninput="MobileV274.updateHoliday(${i},4,this.value)" onblur="MobileV274.commit(false)"></label>
+      </div>
+      <div class="v274-mobile-actions"><button class="danger" type="button" onclick="Holidays.remove(${i})">Remove</button></div>
+    </div>`).join(''):`<div class="v274-mobile-empty">No holiday pots yet. Tap Add holiday to create one.</div>`;
+  }
+  function holidayStatusSafe(h){ try{return Calc.holidayStatus(h);}catch(e){return {label:'',detail:'',cls:''};} }
+  function renderHolidaySummaryMobile(){
+    const box=ensureAfter('holidayControlTable','v274HolidaySummaryMobile'); if(!box) return;
+    const rows=Array.isArray(state.holidays)?[...state.holidays]:[];
+    try{ rows.sort((a,b)=>{const da=Calc.parseDate(a[4]),db=Calc.parseDate(b[4]); if(da&&db)return da-db; if(da&&!db)return -1; if(!da&&db)return 1; return String(a[0]).localeCompare(String(b[0]));}); }catch(e){}
+    box.innerHTML=rows.length?rows.map(h=>{ const rem=Math.max(0,n(h[2])-n(h[3])); const st=holidayStatusSafe(h); return `<div class="v274-mobile-card">
+      <div class="v274-mobile-title">${esc(h[0]||'Holiday')}<span class="status-badge ${esc(st.cls||'')}">${esc(st.label||'')}</span></div>
+      <div class="v274-summary-row"><span>Date</span><strong>${esc(h[4]||'')}</strong></div>
+      <div class="v274-summary-row"><span>Target</span><strong>${moneySafe(h[2])}</strong></div>
+      <div class="v274-summary-row"><span>Saved</span><strong>${moneySafe(h[3])}</strong></div>
+      <div class="v274-summary-row"><span>Remaining</span><strong>${moneySafe(rem)}</strong></div>
+      <div class="v274-note">${esc(st.detail||'')}</div>
+    </div>`; }).join(''):`<div class="v274-mobile-empty">No holiday summary yet.</div>`;
+  }
+  function renderAll(){ if(!document.body) return; updateVersion(); try{renderBudgetAccountsMobile();}catch(e){console.warn('v274 accounts',e);} try{renderFixedMobile();}catch(e){console.warn('v274 fixed',e);} try{renderDebtsMobile();}catch(e){console.warn('v274 debts',e);} try{renderHolidayMobile();}catch(e){console.warn('v274 holidays',e);} try{renderHolidaySummaryMobile();}catch(e){console.warn('v274 holiday summary',e);} }
+  window.MobileV274={
+    renderAll,
+    updateAccount(i){ const accounts=accountsRead(); const a=accounts[i]; if(!a) return; const bal=document.getElementById('v274AccBal_'+i); const od=document.getElementById('v274AccOd_'+i); const lim=document.getElementById('v274AccLimit_'+i); const inc=document.getElementById('v274AccInclude_'+i); a.balance=Math.max(0,n(bal&&bal.value))-Math.max(0,n(od&&od.value)); a.limit=Math.max(0,n(lim&&lim.value)); a.includeOverdraftForSpend=(inc&&inc.value==='yes'&&a.limit>0)?'yes':'no'; accountWrite(accounts); },
+    updateFixed(i,k,v){ normaliseFixed(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1?n(v):v); Data.save(); },
+    updateDebt(i,k,v){ if(!state.debts||!state.debts[i]) return; state.debts[i][k]=([1,2,6].includes(k)?n(v):v); Data.save(); },
+    updateHoliday(i,k,v){ if(!state.holidays||!state.holidays[i]) return; state.holidays[i][k]=([2,3].includes(k)?n(v):v); Data.save(); },
+    commit(full){ try{Data.save();}catch(e){} if(full){try{App.render();}catch(e){}} else {try{Dashboard.render(); Timeline.render(); HealthV21.render();}catch(e){} setTimeout(renderAll,50);} }
+  };
+  function patch(){
+    const wrap=(obj,name)=>{ try{ if(!obj||!obj[name]||obj[name].__v274) return; const old=obj[name].bind(obj); obj[name]=function(){ const r=old.apply(this,arguments); setTimeout(renderAll,0); setTimeout(renderAll,80); return r; }; obj[name].__v274=true; }catch(e){} };
+    wrap(window.App,'render'); wrap(window.Budget,'render'); wrap(window.Debt,'render'); wrap(window.Holidays,'render'); wrap(window.AccountsUIV25527,'render');
+  }
+  function boot(){ updateVersion(); patch(); renderAll(); setTimeout(renderAll,120); setTimeout(renderAll,650); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,320)); else setTimeout(boot,320);
+})();
+
+
+/* v2.7.5 Mobile Add/Remove Fix
+   Keeps the successful v2.7.4 mobile card layout, but makes Add/Remove update the mobile cards immediately. */
+(function(){
+  const VERSION='v2.7.5 Mobile Add Remove Fix';
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function safeRenderMobile(){
+    try{ if(window.MobileV274 && typeof window.MobileV274.renderAll==='function') window.MobileV274.renderAll(); }catch(e){}
+    setTimeout(()=>{ try{ if(window.MobileV274 && typeof window.MobileV274.renderAll==='function') window.MobileV274.renderAll(); }catch(e){} },60);
+    setTimeout(()=>{ try{ if(window.MobileV274 && typeof window.MobileV274.renderAll==='function') window.MobileV274.renderAll(); }catch(e){} },180);
+  }
+  function fullRefresh(){
+    try{ Data.save(); }catch(e){}
+    try{ App.render(); }catch(e){
+      try{ Dashboard.render(); Budget.render(); Debt.render(); Holidays.render(); Timeline.render(); HealthV21.render(); }catch(err){}
+    }
+    updateVersion();
+    safeRenderMobile();
+  }
+  function patchGlobals(){
+    /* Make the app controllers available to inline mobile buttons and older wrappers. */
+    try{ window.App=App; window.Data=Data; window.Budget=Budget; window.Debt=Debt; window.Holidays=Holidays; window.AccountsUIV25527=AccountsUIV25527; }catch(e){}
+  }
+  function patchDebt(){
+    try{
+      if(typeof Debt==='undefined' || Debt.__v275MobileAddRemove) return;
+      Debt.add=function(){
+        if(!Array.isArray(state.debts)) state.debts=[];
+        state.debts.push(['New debt',0,0,'','Regular','',state.debts.length+1]);
+        fullRefresh();
+      };
+      Debt.remove=function(i){
+        i=Number(i);
+        if(!Array.isArray(state.debts) || !state.debts[i]) return;
+        const name=state.debts[i][0] || 'this debt';
+        const ok = (typeof confirm==='function') ? confirm('Remove '+name+'?') : true;
+        if(!ok) return;
+        state.debts.splice(i,1);
+        state.debts.forEach((d,idx)=>{ if(!d[6]) d[6]=idx+1; });
+        fullRefresh();
+      };
+      Debt.__v275MobileAddRemove=true;
+    }catch(e){ console.warn('v275 debt patch',e); }
+  }
+  function patchHolidays(){
+    try{
+      if(typeof Holidays==='undefined' || Holidays.__v275MobileAddRemove) return;
+      Holidays.add=function(){
+        if(!Array.isArray(state.holidays)) state.holidays=[];
+        state.holidays.push(['New holiday','',0,0,'']);
+        fullRefresh();
+      };
+      Holidays.remove=function(i){
+        i=Number(i);
+        if(!Array.isArray(state.holidays) || !state.holidays[i]) return;
+        const name=state.holidays[i][0] || 'this holiday';
+        const ok = (typeof confirm==='function') ? confirm('Remove '+name+'?') : true;
+        if(!ok) return;
+        state.holidays.splice(i,1);
+        fullRefresh();
+      };
+      Holidays.__v275MobileAddRemove=true;
+    }catch(e){ console.warn('v275 holiday patch',e); }
+  }
+  function patchAppRender(){
+    try{
+      if(typeof App==='undefined' || App.__v275MobileRender) return;
+      const oldRender=App.render.bind(App);
+      App.render=function(){ const r=oldRender(); updateVersion(); safeRenderMobile(); return r; };
+      App.saveAndRender=function(){ try{Data.save();}catch(e){} return App.render(); };
+      App.__v275MobileRender=true;
+    }catch(e){}
+  }
+  function boot(){
+    patchGlobals(); patchDebt(); patchHolidays(); patchAppRender(); updateVersion(); safeRenderMobile();
+    setTimeout(()=>{patchGlobals(); patchDebt(); patchHolidays(); updateVersion(); safeRenderMobile();},400);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,450)); else setTimeout(boot,450);
+})();
+
+</script>
+
+
+<script>
+/* v2.7.6 Bills/Debt De-duplication
+   Budget Fixed Costs now handles normal bills only.
+   Debt Tracker is the master source for debt balances/repayments.
+   Safe-spend/forecast totals still include debt repayments via Calc.totalFixed(). */
+(function(){
+  const VERSION='v2.7.6 Bills Debt De-duplication';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function norm(v){ return String(v||'').toLowerCase().replace(/bnpl/g,'').replace(/[^a-z0-9]/g,'').trim(); }
+  function debtRows(){ return Array.isArray(state && state.debts)?state.debts:[]; }
+  function fixedRows(){ if(!Array.isArray(state.fixed)) state.fixed=[]; return state.fixed; }
+  function debtMonthlyRows(){
+    return debtRows().filter(d=>n(d&&d[1])>0 && n(d&&d[2])>0).map(d=>({name:String(d[0]||'Debt'), monthly:n(d[2]), type:String(d[4]||'Regular'), due:String(d[5]||d[3]||'')}));
+  }
+  function debtRepaymentTotal(){ return debtMonthlyRows().reduce((s,d)=>s+d.monthly,0); }
+  function normalBillTotal(){ return fixedRows().reduce((s,r)=>s+n(r&&r[1]),0); }
+  function looksLikeDebtFixed(row){
+    const name=norm(row&&row[0]);
+    if(!name) return false;
+    const aliases=['admiral','lendable','oakbrook','currys','currysbnpl','friendbarcelona','friendbarc'];
+    if(aliases.some(a=>name===a || name.includes(a) || a.includes(name))) return true;
+    return debtRows().some(d=>{
+      const dn=norm(d&&d[0]); if(!dn) return false;
+      return name===dn || dn.includes(name) || name.includes(dn);
+    });
+  }
+  function migrateFixedCosts(){
+    try{
+      fixedRows();
+      state.fixed=state.fixed.map(r=>[r&&r[0]!=null?r[0]:'New bill', n(r&&r[1]), r&&r[2]!=null?String(r[2]):'']);
+      // Always filter known debt duplicates, not only once, so older browser data gets corrected.
+      const keep=[], removed=[];
+      state.fixed.forEach(r=>{ (looksLikeDebtFixed(r)?removed:keep).push(r); });
+      state.fixed=keep;
+      if(removed.length){
+        if(!Array.isArray(state._v276RemovedDebtFixedCosts)) state._v276RemovedDebtFixedCosts=[];
+        const seen=new Set(state._v276RemovedDebtFixedCosts.map(r=>norm(r&&r[0])+'|'+n(r&&r[1])));
+        removed.forEach(r=>{ const key=norm(r[0])+'|'+n(r[1]); if(!seen.has(key)){ state._v276RemovedDebtFixedCosts.push(r); seen.add(key); } });
+        Data.save();
+      }
+    }catch(e){ console.warn('v276 migrate fixed costs',e); }
+  }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function patchCalc(){
+    try{
+      if(!Calc || Calc.__v276Dedup) return;
+      Calc.normalBillTotal=function(){ migrateFixedCosts(); return normalBillTotal(); };
+      Calc.debtRepaymentTotal=function(){ return debtRepaymentTotal(); };
+      Calc.debtMonthlyRows=function(){ return debtMonthlyRows(); };
+      Calc.totalFixed=function(){ migrateFixedCosts(); return normalBillTotal()+debtRepaymentTotal(); };
+      Calc.__v276Dedup=true;
+    }catch(e){ console.warn('v276 calc patch',e); }
+  }
+  function ensureSummaryCard(){
+    const fixedTable=document.getElementById('fixedCostsTable'); if(!fixedTable) return null;
+    const fixedCard=fixedTable.closest('.card') || fixedTable.parentElement;
+    if(!fixedCard) return null;
+    try{
+      const h=fixedCard.querySelector('h3');
+      if(h) h.textContent='Monthly Fixed Costs / Bills';
+      if(!fixedCard.querySelector('#v276BillsOnlyNote')){
+        const note=document.createElement('p'); note.id='v276BillsOnlyNote'; note.className='note';
+        note.innerHTML='Normal bills only. Debt repayments are managed in <strong>Debt Tracker</strong> and pulled into the calculations automatically.';
+        fixedCard.insertBefore(note, fixedTable);
+      }
+    }catch(e){}
+    let card=document.getElementById('v276DebtRepaymentsCard');
+    if(!card){
+      card=document.createElement('div'); card.id='v276DebtRepaymentsCard'; card.className='card full v276-debt-summary-card';
+      fixedCard.insertAdjacentElement('afterend', card);
+    }
+    return card;
+  }
+  function renderDebtSummary(){
+    try{
+      const card=ensureSummaryCard(); if(!card) return;
+      const rows=debtMonthlyRows(); const total=debtRepaymentTotal();
+      card.innerHTML=`
+        <h3>Debt Repayments from Debt Tracker</h3>
+        <p class="note">Read-only summary. Add, remove or edit debt repayments in the Debt Tracker tab.</p>
+        <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${moneySafe(total)}</strong></div>
+        ${rows.length?`<div class="v276-debt-list">${rows.map(r=>`<div class="v276-debt-line"><span>${esc(r.name)} <em>${esc(r.type)}</em></span><strong>${moneySafe(r.monthly)}</strong></div>`).join('')}</div>`:`<div class="v274-mobile-empty">No monthly debt repayments currently active.</div>`}
+      `;
+    }catch(e){ console.warn('v276 debt summary render',e); }
+  }
+  function renderFixedMobileV276(){
+    try{
+      migrateFixedCosts();
+      if(!(window.MobileV274 && typeof MobileV274.renderAll==='function')) return;
+      const table=document.getElementById('fixedCostsTable'); if(!table) return;
+      let box=document.getElementById('v274FixedCostsMobile');
+      if(!box){
+        box=document.createElement('div'); box.id='v274FixedCostsMobile'; box.className='v274-mobile-editor';
+        table.insertAdjacentElement('afterend',box);
+      }
+      const rows=fixedRows();
+      box.innerHTML=rows.length?rows.map((r,i)=>`<div class="v274-mobile-card">
+        <div class="v274-mobile-title">${esc(r[0]||'Bill')}</div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="MobileV274.updateFixed(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="MobileV274.updateFixed(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="e.g. 1 or 26" value="${esc(r[2]||'')}" oninput="MobileV274.updateFixed(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+        </div>
+      </div>`).join(''):`<div class="v274-mobile-empty">No normal bills yet. Tap Add bill to create one.</div>`;
+    }catch(e){ console.warn('v276 fixed mobile',e); }
+  }
+  function patchBudget(){
+    try{
+      if(!Budget || Budget.__v276Dedup) return;
+      const oldRender=Budget.render.bind(Budget);
+      Budget.render=function(){
+        migrateFixedCosts();
+        const r=oldRender();
+        renderDebtSummary(); renderFixedMobileV276(); updateVersion();
+        return r;
+      };
+      Budget.addFixed=function(){ migrateFixedCosts(); state.fixed.push(['New bill',0,'']); App.saveAndRender(); };
+      Budget.__v276Dedup=true;
+    }catch(e){ console.warn('v276 budget patch',e); }
+  }
+  function patchDebt(){
+    try{
+      if(!Debt || Debt.__v276Dedup) return;
+      const oldRender=Debt.render.bind(Debt);
+      Debt.render=function(){ const r=oldRender(); renderDebtSummary(); updateVersion(); return r; };
+      const oldAdd=Debt.add.bind(Debt);
+      Debt.add=function(){ const r=oldAdd(); renderDebtSummary(); return r; };
+      const oldRemove=Debt.remove.bind(Debt);
+      Debt.remove=function(i){ const r=oldRemove(i); renderDebtSummary(); return r; };
+      Debt.__v276Dedup=true;
+    }catch(e){ console.warn('v276 debt patch',e); }
+  }
+  function patchMobileCommit(){
+    try{
+      if(!window.MobileV274 || MobileV274.__v276Dedup) return;
+      const oldCommit=MobileV274.commit.bind(MobileV274);
+      MobileV274.commit=function(full){ const r=oldCommit(full); migrateFixedCosts(); renderDebtSummary(); renderFixedMobileV276(); return r; };
+      MobileV274.__v276Dedup=true;
+    }catch(e){}
+  }
+  function injectCSS(){
+    if(document.getElementById('v276CSS')) return;
+    const style=document.createElement('style'); style.id='v276CSS';
+    style.textContent=`
+      .v276-debt-summary-card{background:linear-gradient(145deg,rgba(17,28,48,.96),rgba(7,14,30,.98))!important;border:1px solid rgba(81,117,170,.35)!important;}
+      .v276-summary-total{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;border-radius:18px;background:rgba(4,10,24,.72);border:1px solid rgba(110,139,188,.28);margin:12px 0;font-size:1.08rem;}
+      .v276-summary-total strong{font-size:1.8rem;color:#31c7ff;}
+      .v276-debt-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px;}
+      .v276-debt-line{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(6,13,30,.78);border:1px solid rgba(92,119,166,.25);}
+      .v276-debt-line em{font-style:normal;color:#9fb1cc;font-size:.82em;margin-left:6px;}
+      .v276-debt-line strong{color:#9ee7ff;white-space:nowrap;}
+      @media(max-width:560px){.v276-summary-total{align-items:flex-start;flex-direction:column}.v276-summary-total strong{font-size:2.1rem}.v276-debt-list{grid-template-columns:1fr}.v276-debt-line{padding:13px 14px}}
+    `;
+    document.head.appendChild(style);
+  }
+  function refresh(){
+    migrateFixedCosts(); patchCalc(); patchBudget(); patchDebt(); patchMobileCommit(); injectCSS(); updateVersion(); renderDebtSummary(); renderFixedMobileV276();
+    try{ if(window.MobileV274 && typeof MobileV274.renderAll==='function') MobileV274.renderAll(); }catch(e){}
+  }
+  function boot(){ refresh(); setTimeout(refresh,200); setTimeout(refresh,700); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,600)); else setTimeout(boot,600);
+})();
+</script>
+
+
+
+<script>
+/* v2.7.7 Budget Bill Remove Fix
+   Adds remove controls for normal bills in Budget > Monthly Fixed Costs / Bills.
+   Keeps Debt Tracker as the master place for debt repayments. */
+(function(){
+  const VERSION='v2.7.7 Budget Bill Remove Fix';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function normaliseFixed(){
+    try{
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      state.fixed=state.fixed.map(r=>[r&&r[0]!=null?r[0]:'New bill', n(r&&r[1]), r&&r[2]!=null?String(r[2]):'']);
+    }catch(e){}
+  }
+  function renderFixedDesktop(){
+    try{
+      const t=document.getElementById('fixedCostsTable'); if(!t) return;
+      normaliseFixed();
+      t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th><th>Remove</th></tr>'+
+        state.fixed.map((r,i)=>`<tr>
+          <td><input value="${esc(r[0])}" oninput="state.fixed[${i}][0]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input type="number" value="${n(r[1])}" oninput="state.fixed[${i}][1]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>
+          <td><input inputmode="numeric" placeholder="e.g. 1 or 26" value="${esc(r[2]||'')}" oninput="state.fixed[${i}][2]=this.value;Data.save()" onblur="App.saveAndRender()"></td>
+          <td><button class="danger" type="button" onclick="Budget.removeFixed(${i})">Remove</button></td>
+        </tr>`).join('');
+    }catch(e){ console.warn('v277 fixed desktop',e); }
+  }
+  function renderFixedMobile(){
+    try{
+      const table=document.getElementById('fixedCostsTable'); if(!table) return;
+      let box=document.getElementById('v274FixedCostsMobile');
+      if(!box){
+        box=document.createElement('div'); box.id='v274FixedCostsMobile'; box.className='v274-mobile-forms';
+        const outer=(table.parentElement&&(table.parentElement.classList.contains('v25531-table-wrap')||table.parentElement.classList.contains('v272-mobile-table-wrap')))?table.parentElement:table;
+        outer.insertAdjacentElement('afterend',box);
+      }
+      normaliseFixed();
+      box.innerHTML=state.fixed.length?state.fixed.map((r,i)=>`<div class="v274-mobile-card">
+        <div class="v274-mobile-title">${esc(r[0]||'Bill')}</div>
+        <div class="v274-mobile-grid">
+          <label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="MobileV274.updateFixed(${i},0,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="MobileV274.updateFixed(${i},1,this.value)" onblur="MobileV274.commit(false)"></label>
+          <label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="e.g. 1 or 26" value="${esc(r[2]||'')}" oninput="MobileV274.updateFixed(${i},2,this.value)" onblur="MobileV274.commit(false)"></label>
+        </div>
+        <div class="v274-mobile-actions"><button class="danger" type="button" onclick="Budget.removeFixed(${i})">Remove bill</button></div>
+      </div>`).join(''):`<div class="v274-mobile-empty">No normal bills yet. Tap Add bill to create one.</div>`;
+    }catch(e){ console.warn('v277 fixed mobile',e); }
+  }
+  function renderAll(){
+    updateVersion();
+    normaliseFixed();
+    renderFixedDesktop();
+    renderFixedMobile();
+    try{ if(typeof renderDebtSummary==='function') renderDebtSummary(); }catch(e){}
+  }
+  function fullRefresh(){
+    try{ Data.save(); }catch(e){}
+    try{ App.render(); }catch(e){ try{ Budget.render(); Dashboard.render(); Timeline.render(); }catch(err){} }
+    setTimeout(renderAll,30); setTimeout(renderAll,120);
+  }
+  function patchBudget(){
+    try{
+      if(typeof Budget==='undefined' || Budget.__v277BillRemove) return;
+      const oldRender=Budget.render.bind(Budget);
+      Budget.render=function(){ const r=oldRender(); renderAll(); return r; };
+      Budget.addFixed=function(){ normaliseFixed(); state.fixed.push(['New bill',0,'']); fullRefresh(); };
+      Budget.removeFixed=function(i){
+        normaliseFixed(); i=Number(i);
+        if(!state.fixed[i]) return;
+        const name=state.fixed[i][0] || 'this bill';
+        const ok=(typeof confirm==='function') ? confirm('Remove '+name+'?') : true;
+        if(!ok) return;
+        state.fixed.splice(i,1);
+        fullRefresh();
+      };
+      Budget.__v277BillRemove=true;
+    }catch(e){ console.warn('v277 budget patch',e); }
+  }
+  function patchMobile(){
+    try{
+      if(!window.MobileV274 || MobileV274.__v277BillRemove) return;
+      const oldRenderAll=MobileV274.renderAll.bind(MobileV274);
+      MobileV274.renderAll=function(){ const r=oldRenderAll(); renderFixedMobile(); updateVersion(); return r; };
+      const oldCommit=MobileV274.commit.bind(MobileV274);
+      MobileV274.commit=function(full){ const r=oldCommit(full); normaliseFixed(); setTimeout(renderFixedMobile,40); return r; };
+      MobileV274.__v277BillRemove=true;
+    }catch(e){ console.warn('v277 mobile patch',e); }
+  }
+  function boot(){
+    patchBudget(); patchMobile(); renderAll();
+    setTimeout(()=>{ patchBudget(); patchMobile(); renderAll(); },250);
+    setTimeout(()=>{ patchBudget(); patchMobile(); renderAll(); },750);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,650)); else setTimeout(boot,650);
+})();
+</script>
+
+
+
+<script>
+/* v2.7.8 Finance Health Score Lock + Payday Update Status Cleanup
+   Locks Finance Health to the newer detailed score formula and removes the old
+   Payday Update Mode next-priority notification from Budget Setup. */
+(function(){
+  const VERSION='v2.7.8 Finance Health Score Lock';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function calcScore(){
+    const overdraft = (window.Calc && Calc.totalOverdraft) ? Calc.totalOverdraft() : 0;
+    const debt = (window.Calc && Calc.totalDebt) ? Calc.totalDebt() : 0;
+    const bank = (window.Calc && Calc.bankPosition) ? Calc.bankPosition() : 0;
+    const emergency = n(state && state.emergencyFund);
+    const emergencyTarget = Math.max(n(state && state.emergencyTarget) || 1000, 1);
+    const bnpl = (window.Calc && Calc.debtBalance) ? Calc.debtBalance('Currys BNPL') : 0;
+    const holidays = Array.isArray(state && state.holidays) ? state.holidays : [];
+    const holidayTarget = holidays.reduce((s,h)=>s+n(h && h[2]),0);
+    const holidaySaved = holidays.reduce((s,h)=>s+Math.min(n(h && h[2]), n(h && h[3])),0);
+    const holidayPct = holidayTarget>0 ? Math.max(0,Math.min(1,holidaySaved/holidayTarget)) : 1;
+
+    const overdraftScore = Math.max(0, Math.min(20, 20 - (overdraft/650)*20));
+    const bnplScore = bnpl<=0 ? 15 : Math.max(0, 15 - (bnpl/440)*15);
+    const emergencyScore = Math.max(0, Math.min(20, (emergency/emergencyTarget)*20));
+    const bankScore = bank>=0 ? 15 : Math.max(0, Math.min(15, 15 + (bank/1000)*15));
+    const holidayScore = Math.max(0, Math.min(10, holidayPct*10));
+    const debtScore = Math.max(0, Math.min(20, 20 - (debt/11000)*20));
+    const total = Math.round(overdraftScore + bnplScore + emergencyScore + bankScore + holidayScore + debtScore);
+
+    return {
+      total,
+      status: total>=70 ? {label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'}
+        : total>=45 ? {label:'Improving',type:'amber',detail:'Moving in the right direction, but debt, overdraft or savings still need attention.'}
+        : total>=20 ? {label:'Tight',type:'amber',detail:'Main pressure points are debt, overdraft use and low savings.'}
+        : {label:'Critical',type:'red',detail:'BNPL/debt, active overdraft and a low emergency fund are pulling the score down.'},
+      parts:[
+        ['Overdraft',overdraftScore,20, overdraft<=0 ? 'No overdraft used' : moneySafe(overdraft)+' overdraft used'],
+        ['BNPL',bnplScore,15, bnpl<=0 ? 'BNPL cleared' : moneySafe(bnpl)+' BNPL remaining'],
+        ['Emergency fund',emergencyScore,20, moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+        ['Bank position',bankScore,15, moneySafe(bank)+' net position'],
+        ['Holiday funding',holidayScore,10, Math.round(holidayPct*100)+'% funded'],
+        ['Debt load',debtScore,20, moneySafe(debt)+' total debt']
+      ],
+      next: bnpl>0 ? 'Clear Currys BNPL to gain up to 15 points.'
+        : overdraft>0 ? 'Reduce overdraft use to gain up to 20 points.'
+        : emergency<emergencyTarget ? 'Build emergency fund towards '+moneySafe(emergencyTarget)+'.'
+        : bank<0 ? 'Move your net bank position positive.'
+        : 'Keep debt reducing and start building relocation savings.'
+    };
+  }
+  function renderHealth(){
+    try{
+      const data=calcScore();
+      const fh=document.getElementById('financeHealth');
+      if(fh){
+        fh.textContent=data.total+'/100';
+        fh.className='big value-soft '+(data.total>=70?'value-positive':data.total>=40?'value-warning':'value-negative');
+      }
+      const note=document.getElementById('financeHealthNote');
+      if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason');
+      if(detail) detail.innerHTML='<strong>Status:</strong> '+data.status.label+'<br><span class="muted">'+data.status.detail+'</span>';
+      try{
+        const badgeRow=fh && (fh.closest('.stat-card,.card')||fh.parentElement).querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+data.status.label+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){
+        box.innerHTML=data.parts.map(p=>`<div class="score-box"><span class="small">${p[0]}</span><strong>${Math.round(p[1])}/${p[2]}</strong><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,(p[1]/p[2])*100))}%"></div></div><div class="note">${p[3]}</div></div>`).join('');
+      }
+    }catch(e){ console.warn('v278 health render',e); }
+  }
+  function clearPaydayStatus(){
+    try{
+      const box=document.getElementById('paydayResult');
+      if(box){ box.innerHTML=''; box.style.display='none'; }
+    }catch(e){}
+  }
+  function patchHealth(){
+    try{
+      if(window.HealthV21 && !HealthV21.__v278Locked){
+        HealthV21.score=calcScore;
+        HealthV21.render=renderHealth;
+        HealthV21.__v278Locked=true;
+      }
+    }catch(e){}
+    try{
+      if(window.Dashboard && Dashboard.render && !Dashboard.render.__v278HealthLock){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=old(); renderHealth(); clearPaydayStatus(); updateVersion(); return r; };
+        Dashboard.render.__v278HealthLock=true;
+      }
+    }catch(e){}
+  }
+  function patchBudget(){
+    try{
+      if(window.Budget && Budget.render && !Budget.render.__v278PaydayStatusClean){
+        const oldRender=Budget.render.bind(Budget);
+        Budget.render=function(){ const r=oldRender(); clearPaydayStatus(); updateVersion(); return r; };
+        Budget.render.__v278PaydayStatusClean=true;
+      }
+      if(window.Budget && Budget.save && !Budget.save.__v278PaydayStatusClean){
+        const oldSave=Budget.save.bind(Budget);
+        Budget.save=function(){ const r=oldSave(); setTimeout(clearPaydayStatus,30); setTimeout(clearPaydayStatus,150); return r; };
+        Budget.save.__v278PaydayStatusClean=true;
+      }
+    }catch(e){ console.warn('v278 budget patch',e); }
+  }
+  function boot(){
+    updateVersion(); patchHealth(); patchBudget(); renderHealth(); clearPaydayStatus();
+    setTimeout(()=>{updateVersion(); patchHealth(); patchBudget(); renderHealth(); clearPaydayStatus();},250);
+    setTimeout(()=>{updateVersion(); patchHealth(); patchBudget(); renderHealth(); clearPaydayStatus();},900);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,750)); else setTimeout(boot,750);
+})();
+</script>
+
+<script>
+/* v2.7.9 Finance Health Score Calibration
+   Replaces the too-generous v2.7.8 health score with a stricter risk-weighted score.
+   This keeps overdraft use, BNPL, high debt, low safe spend and no emergency fund
+   from ever showing as a strong position. */
+(function(){
+  const VERSION='v2.7.10 Foldable Dashboard Width Fix';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  function readAccounts(){
+    try{ if(window.AccountsUIV25527 && AccountsUIV25527.accounts) return AccountsUIV25527.accounts(); }catch(e){}
+    try{ const raw=JSON.parse(localStorage.getItem('grantOS.accounts.v2554')||'[]'); if(Array.isArray(raw)) return raw; }catch(e){}
+    return [];
+  }
+  function overdraftInfo(){
+    let used=0, limit=0;
+    try{
+      const accounts=readAccounts();
+      accounts.forEach(a=>{ used += Math.max(0,-n(a&&a.balance)); limit += Math.max(0,n(a&&a.limit)); });
+    }catch(e){}
+    const legacyUsed=n(state&&state.firstDirectOverdraft)+n(state&&state.monzoOverdraft);
+    const legacyLimit=n(state&&state.firstDirectOverdraftLimit)+n(state&&state.monzoOverdraftLimit);
+    if(legacyUsed>used) used=legacyUsed;
+    if(legacyLimit>limit) limit=legacyLimit;
+    return {used, limit:Math.max(limit, used, 1)};
+  }
+  function debtRows(){
+    try{ return Array.isArray(state&&state.debts) ? state.debts : []; }catch(e){ return []; }
+  }
+  function debtType(d){ try{ return (window.Calc && Calc.debtType) ? Calc.debtType(d) : String(d&&d[4]||'Regular'); }catch(e){ return String(d&&d[4]||'Regular'); } }
+  function debtName(d){ return String(d&&d[0]||''); }
+  function debtBalance(d){ return Math.max(0,n(d&&d[1])); }
+  function debtMonthly(d){ return Math.max(0,n(d&&d[2])); }
+  function calcScore(){
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const od=overdraftInfo();
+    const debts=debtRows();
+    const totalDebt=debts.reduce((s,d)=>s+debtBalance(d),0);
+    const bnpl=debts.filter(d=>/bnpl|currys/i.test(debtName(d))).reduce((s,d)=>s+debtBalance(d),0);
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const weeklyBudget=Math.max(n(state&&state.weeklyBudget)||60,1);
+    const targetDaily=weeklyBudget/7;
+    let safeToday=0;
+    try{ safeToday=(window.Calc && Calc.safeToday) ? n(Calc.safeToday()) : 0; }catch(e){}
+    const regularMonthly=debts.filter(d=>debtBalance(d)>0 && debtType(d)!=='One-off').reduce((s,d)=>s+debtMonthly(d),0);
+    const oneOffActive=debts.filter(d=>debtBalance(d)>0 && debtType(d)==='One-off').length;
+
+    // 1) Debt load, 25 points. Heavy debt compared with monthly wage scores low.
+    const debtRatio=totalDebt/wage;
+    const debtScore=clamp(25-(debtRatio*4.5),0,25);
+
+    // 2) Overdraft pressure, 20 points. Active overdraft can never score full marks.
+    const odUtil=od.used/od.limit;
+    const overdraftScore=od.used<=0 ? 20 : clamp(16-(odUtil*10),0,16);
+
+    // 3) BNPL/short-term pressure, 15 points. Active BNPL is treated as high-risk pressure.
+    const bnplScore=bnpl<=0 ? 15 : clamp(5-(bnpl/440*5),0,5);
+
+    // 4) Emergency fund, 20 points.
+    const emergencyScore=clamp((emergency/emergencyTarget)*20,0,20);
+
+    // 5) Safe-spend pressure, 10 points.
+    const safeSpendScore=clamp((safeToday/targetDaily)*10,0,10);
+
+    // 6) Repayment structure, 10 points. Rewards having a repayment plan, not the debt itself.
+    let planScore=0;
+    if(totalDebt<=0) planScore=10;
+    else{
+      planScore=clamp((regularMonthly/(wage*0.25))*8,0,8);
+      if(oneOffActive>0) planScore+=1;
+      if(regularMonthly>0 && oneOffActive===0) planScore+=1;
+      planScore=clamp(planScore,0,10);
+    }
+
+    const total=Math.round(clamp(debtScore+overdraftScore+bnplScore+emergencyScore+safeSpendScore+planScore,0,100));
+    const status= total>=75 ? {label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'}
+      : total>=55 ? {label:'Improving',type:'amber',detail:'Some areas are stable, but debt, overdraft or savings still need attention.'}
+      : total>=35 ? {label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'}
+      : {label:'Critical',type:'red',detail:'Debt, BNPL, active overdraft, low safe spend or a low emergency fund are pulling the score down.'};
+
+    const next = bnpl>0 ? 'Clear BNPL/one-off debt first to remove short-term pressure.'
+      : od.used>0 ? 'Reduce overdraft reliance before increasing discretionary spend.'
+      : emergency<emergencyTarget ? 'Build emergency fund towards '+moneySafe(emergencyTarget)+'.'
+      : totalDebt>0 ? 'Keep debt reducing and protect the repayment plan.'
+      : 'Maintain the plan and build longer-term savings.';
+
+    return {total,status,next,parts:[
+      ['Debt load',debtScore,25, moneySafe(totalDebt)+' total debt vs '+moneySafe(wage)+' monthly wage'],
+      ['Overdraft pressure',overdraftScore,20, od.used>0 ? moneySafe(od.used)+' used of '+moneySafe(od.limit)+' limit' : 'No overdraft used'],
+      ['BNPL / one-off pressure',bnplScore,15, bnpl>0 ? moneySafe(bnpl)+' BNPL/one-off balance' : 'No BNPL pressure'],
+      ['Emergency fund',emergencyScore,20, moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',safeSpendScore,10, moneySafe(safeToday)+' today vs target '+moneySafe(targetDaily)],
+      ['Repayment structure',planScore,10, regularMonthly>0 ? moneySafe(regularMonthly)+' monthly repayment plan' : 'No active repayment plan']
+    ]};
+  }
+  function renderHealth(){
+    try{
+      const data=calcScore();
+      const fh=document.getElementById('financeHealth');
+      if(fh){
+        fh.textContent=data.total+'/100';
+        fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative');
+      }
+      const note=document.getElementById('financeHealthNote');
+      if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason');
+      if(detail) detail.innerHTML='<strong>Status:</strong> '+data.status.label+'<br><span class="muted">'+data.status.detail+'</span>';
+      try{
+        const card=fh && (fh.closest('.stat-card,.card')||fh.parentElement);
+        const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+data.status.label+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){
+        box.innerHTML=data.parts.map(p=>`<div class="score-box"><span class="small">${p[0]}</span><strong>${Math.round(p[1])}/${p[2]}</strong><div class="bar"><div class="fill" style="width:${Math.max(0,Math.min(100,(p[1]/p[2])*100))}%"></div></div><div class="note">${p[3]}</div></div>`).join('');
+      }
+    }catch(e){ console.warn('v279 health render',e); }
+  }
+  function clearPaydayStatus(){
+    try{ const box=document.getElementById('paydayResult'); if(box){ box.innerHTML=''; box.style.display='none'; } }catch(e){}
+  }
+  function patch(){
+    updateVersion(); clearPaydayStatus();
+    try{ if(window.HealthV21){ HealthV21.score=calcScore; HealthV21.render=renderHealth; HealthV21.__v279Calibrated=true; } }catch(e){}
+    try{
+      if(window.Dashboard && Dashboard.render && !Dashboard.render.__v279HealthCalibrated){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=old(); renderHealth(); clearPaydayStatus(); updateVersion(); return r; };
+        Dashboard.render.__v279HealthCalibrated=true;
+      }
+    }catch(e){}
+    try{
+      if(window.Budget && Budget.render && !Budget.render.__v279PaydayClean){
+        const oldB=Budget.render.bind(Budget);
+        Budget.render=function(){ const r=oldB(); clearPaydayStatus(); updateVersion(); return r; };
+        Budget.render.__v279PaydayClean=true;
+      }
+    }catch(e){}
+    renderHealth();
+  }
+  function boot(){ patch(); setTimeout(patch,250); setTimeout(patch,900); setTimeout(patch,1800); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,750)); else setTimeout(boot,750);
+})();
+</script>
+
+
+<style>
+/* v2.7.10 Foldable Dashboard Width Fix
+   Keep laptop layout intact, keep normal phone mobile cards, but stop foldable/tablet widths squeezing dashboard cards into tiny columns. */
+@media (min-width:641px) and (max-width:1250px){
+  #dashboard .dashboard-single-layout{
+    grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr)!important;
+    gap:12px!important;
+  }
+  #dashboard .dashboard-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+  }
+  #dashboard .dashboard-cards .wide{grid-column:span 2!important;}
+  #dashboard .dashboard-cards > .card,
+  #dashboard .dashboard-cards > .stat-card{
+    min-width:0!important;
+    overflow:visible!important;
+    padding:14px!important;
+  }
+  #dashboard .dashboard-cards .big,
+  #dashboard .dashboard-cards .value-soft{
+    font-size:clamp(30px,4.2vw,46px)!important;
+    line-height:1.05!important;
+    white-space:normal!important;
+    overflow-wrap:normal!important;
+    word-break:normal!important;
+  }
+  #dashboard .dashboard-cards h3,
+  #dashboard .dashboard-cards .stat-head h3{
+    font-size:clamp(12px,1.45vw,16px)!important;
+    line-height:1.08!important;
+  }
+  #dashboard .dashboard-cards .note,
+  #dashboard .dashboard-cards p{
+    font-size:clamp(13px,1.65vw,16px)!important;
+    line-height:1.35!important;
+  }
+  #dashboard .timeline-dashboard-card{min-height:560px!important;}
+  #dashboard .timeline-dashboard-card #timelineList{max-height:470px!important;}
+}
+
+/* A slightly wider tablet/foldable view can keep the timeline beside the dashboard, but cards must still be readable. */
+@media (min-width:901px) and (max-width:1250px){
+  #dashboard .dashboard-single-layout{grid-template-columns:minmax(0,1.05fr) minmax(380px,.95fr)!important;}
+}
+</style>
+
+<script>
+/* v2.7.10 version label only */
+(function(){
+  const VERSION='v2.7.10 Foldable Dashboard Width Fix';
+  function updateVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(updateVersion,900));
+  else setTimeout(updateVersion,900);
+  setTimeout(updateVersion,1800);
 })();
 </script>
 
