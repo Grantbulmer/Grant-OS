@@ -9093,5 +9093,92 @@ body.gos-perf-scrolling #grantOSHelperBtn{animation:none!important;}
 })();
 </script>
 
+
+<style id="build30ImmediateAlertsTop3Style">
+/* Build 3.0 Immediate Action Alerts top-3 display guard. */
+#alertsBox .alert:nth-of-type(n+4){display:none!important;}
+#alertsBox{overflow-anchor:none!important;}
+#alertsBox .alert{box-sizing:border-box!important;}
+</style>
+<script id="build30ImmediateAlertsTop3">
+/* Build 3.0 Immediate Action Alerts limit.
+   Keeps the alerts live, but only displays the top 3 current actions.
+   When one is completed/removed, the next action moves into the top 3 automatically. */
+(function(){
+  const LIMIT=3;
+  let repairing=false, timer=null;
+  const oldAlerts = (window.Calc && typeof Calc.alerts==='function') ? Calc.alerts.bind(Calc) : null;
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function isScrolling(){try{return document.body.classList.contains('gos-perf-scrolling')||document.body.classList.contains('gos-is-scrolling');}catch(e){return false;}}
+  function isEditing(){try{const a=document.activeElement;if(!a)return false;const t=String(a.tagName||'').toLowerCase();return t==='input'||t==='textarea'||t==='select'||a.isContentEditable;}catch(e){return false;}}
+  function actionHTML(a){
+    const title=esc(a&&a.title?a.title:'Review finances');
+    const meta=esc(a&&a.meta?a.meta:'Current action');
+    const reason=esc(a&&a.reason?a.reason:'This is based on your latest saved figures.');
+    const kind=esc(String((a&&a.kind)||'action').replace(/-/g,' '));
+    return '<span class="gos-action-alert"><span class="gos-action-title">Action: '+title+'</span><span class="gos-action-meta">'+meta+'</span><span class="gos-action-reason">Why: '+reason+'</span><span class="gos-action-priority">'+kind+'</span></span>';
+  }
+  function topRows(){
+    try{
+      if(window.GrantOSBuild301 && typeof GrantOSBuild301.buildActions==='function'){
+        const actions=(GrantOSBuild301.buildActions()||[]).slice(0,LIMIT);
+        if(actions.length) return actions.map(a=>[a.level||'amber',actionHTML(a)]);
+      }
+    }catch(e){}
+    try{
+      const rows=(oldAlerts?oldAlerts():[]).slice(0,LIMIT);
+      if(rows.length) return rows;
+    }catch(e){}
+    return [['green','No immediate finance alerts. Keep following the weekly spend plan.']];
+  }
+  function rowsHTML(){return topRows().slice(0,LIMIT).map(r=>'<div class="alert '+esc(r[0]||'amber')+'">'+String(r[1]||'')+'</div>').join('');}
+  function renderAlerts(force){
+    try{
+      const box=document.getElementById('alertsBox'); if(!box) return;
+      if(!force && isScrolling() && !isEditing()){ schedule(420); return; }
+      const html=rowsHTML();
+      if(box.innerHTML!==html){ repairing=true; box.innerHTML=html; repairing=false; }
+      box.dataset.gosAlertLimit=String(LIMIT);
+    }catch(e){ repairing=false; }
+  }
+  function schedule(delay){clearTimeout(timer); timer=setTimeout(()=>renderAlerts(false),delay||120);}
+  function patchCalc(){
+    try{
+      if(window.Calc && !Calc.__gosAlertTop3){
+        Calc.alerts=function(){return topRows();};
+        Calc.__gosAlertTop3=true;
+      }
+    }catch(e){}
+  }
+  function patchDashboard(){
+    try{
+      if(window.Dashboard && typeof Dashboard.render==='function' && !Dashboard.render.__gosAlertTop3){
+        const old=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const result=old.apply(Dashboard,arguments); renderAlerts(false); return result; };
+        Dashboard.render.__gosAlertTop3=true;
+      }
+    }catch(e){}
+  }
+  function observe(){
+    try{
+      const box=document.getElementById('alertsBox'); if(!box||box.__gosAlertTop3Obs) return;
+      const obs=new MutationObserver(function(){
+        if(repairing) return;
+        if(box.querySelectorAll('.alert').length>LIMIT || box.innerHTML!==rowsHTML()) schedule(80);
+      });
+      obs.observe(box,{childList:true,subtree:true,characterData:true});
+      box.__gosAlertTop3Obs=true;
+    }catch(e){}
+  }
+  function boot(){patchCalc(); patchDashboard(); observe(); renderAlerts(true);}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',()=>{boot(); setTimeout(()=>renderAlerts(true),600);});
+  document.addEventListener('input',e=>{ if(e.target&&e.target.closest&&e.target.closest('#app')) schedule(180); },true);
+  document.addEventListener('change',e=>{ if(e.target&&e.target.closest&&e.target.closest('#app')) schedule(180); },true);
+  document.addEventListener('click',e=>{ if(e.target&&e.target.closest&&e.target.closest('#app')) schedule(250); },true);
+  window.GrantOSAlertsTop3={limit:LIMIT,render:renderAlerts,rows:topRows};
+})();
+</script>
+
 </body>
 </html>
