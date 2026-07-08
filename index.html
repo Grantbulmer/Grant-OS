@@ -37,7 +37,7 @@
   html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
 </style>
 
-<title>Grant OS v2.8.3 Cross-View Input Sync Fix</title>
+<title>Grant OS v2.8.3 Housekeeping Cleanup Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -84,7 +84,6 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .timeline-title{font-weight:bold;font-size:16px}.timeline-meta{color:var(--muted);font-size:13px;margin-top:4px}
 .timeline-badge{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--muted)}
 
-
 .timeline-item.payday-event{border-color:#14532d;background:linear-gradient(135deg,#020617,#052e16)}
 .timeline-item.payday-event .timeline-title{color:var(--green)}
 
@@ -124,7 +123,6 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .alert.green{border-left-color:var(--green)!important;color:#86efac!important}
 @media(max-width:900px){.snapshot-grid{grid-template-columns:1fr}}
 
-
 /* v2.4.2 enhanced graphs */
 .graph-summary{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 12px}
 .graph-chip{background:#020617;border:1px solid var(--border);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:12px}
@@ -142,28 +140,23 @@ input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--b
 .zero-line{stroke:#86efac;stroke-width:2;stroke-dasharray:6 6;opacity:.85}
 .debtfree-dot{fill:#22c55e}
 
-
 /* v2.4.4 Oct 2027 debt end fix */
 .graph-chip.debt-end{border-color:var(--amber);color:#f59e0b}
 .debt-note{margin-top:10px;border:1px solid var(--blue);border-radius:12px;padding:10px;color:var(--text);background:#020617}
 .debt-note strong{color:#f59e0b}
-
 
 /* v2.4.5 dynamic debt finish */
 .graph-chip.debt-end{border-color:var(--amber);color:#f59e0b}
 .debt-note{margin-top:10px;border:1px solid var(--blue);border-radius:12px;padding:10px;color:var(--text);background:#020617}
 .debt-note strong{color:#f59e0b}
 
-
 /* v2.5 live forecast engine */
 .graph-chip.live{border-color:var(--green);color:#86efac}
 .live-note{margin-top:10px;border:1px solid var(--green);border-radius:12px;padding:10px;color:var(--text);background:#020617}
 .live-note strong{color:#86efac}
 
-
 /* v2.5.1 due date live graph fix */
 .graph-chip.live-due{border-color:var(--amber);color:#f59e0b}
-
 
 /* v2.5.5.1 safe UI refresh - no squeezing existing cards */
 header{position:relative}
@@ -262,17 +255,16 @@ header{position:relative}
 
 </style>
 
-<link rel="manifest" href="manifest.json?v=283-render-stability">
+<link rel="manifest" href="manifest.json?v=283-housekeeping-cleanup">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Grant OS">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grant OS">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=283-render-stability">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=283-render-stability">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=283-render-stability">
-<link rel="shortcut icon" href="favicon.ico?v=283-render-stability">
-
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=283-housekeeping-cleanup">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=283-housekeeping-cleanup">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=283-housekeeping-cleanup">
+<link rel="shortcut icon" href="favicon-32.png?v=283-housekeeping-cleanup">
 
 <style>
 .v2553-account-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -289,7 +281,6 @@ header{position:relative}
 .v2553-select-list label{display:flex;gap:8px;align-items:center;background:#0b1220;border:1px solid var(--border,#334155);border-radius:10px;padding:10px}
 .v2553-small{font-size:13px;color:var(--muted,#94a3b8)}
 </style>
-
 
 <style>
 .v2554-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0 16px}
@@ -309,7 +300,6 @@ header{position:relative}
 .v2554-budget-selectors select{width:100%;min-height:48px;border-radius:12px;background:#1f2937;color:#fff;border:1px solid var(--border,#334155);padding:10px 12px;font-weight:800}
 @media(max-width:900px){.v2554-summary-grid,.v2554-accounts-grid,.v2554-form-grid,.v2554-budget-selectors{grid-template-columns:1fr}}
 </style>
-
 
 <style>
 .v2557-budget-selectors{
@@ -335,7 +325,6 @@ header{position:relative}
 }
 @media(max-width:900px){.v2557-budget-selectors{grid-template-columns:1fr}}
 </style>
-
 
 <style>
 /* v2.5.5.19 Forecast Table Clean */
@@ -386,7 +375,6 @@ header{position:relative}
   #dashboard .timeline-item:before{left:-21px!important}
 }
 </style>
-
 
 <style>
 /* v2.5.5.19 forecast table polish only */
@@ -456,7 +444,6 @@ header{position:relative}
 }
 </style>
 
-
 <style>
 /* v2.5.5.21: Payday forecast column restored to Balance */
 #dashboard .forecast-dashboard-card th,
@@ -489,7 +476,6 @@ header{position:relative}
   }
 }
 </style>
-
 
 <style>
 /* v2.5.5.22 smart forecast notes */
@@ -528,7 +514,6 @@ header{position:relative}
 }
 </style>
 
-
 <style>
 /* v2.5.5.23 forecast fixes */
 #dashboard .forecast-dashboard-card table{
@@ -565,7 +550,6 @@ header{position:relative}
   }
 }
 </style>
-
 
 <style>
 /* v2.5.5.24 Accounts restored and forecast table cleaned */
@@ -662,7 +646,6 @@ header{position:relative}
 }
 </style>
 
-
 <style>
 /* v2.5.5.25 final forecast/accounts fixes */
 .v25524-summary-grid,.v2554-summary-grid{
@@ -744,7 +727,6 @@ header{position:relative}
 }
 </style>
 
-
 <style>
 /* v2.5.5.26 proper accounts and forecast table fix */
 .v25527-summary-grid{
@@ -805,7 +787,6 @@ header{position:relative}
 }
 </style>
 
-
 <style>
 /* v2.5.5.28 selected overdraft buffer */
 .v25527-summary-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;margin:18px 0 16px!important}
@@ -820,7 +801,6 @@ header{position:relative}
 .v25527-actions{display:flex!important;gap:10px!important;flex-wrap:wrap!important;margin-top:16px!important}
 @media(max-width:900px){.v25527-summary-grid,.v25527-accounts-grid,.v25527-form-grid{grid-template-columns:1fr!important}}
 </style>
-
 
 <style>
 /* v2.5.5.29 visual polish pass 1 */
@@ -863,12 +843,6 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.18);}
 #accounts .v25527-summary-card{position:relative;overflow:hidden;}
 #accounts .v25527-summary-card:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;opacity:.24;}
 </style>
-
-
-
-
-
-
 
 <style>
 /* v2.5.5.30 visual polish pass 2 - buttons, section headers, soft blocks and smart badges */
@@ -1013,7 +987,6 @@ tr:hover td{background:rgba(56,189,248,.045);}
 }
 </style>
 
-
 <style>
 /* v2.5.5.32 accounts input and badge fix */
 .v25531-linked-card{border-color:rgba(56,189,248,.24)!important;background:linear-gradient(135deg,rgba(30,42,56,.95),rgba(15,23,42,.95))!important;}
@@ -1033,8 +1006,6 @@ tr:hover td{background:rgba(56,189,248,.045);}
 .v25531-add-disabled{opacity:.52;cursor:not-allowed!important;}
 @media(max-width:900px){#dynamicBudgetAccountsTable{min-width:760px}.v25531-linked-head{display:block}.v25531-budget-actions{display:block}.v25531-budget-actions button{margin-top:10px}}
 </style>
-
-
 
 <style>
 /* v2.6.1 Dashboard funds/health layout and safe-spend polish */
@@ -1124,8 +1095,6 @@ tr:hover td{background:rgba(56,189,248,.045);}
   #dashboard .v261-funds-health-row{grid-template-columns:1fr!important;}
 }
 </style>
-
-
 
 <style>
 /* v2.7 Responsive Device Layout Pass
@@ -1288,7 +1257,6 @@ header .pill{vertical-align:middle;}
 }
 </style>
 
-
 <style id="v283AccountBudgetCleanupCSS">
   #accounts .v283-accounts-advice{margin:10px 0 14px;padding:11px 13px;border-radius:14px;background:rgba(8,47,73,.28);border:1px solid rgba(56,189,248,.30);color:#dbeafe;line-height:1.4;font-size:13px;}
   #accounts .v283-accounts-advice strong{color:#fff;}
@@ -1301,7 +1269,7 @@ header .pill{vertical-align:middle;}
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.8.3 Cross-View Input Sync Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.8.3 Housekeeping Cleanup Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -1429,7 +1397,6 @@ header .pill{vertical-align:middle;}
 
   
 
-
   <section id="graphs" class="section">
     <div class="grid">
       <div class="card full">
@@ -1459,8 +1426,6 @@ header .pill{vertical-align:middle;}
     </div>
   </section>
 
-
-
 <section id="relocation" class="section">
     <div class="grid">
       <div class="card wide"><h3>Thailand Fund</h3><table id="thaiTable"></table></div>
@@ -1485,8 +1450,6 @@ header .pill{vertical-align:middle;}
       <button class="danger" onclick="Settings.reset()">Reset all data</button>
     </div>
   </section>
-
-
 
 <section id="accounts" class="section">
   <div class="card">
@@ -1515,8 +1478,6 @@ header .pill{vertical-align:middle;}
     <button type="button" class="primary v25527-add" onclick="AccountsUIV25527.add()">+ Add Bank Account</button>
   </div>
 </section>
-
-
 
 </main>
 
@@ -1841,8 +1802,6 @@ const Settings = {
   reset(){ if(confirm("Reset all Grant OS data?")){ localStorage.removeItem("grantOS_v1"); state=structuredClone(Defaults); App.render(); } }
 };
 
-
-
 const Timeline = {
   toDate(value){ if(!value) return null; const d=new Date(value); return isNaN(d.getTime())?null:d; },
   fmtDate(d){ return d ? d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : ""; },
@@ -2012,10 +1971,8 @@ const Timeline = {
   }
 };
 
-
-
 const HealthV21 = (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
@@ -2167,7 +2124,6 @@ const HealthV21 = (function(){
   return {VERSION,score:calculate,render,refresh:render,__cleanSource:true};
 })();
 
-
 const ForecastV21 = {
   monthlySeries(months=12){
     const rows=[];
@@ -2299,7 +2255,6 @@ const GraphsV21 = {
   }
 };
 
-
 const SnapshotV24 = {
   pct(n,d){ return d>0 ? Math.max(0,Math.min(100,(n/d)*100)) : 0; },
   render(){
@@ -2388,7 +2343,6 @@ if(typeof GraphsV21 !== "undefined"){
   GraphsV21.bars = GraphsV24.bars.bind(GraphsV24);
   GraphsV21.holidayFunding = GraphsV24.holidayFunding.bind(GraphsV24);
 }
-
 
 const EnhancedGraphsV242 = {
   moneyShort(n){
@@ -2530,7 +2484,6 @@ if(typeof GraphsV21 !== "undefined"){
   GraphsV21.render = EnhancedGraphsV242.render.bind(EnhancedGraphsV242);
 }
 
-
 const DebtEndOctoberV244 = {
   endYear: 2027,
   endMonthIndex: 9, // October, zero-based
@@ -2603,7 +2556,6 @@ const DebtEndOctoberV244 = {
 };
 
 DebtEndOctoberV244.apply();
-
 
 const DynamicDebtFinishV245 = {
   parseFinish(value){
@@ -2745,7 +2697,6 @@ const DynamicDebtFinishV245 = {
 
 DynamicDebtFinishV245.apply();
 
-
 const LiveForecastV25 = {
   parseMonth(value){
     if(!value) return null;
@@ -2858,7 +2809,6 @@ const LiveForecastV25 = {
 
 LiveForecastV25.patch();
 
-
 const DueDateLiveGraphFixV251 = {
   parseDate(value){
     if(!value) return null;
@@ -2953,7 +2903,6 @@ const DueDateLiveGraphFixV251 = {
 };
 DueDateLiveGraphFixV251.patch();
 
-
 const AccountSyncV25516 = {
   accountStoreKey:"grantOS.accounts.v2554",
   readAccounts(){
@@ -2998,13 +2947,6 @@ const AccountSyncV25516 = {
     this.writeAccounts(accounts);
   }
 };
-
-
-
-
-
-
-
 
 const AccountsUIV25527 = {
   storeKey:"grantOS.accounts.v2554",
@@ -3219,7 +3161,6 @@ const StrongInputFocusFixV253 = {
 };
 StrongInputFocusFixV253.patch();
 
-
 /* v2.5.5.19 Forecast Table Clean
    Inputs save while typing without re-rendering. The app redraws once after the field is left. */
 const StableInputV254 = {
@@ -3294,21 +3235,6 @@ StableInputV254.patch();
 
 </script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!-- Grant OS v2.5.5.18 audit: 23 passed, 0 failed. No layout changes. -->
 
 <script>
@@ -3325,7 +3251,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script>
 /* v2.5.5.19: remove 9-month forecast option safely */
 (function(){
@@ -3336,7 +3261,6 @@ StableInputV254.patch();
   }catch(e){}
 })();
 </script>
-
 
 <script>
 /* v2.5.5.26 final runtime guard: accounts + 5-col forecast only */
@@ -3367,7 +3291,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script>
 (function(){
   function bootAccounts(){
@@ -3380,12 +3303,6 @@ StableInputV254.patch();
   },true);
 })();
 </script>
-
-
-
-
-
-
 
 <script>
 /* v2.5.5.30 smart visual badges */
@@ -3484,11 +3401,10 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script>
 /* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const MAX_ACCOUNTS=5;
 
   function num(v){ return Number(v||0); }
@@ -3855,7 +3771,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <style>
 /* v2.6 Dashboard Clarity Pass */
 .v26-action-alert{display:block;line-height:1.35;}
@@ -3871,7 +3786,7 @@ StableInputV254.patch();
 <script>
 /* v2.6 Dashboard Clarity Pass */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function num(v){ return Number(v||0); }
   function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
@@ -4005,12 +3920,10 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script>
 /* v2.6.1 Dashboard layout + safe-spend fix */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function num(v){ return Number(v||0); }
   function moneySafe(n){ try{return money(n);}catch(e){ return '£'+num(n).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
   function accountList(){
@@ -4135,15 +4048,13 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script>
 /* v2.6.2 Safe Spend Dashboard Runtime Fix
    Fixes dashboard Safe To Spend cards by reading the same linked-account overdraft buffer
    used by the Accounts and Budget tabs. Uses lexical globals directly rather than window.*
    because this app defines core modules with const, so they are not attached to window. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function num(v){ return Number(v||0); }
   function fmtMoney(v){
     try{ return money(v); }
@@ -4283,12 +4194,11 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script>
 /* v2.6.4 Dashboard Card Order
    Moves Safe To Spend cards into the first row and moves bank/overdraft cards below Next Priority. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4329,14 +4239,13 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script>
 /* v2.6.5 Live Safe Spend Date Logic
    Makes safe-spend and payday-based cards use the current live date rather than
    the original page-load date. If the app is left open overnight and no money is
    spent, the daily/weekly safe-spend allowance rolls forward automatically. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const MS_DAY=24*60*60*1000;
   let lastDateKey='';
   function num(v){ return Number(v||0); }
@@ -4427,12 +4336,10 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script>
 /* v2.7 Responsive Device Layout Pass runtime tidy */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4478,8 +4385,6 @@ StableInputV254.patch();
   else setTimeout(boot,180);
 })();
 </script>
-
-
 
 <style>
 /* v2.7.2 Mobile Form Access Fix
@@ -4602,7 +4507,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.2 Mobile Form Access Fix runtime */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const TABLES=['fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4651,8 +4556,6 @@ StableInputV254.patch();
   else setTimeout(boot,220);
 })();
 </script>
-
-
 
 <style>
 /* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates
@@ -4761,7 +4664,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates runtime */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const TABLES=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4909,8 +4812,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <style>
 /* v2.7.4 Mobile Data Visibility Fix
    On narrow phone screens, do not rely on wide tables or hidden table-row CSS.
@@ -4973,7 +4874,7 @@ StableInputV254.patch();
    Creates live mobile editor cards for Budget linked accounts, fixed costs, debts and holidays.
    Desktop/foldable keeps the existing table layout. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const MAX_ACCOUNTS=5;
   const tableIds=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   const isPhone=()=>window.matchMedia && window.matchMedia('(max-width:640px)').matches;
@@ -5101,11 +5002,10 @@ StableInputV254.patch();
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,320)); else setTimeout(boot,320);
 })();
 
-
 /* v2.7.5 Mobile Add/Remove Fix
    Keeps the successful v2.7.4 mobile card layout, but makes Add/Remove update the mobile cards immediately. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5186,14 +5086,13 @@ StableInputV254.patch();
 
 </script>
 
-
 <script>
 /* v2.7.6 Bills/Debt De-duplication
    Budget Fixed Costs now handles normal bills only.
    Debt Tracker is the master source for debt balances/repayments.
    Safe-spend/forecast totals still include debt repayments via Calc.totalFixed(). */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5356,14 +5255,12 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script>
 /* v2.7.7 Budget Bill Remove Fix
    Adds remove controls for normal bills in Budget > Monthly Fixed Costs / Bills.
    Keeps Debt Tracker as the master place for debt repayments. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function updateVersion(){
@@ -5459,17 +5356,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
 <style>
 /* v2.7.10 Foldable Dashboard Width Fix
    Keep laptop layout intact, keep normal phone mobile cards, but stop foldable/tablet widths squeezing dashboard cards into tiny columns. */
@@ -5520,7 +5406,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.10 version label only */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5530,8 +5416,6 @@ StableInputV254.patch();
   setTimeout(updateVersion,1800);
 })();
 </script>
-
-
 
 <style id="v2711FoldableDebtCSS">
 /* v2.7.11 Foldable Debt Tracker + Health Live Fix
@@ -5578,11 +5462,6 @@ StableInputV254.patch();
   #debt #v274DebtMobile{grid-template-columns:1fr!important;}
 }
 </style>
-
-<!-- removed old Financial Health live patch: superseded by Clean Source Fix -->
-
-
-
 <style id="v2712FoldableDebtTableCSS">
 /* v2.7.12 Foldable Debt Tracker Width Tweak
    Foldable/tablet only: keep desktop and phone views unchanged. */
@@ -5626,13 +5505,6 @@ StableInputV254.patch();
   #debt #debtTable th:nth-child(8), #debt #debtTable td:nth-child(8){width:14%!important;}
 }
 </style>
-
-
-<!-- removed old financial health patch block -->
-
-
-
-
 <style id="v2713FoldableDebtColumns">
 /* v2.7.13 Foldable Debt Tracker Column Tweak
    Tablet/foldable only: keep normal phone cards and large desktop table unchanged. */
@@ -5675,18 +5547,12 @@ StableInputV254.patch();
   }
 }
 </style>
-
-
-<!-- removed old financial health patch block -->
-
-
-
 <script id="v2714StabilityBaselineGuard">
 /* v2.7.14 Stability Clean Baseline
    Baseline guard only: keeps the visible version stable after older patch layers run.
    No calculation, layout, or data-model changes are made here. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   window.GRANT_OS_BASELINE_VERSION=VERSION;
   function setStableVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -5702,12 +5568,11 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v280Priority2GuidanceBreakdowns">
 /* v2.8 Priority 2: Collapsible Guidance + Calculation Breakdown Panels
    Adds explainers/help panels only. Does not change calculations, saving, or layout logic. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function esc(v){ return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
@@ -5872,14 +5737,13 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v282PatchTidyBaseline">
 /* v2.8.3 Due Date + Live Refresh Fix
    Non-functional cleanup release: locks the visible version label and keeps the audited v2.8.1 guidance behaviour intact.
    Legacy runtime patch blocks are preserved because some still provide active compatibility logic for desktop/foldable/mobile layouts.
 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5900,7 +5764,7 @@ StableInputV254.patch();
    the linked account balances, which prevents the card from showing theoretical money as spare.
 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6160,10 +6024,9 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v283AccountBudgetCleanupVersion">
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -6178,10 +6041,9 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v283BudgetInputPersistenceFix">
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const CORE_NUMERIC=['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'];
   const CORE_SELECTS=[];
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -6378,10 +6240,9 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v283MobileAccountFocusFix">
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const ACCOUNT_INPUT_RE=/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_\d+$/;
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -6465,13 +6326,12 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v2831RenderStabilityFix">
 /* v2.8.3 True Spare After Commitments Fix
    Includes render stability and coalesces the older patch refresh timers on mobile so the app does not visibly shake on load.
    It does not change budget/debt/account calculations. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const nativeSetTimeout=window.__gosNativeSetTimeout||window.setTimeout.bind(window);
   const nativeClearTimeout=window.__gosNativeClearTimeout||window.clearTimeout.bind(window);
   const bootStart=performance.now();
@@ -6573,14 +6433,13 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v2832DateAwareBillsDebtsAndAccountSync">
 /* v2.8.3 Date-Aware Bills/Debts + Account-to-Budget Sync
    Adds due-day/date and paid-this-cycle controls for bills and debts, then uses those
    fields for True Spare. Also forces new accounts from Accounts to appear immediately
    in Budget > Linked Account Figures. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const MAX_ACCOUNTS=5;
   const MS_DAY=24*60*60*1000;
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
@@ -6958,7 +6817,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v283DateAwareTrueSpareFix">
 /* v2.8.3 Date-Aware True Spare Fix
    Bills and debts now carry due-day/date and paid-this-cycle fields.
@@ -6966,7 +6824,7 @@ StableInputV254.patch();
    Also hardens account sync so newly added Accounts rows immediately appear in Budget > Linked Account Figures.
 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   let baseCalcNextPaydayFn=null;
   const MAX_ACCOUNTS=5;
@@ -7450,7 +7308,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v2833DateOnlyTrueSpareFix">
 /* v2.8.3 Date-Only True Spare Fix
    Removes the normal "paid this cycle" requirement. Bills and regular debts are now
@@ -7459,7 +7316,7 @@ StableInputV254.patch();
    their one-off due date the same way. Undated items are still included cautiously.
 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   const MAX_ACCOUNTS=5;
   const DAY_MS=24*60*60*1000;
@@ -7666,7 +7523,7 @@ StableInputV254.patch();
    passed due dates are treated as already handled.
 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function setVersion(){ try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){} }
   function removeOldGuides(){
     try{
@@ -7717,8 +7574,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script id="v2835DueDateAndLiveRefreshFix">
 /* v2.8.3 Due Date + Live Refresh Fix
    - Debt Tracker now has one Due date field instead of separate one-off/monthly due inputs.
@@ -7726,7 +7581,7 @@ StableInputV254.patch();
    - Editing due dates/figures updates True Spare and Finance Health live without needing a page refresh.
 */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const DAY_MS=24*60*60*1000;
   const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -7869,7 +7724,6 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v2835DueDateGuard">
 (function(){
   function needsFix(){
@@ -7894,10 +7748,9 @@ StableInputV254.patch();
 })();
 </script>
 
-
 <script id="v2835VersionFinalGuard">
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
@@ -7908,53 +7761,11 @@ StableInputV254.patch();
   [50,200,500,1000,2500,5000,9000].forEach(function(ms){ setTimeout(setVersion,ms); });
 })();
 </script>
-
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-
-<!-- removed old financial health patch block -->
-
-
-
-<!-- removed old Financial Health rebalance override patch: replaced by Clean Source Fix -->
-
-
 <script id="v283FinancialHealthCleanSourceBridge">
-/* v2.8.3 Cross-View Input Sync Fix
+/* v2.8.3 Housekeeping Cleanup Fix
    Lightweight bridge only: no duplicate scoring. It calls the single HealthV21 renderer after relevant changes. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   function setVersion(){ try{ document.title='Grant OS '+VERSION; }catch(e){} try{ document.querySelectorAll('header .pill,.version,.version-label,#versionLabel,#appVersion,[data-version]').forEach(el=>{ el.textContent=VERSION; }); }catch(e){} }
   function refresh(){ setVersion(); try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){} }
   let t=null; function queue(ms=60){ clearTimeout(t); t=setTimeout(refresh,ms); }
@@ -7967,15 +7778,13 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script id="v283FinancialHealthLiveAccountSyncFix">
-/* v2.8.3 Cross-View Input Sync Fix
+/* v2.8.3 Housekeeping Cleanup Fix
    One account source of truth for phone and desktop linked account fields.
    Any visible/active linked-account input writes immediately to the shared account store,
    then True Spare and Financial Health are recalculated from that shared store. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const STORE_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   const MAX=5;
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
@@ -8062,15 +7871,13 @@ StableInputV254.patch();
 })();
 </script>
 
-
-
 <script id="v283CrossViewInputSyncFix">
-/* v2.8.3 Cross-View Input Sync Fix
+/* v2.8.3 Housekeeping Cleanup Fix
    Final cross-view bridge for fields that exist in both desktop tables and mobile cards.
    Rule: the active/visible field writes to one shared state/account source immediately;
    desktop and mobile views are refreshed from that same source when it is safe to do so. */
 (function(){
-  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const VERSION='v2.8.3 Housekeeping Cleanup Fix';
   const ACCOUNT_MAX=5;
   const ACCOUNT_PREFIXES=['v274Acc','v25531Acc'];
   const SYNC_SELECTOR=[

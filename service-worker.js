@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-v283-cross-view-input-sync';
+const CACHE_NAME = 'grant-os-v283-housekeeping-cleanup';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './favicon-32.png', './apple-touch-icon.png'];
 self.addEventListener('install', event => {
   self.skipWaiting();
