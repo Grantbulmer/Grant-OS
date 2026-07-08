@@ -37,7 +37,7 @@
   html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
 </style>
 
-<title>Grant OS v2.8.3 Financial Health Rebalance Fix</title>
+<title>Grant OS v2.8.3 Financial Health Rebalance Override Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -1301,7 +1301,7 @@ header .pill{vertical-align:middle;}
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.8.3 Financial Health Rebalance Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.8.3 Financial Health Rebalance Override Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -9634,8 +9634,9 @@ StableInputV254.patch();
     };
   }
   function refreshSingleSource(){
-    try{ if(window.GrantOSFinancialHealthSingleSource&&typeof GrantOSFinancialHealthSingleSource.refresh==='function') GrantOSFinancialHealthSingleSource.refresh(); }
-    catch(e){}
+    /* Rebalance is now the final source of truth. Do not call the older Single Source renderer,
+       because it rewrites the /10 breakdown back to the old /30, /12, /15 display. */
+    return null;
   }
   function paint(){
     const data=calcHealth();
@@ -9659,6 +9660,37 @@ StableInputV254.patch();
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',paint); else paint();
   window.addEventListener('load',paint);
   [80,250,700,1500,3200,6500,10000,14500,19000,24000,30000].forEach(ms=>setTimeout(paint,ms));
+})();
+</script>
+
+
+<script id="v283FinancialHealthRebalanceOverrideFix">
+/* v2.8.3 Financial Health Rebalance Override Fix
+   Ensures the Rebalance /10 display is the final Financial Health renderer.
+   Older patch scripts remain in the file for compatibility but must not repaint the old /30 breakdown. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Rebalance Override Fix';
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function paint(){
+    setVersion();
+    try{
+      if(window.GrantOSFinancialHealth && window.GrantOSFinancialHealth.__v283Rebalance && typeof window.GrantOSFinancialHealth.render==='function'){
+        const result=window.GrantOSFinancialHealth.render();
+        setVersion();
+        return result;
+      }
+    }catch(e){}
+  }
+  window.GrantOSFinancialHealthSingleSource={render:paint,refresh:paint,version:VERSION,disabledOldRenderer:true};
+  document.addEventListener('toggle',function(e){ if(e.target&&e.target.id==='gosHealthBreakdown') setTimeout(paint,70); },true);
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#gosHealthBreakdown, summary, button, [data-tab], .tab')) setTimeout(paint,120); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(paint,80); }); else setTimeout(paint,80);
+  window.addEventListener('load',function(){ setTimeout(paint,120); });
+  [300,900,1800,3600,7200,13000].forEach(function(ms){ setTimeout(paint,ms); });
 })();
 </script>
 
