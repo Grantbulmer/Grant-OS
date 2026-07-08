@@ -1,6 +1,6 @@
-// Grant OS v2.8.3 Date-Only True Spare Fix service worker
+// Grant OS v2.8.3 Due Date + Live Refresh Fix service worker
 // Network-first and clears older cached builds so GitHub Pages/PWA installs do not keep stale code.
-const GRANT_OS_CACHE_VERSION = 'grant-os-v2-8-3-date-only-true-spare-fix';
+const GRANT_OS_CACHE_VERSION = 'grant-os-v2-8-3-due-date-live-refresh-fix';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
