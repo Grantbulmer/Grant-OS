@@ -8819,5 +8819,279 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
 })();
 </script>
 
+
+
+<style id="v302FullPerformanceStabilityCSS">
+/* Build 3.0 full performance stability pass.
+   Visual/layout stability only: no finance calculations are changed here. */
+html,body,#app,main,section,.card,.stat-card,.v274-mobile-card,.gos-help{overflow-anchor:none!important;}
+.card,.stat-card,.v274-mobile-card{backface-visibility:hidden!important;transform:translateZ(0);}
+#dashboard .stat-card,.card{contain:layout paint;}
+#nextPriority{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+  hyphens:auto!important;
+  line-height:1.08!important;
+  font-size:clamp(20px,6.4vw,34px)!important;
+  min-height:2.45em!important;
+  max-height:none!important;
+  overflow:visible!important;
+  letter-spacing:-.03em!important;
+}
+#nextPriority,.gos-priority-row,.gos-action-title,.gos-action-meta,.gos-action-reason{
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+}
+#priorityQueue{
+  min-height:300px!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  contain:layout paint!important;
+}
+#priorityQueue .gos-priority-row,
+#priorityQueue > div{
+  min-height:74px!important;
+  box-sizing:border-box!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  padding-bottom:4px!important;
+}
+#priorityQueue .note,
+#priorityQueue span.note{
+  display:block!important;
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  line-height:1.32!important;
+}
+#v283EstimatedSpareCard,
+#v283EstimatedSpareCard .card,
+#v283EstimatedSpareCard *{overflow-anchor:none!important;}
+#v283EstimatedSpareCard{
+  min-height:332px!important;
+  contain:layout paint!important;
+}
+#v283EstimatedSpareCard .big,
+#v283EstimatedSpareCard .value-soft,
+#spareAfterWage,
+#safeToday,#safeWeek,#bankPosition,#totalOverdraft,#debtRemaining,#daysPayday,#financialScore{
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+  line-height:1.05!important;
+  min-height:1.1em!important;
+}
+#v283SpareStatus,.v283-spare-status{min-height:3.2em!important;display:block!important;}
+.v283-spare-breakdown>div{min-height:44px!important;}
+#debtTable,#v274DebtMobile,#debtProgressList{overflow-anchor:none!important;contain:layout paint!important;}
+#debtTable input,#debtTable select,
+#v274DebtMobile input,#v274DebtMobile select,
+#fixedCostsTable input,#fixedCostsTable select,
+#v274FixedCostsMobile input,#v274FixedCostsMobile select{
+  min-height:46px!important;
+  box-sizing:border-box!important;
+  font-variant-numeric:tabular-nums!important;
+}
+#debtTable td,#debtTable th{vertical-align:top!important;}
+#debtTable small,#v274DebtMobile small,.v283-date-note,.v283-date-status{min-height:1.35em!important;}
+#v274DebtMobile .v274-mobile-card{min-height:286px!important;contain:layout paint!important;overflow:hidden!important;}
+#v274DebtMobile .v274-mobile-sub{min-height:1.6em!important;display:block!important;}
+body.gos-perf-scrolling .card,
+body.gos-perf-scrolling .stat-card,
+body.gos-perf-scrolling .v274-mobile-card,
+body.gos-perf-scrolling #priorityQueue,
+body.gos-perf-scrolling #nextPriority,
+body.gos-perf-scrolling #v283EstimatedSpareCard,
+body.gos-perf-scrolling #debtTable,
+body.gos-perf-scrolling #v274DebtMobile{
+  transition:none!important;
+  animation:none!important;
+}
+body.gos-perf-scrolling #grantOSHelperBtn{animation:none!important;}
+@media(max-width:640px){
+  #nextPriority{font-size:clamp(19px,6.1vw,29px)!important;min-height:2.85em!important;}
+  #priorityQueue{min-height:330px!important;}
+  #priorityQueue .gos-priority-row,#priorityQueue>div{min-height:86px!important;}
+  #v283EstimatedSpareCard{min-height:370px!important;}
+}
+</style>
+<script id="v302FullPerformanceStability">
+/* Build 3.0 full performance stability pass.
+   Blocks scroll-triggered re-renders and stabilises high-risk cards across the app.
+   It does not change the safe spend, cashflow, debt or health maths. */
+(function(){
+  const VERSION='Main Build 3.0';
+  const SCROLL_IDLE_MS=620;
+  const HIGH_RISK=['#nextPriority','#priorityQueue','#v283EstimatedSpareCard','#v274DebtMobile','#debtTable','#debtProgressList','#alertsBox','#paydayResult'];
+  let scrolling=false, scrollTimer=null, renderTimer=null, restoring=false;
+  let snapshots=new Map(), pendingRender=false, lastPrioritySignature='';
+  function qs(sel){try{return document.querySelector(sel);}catch(e){return null;}}
+  function byId(id){try{return document.getElementById(id);}catch(e){return null;}}
+  function money(v){try{return (typeof window.money==='function')?window.money(Number(v||0)):'£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});}catch(e){return '£'+Number(v||0);}}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function isEditing(){try{const a=document.activeElement;if(!a)return false;const t=String(a.tagName||'').toLowerCase();return t==='input'||t==='textarea'||t==='select'||a.isContentEditable;}catch(e){return false;}}
+  function setVersion(){try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill');if(pill)pill.textContent=VERSION;}catch(e){}}
+  function freezeElement(el){
+    if(!el||el.dataset.gosPerfFrozen==='yes') return;
+    const h=el.offsetHeight, w=el.offsetWidth;
+    if(h>0){el.dataset.gosPerfOldMin=el.style.minHeight||'';el.style.minHeight=Math.max(h,parseFloat(getComputedStyle(el).minHeight)||0)+'px';}
+    if(w>0){el.dataset.gosPerfOldWidth=el.style.minWidth||'';}
+    el.dataset.gosPerfFrozen='yes';
+  }
+  function unfreezeElement(el){
+    if(!el||el.dataset.gosPerfFrozen!=='yes') return;
+    el.style.minHeight=el.dataset.gosPerfOldMin||'';
+    delete el.dataset.gosPerfOldMin; delete el.dataset.gosPerfOldWidth; delete el.dataset.gosPerfFrozen;
+  }
+  function captureSnapshots(){
+    if(isEditing()) return;
+    snapshots.clear();
+    HIGH_RISK.forEach(sel=>{const el=qs(sel); if(el){snapshots.set(sel, el.innerHTML); freezeElement(el);}});
+  }
+  function releaseSnapshots(){
+    HIGH_RISK.forEach(sel=>{const el=qs(sel); if(el) unfreezeElement(el);});
+    snapshots.clear();
+  }
+  function restoreIfNeeded(el){
+    if(restoring||!scrolling||isEditing()) return;
+    for(const [sel,html] of snapshots.entries()){
+      const target=qs(sel);
+      if(target && (target===el || target.contains(el)) && target.innerHTML!==html){
+        restoring=true;
+        target.innerHTML=html;
+        restoring=false;
+        break;
+      }
+    }
+  }
+  function beginScroll(evt){
+    scrolling=true;
+    try{document.body.classList.add('gos-perf-scrolling','gos-is-scrolling');}catch(e){}
+    if(!snapshots.size) captureSnapshots();
+    clearTimeout(scrollTimer);
+    scrollTimer=setTimeout(endScroll,SCROLL_IDLE_MS);
+    // Let the browser scroll normally, but stop older document-level scroll handlers from rebuilding cards.
+    try{ if(evt && evt.stopImmediatePropagation) evt.stopImmediatePropagation(); }catch(e){}
+  }
+  function endScroll(){
+    scrolling=false;
+    try{document.body.classList.remove('gos-perf-scrolling','gos-is-scrolling');}catch(e){}
+    releaseSnapshots();
+    if(pendingRender){ pendingRender=false; scheduleRender(180); }
+    setVersion();
+  }
+  function scheduleRender(delay){
+    clearTimeout(renderTimer);
+    renderTimer=setTimeout(()=>{try{stabiliseNow(true);}catch(e){}},delay||120);
+  }
+  function deferOrRun(fn){
+    if(scrolling && !isEditing()){ pendingRender=true; return; }
+    return fn();
+  }
+  function wrap(obj,name,key){
+    try{
+      if(!obj||!obj[name]||obj[name].__gosPerfV302) return;
+      const old=obj[name].bind(obj);
+      obj[name]=function(){const args=arguments; return deferOrRun(()=>old.apply(obj,args));};
+      obj[name].__gosPerfV302=true;
+    }catch(e){}
+  }
+  function getActions(){
+    try{if(window.GrantOSBuild301&&GrantOSBuild301.buildActions) return GrantOSBuild301.buildActions();}catch(e){}
+    try{const t=(Calc&&Calc.nextPriority)?Calc.nextPriority():'Keep following the plan'; return [{title:t,meta:'Current priority',reason:'Highest-impact action from your saved figures',kind:'priority',level:'amber'}];}catch(e){}
+    return [];
+  }
+  function renderPriorityQueueStable(){
+    const q=byId('priorityQueue'); if(!q) return;
+    const actions=getActions().slice(0,6);
+    const html=actions.map((a,i)=>'<div class="gos-priority-row"><span class="pill">#'+(i+1)+'</span> <strong>'+esc(a.title||'Priority')+'</strong><br><span class="note">'+esc(a.meta||'')+(a.reason?' — '+esc(a.reason):'')+'</span></div>').join('') || '<div class="gos-priority-row"><strong>Keep following the plan</strong><br><span class="note">No immediate priority found.</span></div>';
+    const sig=html;
+    if(q.innerHTML!==html && (!scrolling||!snapshots.size)) q.innerHTML=html;
+    lastPrioritySignature=sig;
+  }
+  function renderNextPriorityStable(){
+    const np=byId('nextPriority'); if(!np) return;
+    const a=getActions()[0]||{title:'Keep following the plan',reason:'No immediate priority found.'};
+    const title=String(a.title||'Keep following the plan');
+    if(np.textContent.trim()!==title && !scrolling){ np.textContent=title; }
+    np.dataset.gosPriority=title;
+    np.setAttribute('title',title+(a.reason?' — '+a.reason:''));
+  }
+  function patchDebtPriority(){
+    try{
+      if(window.Debt && Debt.priority && !Debt.priority.__gosPerfV302){
+        Debt.priority=function(){renderPriorityQueueStable();};
+        Debt.priority.__gosPerfV302=true;
+      }
+    }catch(e){}
+  }
+  function patchCalcPriority(){
+    try{
+      if(window.Calc && !Calc.__gosPerfV302Priority){
+        const oldType=Calc.debtType?Calc.debtType.bind(Calc):null;
+        Calc.nextPriority=function(){ const a=getActions()[0]; return (a&&a.title)||'Keep following the plan'; };
+        if(oldType){ Calc.debtType=function(d){
+          const raw=String((d&&d[4])||'Regular').trim(); const nm=String((d&&d[0])||'').toLowerCase();
+          if(/bnpl|klarna|clearpay|pay in 3|pay later|currys/i.test(raw+' '+nm)) return 'BNPL';
+          return oldType(d);
+        };}
+        Calc.__gosPerfV302Priority=true;
+      }
+    }catch(e){}
+  }
+  function observeHighRisk(){
+    try{
+      const obs=new MutationObserver(list=>{ if(restoring) return; if(scrolling&&!isEditing()){ list.forEach(m=>restoreIfNeeded(m.target)); } });
+      HIGH_RISK.forEach(sel=>{const el=qs(sel); if(el&&!el.__gosPerfObs){ obs.observe(el,{childList:true,subtree:true,characterData:true}); el.__gosPerfObs=true; }});
+    }catch(e){}
+  }
+  function stabiliseNow(force){
+    setVersion(); patchDebtPriority(); patchCalcPriority(); observeHighRisk();
+    if(!scrolling){ renderNextPriorityStable(); renderPriorityQueueStable(); }
+    try{const card=byId('v283EstimatedSpareCard'); if(card){card.style.minHeight=card.style.minHeight||'';}}catch(e){}
+  }
+  function patchRenderMethods(){
+    wrap(window.App,'render','App.render');
+    wrap(window.App,'saveAndRender','App.saveAndRender');
+    wrap(window.Dashboard,'render','Dashboard.render');
+    wrap(window.Budget,'render','Budget.render');
+    wrap(window.Budget,'save','Budget.save');
+    wrap(window.Debt,'render','Debt.render');
+    wrap(window.Debt,'progress','Debt.progress');
+    wrap(window.Debt,'simulator','Debt.simulator');
+    wrap(window.Holidays,'render','Holidays.render');
+    wrap(window.Timeline,'render','Timeline.render');
+    wrap(window.HealthV21,'render','Health.render');
+    wrap(window.SnapshotV24,'render','Snapshot.render');
+    wrap(window.ForecastV21,'renderForecastTable','Forecast.renderForecastTable');
+    wrap(window.GraphsV21,'render','Graphs.render');
+    wrap(window.MobileV274,'renderAll','Mobile.renderAll');
+    wrap(window.AccountsUIV25527,'render','Accounts.render');
+    wrap(window.GrantOSCashflowWarningCard,'render','Cashflow.render');
+    wrap(window.GrantOSSafeSpendV284,'refresh','SafeSpend.refresh');
+    wrap(window.GrantOSSafeSpendV285,'refresh','SafeSpend.refresh');
+    try{ if(window.GrantOSDateOnlyV283){ ['renderSpareCard','renderBillsTable','renderBillsMobile','renderDebtTable','renderDebtsMobile','commit'].forEach(k=>wrap(GrantOSDateOnlyV283,k,'DateOnly.'+k)); } }catch(e){}
+    try{ if(window.GrantOSDueDateV2835){ ['renderSpare','renderBills','renderBillsMobile','renderDebts','renderDebtsMobile','finalRefresh'].forEach(k=>wrap(GrantOSDueDateV2835,k,'DueDate.'+k)); } }catch(e){}
+  }
+  function boot(){
+    patchRenderMethods(); stabiliseNow(true);
+    [150,450,900,1800,3200].forEach(ms=>setTimeout(()=>{patchRenderMethods();stabiliseNow(true);},ms));
+  }
+  // This runs after older listeners on window but before document-level scroll listeners.
+  window.addEventListener('scroll',beginScroll,{capture:true,passive:true});
+  window.addEventListener('touchmove',beginScroll,{capture:true,passive:true});
+  window.addEventListener('wheel',beginScroll,{capture:true,passive:true});
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#app')) scheduleRender(260); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#app')) scheduleRender(260); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',()=>{boot(); setTimeout(()=>stabiliseNow(true),800);});
+  window.GrantOSPerformanceV302={VERSION,stabiliseNow,beginScroll,endScroll,getActions};
+})();
+</script>
+
 </body>
 </html>
