@@ -37,7 +37,7 @@
   html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
 </style>
 
-<title>Grant OS v2.8.3 Financial Health Live Account Sync Fix</title>
+<title>Grant OS v2.8.3 Cross-View Input Sync Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -1301,7 +1301,7 @@ header .pill{vertical-align:middle;}
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.8.3 Financial Health Live Account Sync Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.8.3 Cross-View Input Sync Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -2015,7 +2015,7 @@ const Timeline = {
 
 
 const HealthV21 = (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
@@ -3488,7 +3488,7 @@ StableInputV254.patch();
 <script>
 /* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const MAX_ACCOUNTS=5;
 
   function num(v){ return Number(v||0); }
@@ -3871,7 +3871,7 @@ StableInputV254.patch();
 <script>
 /* v2.6 Dashboard Clarity Pass */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function num(v){ return Number(v||0); }
   function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
@@ -4010,7 +4010,7 @@ StableInputV254.patch();
 <script>
 /* v2.6.1 Dashboard layout + safe-spend fix */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function num(v){ return Number(v||0); }
   function moneySafe(n){ try{return money(n);}catch(e){ return '£'+num(n).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
   function accountList(){
@@ -4143,7 +4143,7 @@ StableInputV254.patch();
    used by the Accounts and Budget tabs. Uses lexical globals directly rather than window.*
    because this app defines core modules with const, so they are not attached to window. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function num(v){ return Number(v||0); }
   function fmtMoney(v){
     try{ return money(v); }
@@ -4288,7 +4288,7 @@ StableInputV254.patch();
 /* v2.6.4 Dashboard Card Order
    Moves Safe To Spend cards into the first row and moves bank/overdraft cards below Next Priority. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4336,7 +4336,7 @@ StableInputV254.patch();
    the original page-load date. If the app is left open overnight and no money is
    spent, the daily/weekly safe-spend allowance rolls forward automatically. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const MS_DAY=24*60*60*1000;
   let lastDateKey='';
   function num(v){ return Number(v||0); }
@@ -4432,7 +4432,7 @@ StableInputV254.patch();
 <script>
 /* v2.7 Responsive Device Layout Pass runtime tidy */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4602,7 +4602,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.2 Mobile Form Access Fix runtime */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const TABLES=['fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4761,7 +4761,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates runtime */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const TABLES=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4973,7 +4973,7 @@ StableInputV254.patch();
    Creates live mobile editor cards for Budget linked accounts, fixed costs, debts and holidays.
    Desktop/foldable keeps the existing table layout. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const MAX_ACCOUNTS=5;
   const tableIds=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   const isPhone=()=>window.matchMedia && window.matchMedia('(max-width:640px)').matches;
@@ -5105,7 +5105,7 @@ StableInputV254.patch();
 /* v2.7.5 Mobile Add/Remove Fix
    Keeps the successful v2.7.4 mobile card layout, but makes Add/Remove update the mobile cards immediately. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5193,7 +5193,7 @@ StableInputV254.patch();
    Debt Tracker is the master source for debt balances/repayments.
    Safe-spend/forecast totals still include debt repayments via Calc.totalFixed(). */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5363,7 +5363,7 @@ StableInputV254.patch();
    Adds remove controls for normal bills in Budget > Monthly Fixed Costs / Bills.
    Keeps Debt Tracker as the master place for debt repayments. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function updateVersion(){
@@ -5520,7 +5520,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.10 version label only */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5686,7 +5686,7 @@ StableInputV254.patch();
    Baseline guard only: keeps the visible version stable after older patch layers run.
    No calculation, layout, or data-model changes are made here. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   window.GRANT_OS_BASELINE_VERSION=VERSION;
   function setStableVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -5707,7 +5707,7 @@ StableInputV254.patch();
 /* v2.8 Priority 2: Collapsible Guidance + Calculation Breakdown Panels
    Adds explainers/help panels only. Does not change calculations, saving, or layout logic. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function esc(v){ return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
@@ -5879,7 +5879,7 @@ StableInputV254.patch();
    Legacy runtime patch blocks are preserved because some still provide active compatibility logic for desktop/foldable/mobile layouts.
 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5900,7 +5900,7 @@ StableInputV254.patch();
    the linked account balances, which prevents the card from showing theoretical money as spare.
 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6163,7 +6163,7 @@ StableInputV254.patch();
 
 <script id="v283AccountBudgetCleanupVersion">
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -6181,7 +6181,7 @@ StableInputV254.patch();
 
 <script id="v283BudgetInputPersistenceFix">
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const CORE_NUMERIC=['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'];
   const CORE_SELECTS=[];
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -6381,7 +6381,7 @@ StableInputV254.patch();
 
 <script id="v283MobileAccountFocusFix">
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const ACCOUNT_INPUT_RE=/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_\d+$/;
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -6471,7 +6471,7 @@ StableInputV254.patch();
    Includes render stability and coalesces the older patch refresh timers on mobile so the app does not visibly shake on load.
    It does not change budget/debt/account calculations. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const nativeSetTimeout=window.__gosNativeSetTimeout||window.setTimeout.bind(window);
   const nativeClearTimeout=window.__gosNativeClearTimeout||window.clearTimeout.bind(window);
   const bootStart=performance.now();
@@ -6580,7 +6580,7 @@ StableInputV254.patch();
    fields for True Spare. Also forces new accounts from Accounts to appear immediately
    in Budget > Linked Account Figures. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const MAX_ACCOUNTS=5;
   const MS_DAY=24*60*60*1000;
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
@@ -6966,7 +6966,7 @@ StableInputV254.patch();
    Also hardens account sync so newly added Accounts rows immediately appear in Budget > Linked Account Figures.
 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   let baseCalcNextPaydayFn=null;
   const MAX_ACCOUNTS=5;
@@ -7459,7 +7459,7 @@ StableInputV254.patch();
    their one-off due date the same way. Undated items are still included cautiously.
 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   const MAX_ACCOUNTS=5;
   const DAY_MS=24*60*60*1000;
@@ -7666,7 +7666,7 @@ StableInputV254.patch();
    passed due dates are treated as already handled.
 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function setVersion(){ try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){} }
   function removeOldGuides(){
     try{
@@ -7726,7 +7726,7 @@ StableInputV254.patch();
    - Editing due dates/figures updates True Spare and Finance Health live without needing a page refresh.
 */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const DAY_MS=24*60*60*1000;
   const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -7897,7 +7897,7 @@ StableInputV254.patch();
 
 <script id="v2835VersionFinalGuard">
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
@@ -7951,10 +7951,10 @@ StableInputV254.patch();
 
 
 <script id="v283FinancialHealthCleanSourceBridge">
-/* v2.8.3 Financial Health Live Account Sync Fix
+/* v2.8.3 Cross-View Input Sync Fix
    Lightweight bridge only: no duplicate scoring. It calls the single HealthV21 renderer after relevant changes. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   function setVersion(){ try{ document.title='Grant OS '+VERSION; }catch(e){} try{ document.querySelectorAll('header .pill,.version,.version-label,#versionLabel,#appVersion,[data-version]').forEach(el=>{ el.textContent=VERSION; }); }catch(e){} }
   function refresh(){ setVersion(); try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){} }
   let t=null; function queue(ms=60){ clearTimeout(t); t=setTimeout(refresh,ms); }
@@ -7970,12 +7970,12 @@ StableInputV254.patch();
 
 
 <script id="v283FinancialHealthLiveAccountSyncFix">
-/* v2.8.3 Financial Health Live Account Sync Fix
+/* v2.8.3 Cross-View Input Sync Fix
    One account source of truth for phone and desktop linked account fields.
    Any visible/active linked-account input writes immediately to the shared account store,
    then True Spare and Financial Health are recalculated from that shared store. */
 (function(){
-  const VERSION='v2.8.3 Financial Health Live Account Sync Fix';
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
   const STORE_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   const MAX=5;
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
@@ -8059,6 +8059,170 @@ StableInputV254.patch();
   wrap(window.App,'render');
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setVersion(); setTimeout(recalc,250);}); else {setVersion(); setTimeout(recalc,250);}
   window.GrantOSLiveAccountSync={saveIndex,recalc,read,write,VERSION};
+})();
+</script>
+
+
+
+<script id="v283CrossViewInputSyncFix">
+/* v2.8.3 Cross-View Input Sync Fix
+   Final cross-view bridge for fields that exist in both desktop tables and mobile cards.
+   Rule: the active/visible field writes to one shared state/account source immediately;
+   desktop and mobile views are refreshed from that same source when it is safe to do so. */
+(function(){
+  const VERSION='v2.8.3 Cross-View Input Sync Fix';
+  const ACCOUNT_MAX=5;
+  const ACCOUNT_PREFIXES=['v274Acc','v25531Acc'];
+  const SYNC_SELECTOR=[
+    '#budget','#accounts','#debts','#holidays','#thai','#nz','#career',
+    '#dynamicBudgetAccountsTable','#v274BudgetAccountsMobile',
+    '#fixedCostsTable','#v274FixedCostsMobile',
+    '#debtTable','#v274DebtMobile',
+    '#holidayTable','#v274HolidayMobile','#holidayControlTable','#v274HolidaySummaryMobile'
+  ].join(',');
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('header .pill,.version,.version-label,#versionLabel,#appVersion,[data-version]').forEach(el=>{ if(el) el.textContent=VERSION; }); }catch(e){}
+  }
+  function activeEl(){ return document.activeElement; }
+  function isTyping(){ const a=activeEl(); return !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName||'')); }
+  function isVisible(el){
+    try{ if(!el) return false; const st=getComputedStyle(el); if(st.display==='none'||st.visibility==='hidden') return false; return !!(el.offsetParent||el.getClientRects().length); }catch(e){ return false; }
+  }
+  function accountStoreKey(){ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} }
+  function split(balance){ const b=n(balance); return {balance:Math.max(0,b), overdraft:Math.max(0,-b)}; }
+  function normAccount(a,i){ return {name:String(a&&a.name||('Account '+(i+1))).trim()||('Account '+(i+1)), type:String(a&&a.type||'Current'), balance:n(a&&a.balance), limit:Math.max(0,n(a&&a.limit)), includeOverdraftForSpend:(a&&a.includeOverdraftForSpend)==='yes'?'yes':'no'}; }
+  function readAccounts(){
+    let data=[];
+    try{ data=JSON.parse(localStorage.getItem(accountStoreKey())||'[]'); }catch(e){ data=[]; }
+    if((!Array.isArray(data)||!data.length) && window.AccountsUIV25527 && AccountsUIV25527.accounts){ try{ data=AccountsUIV25527.accounts(); }catch(e){} }
+    return (Array.isArray(data)?data:[]).slice(0,ACCOUNT_MAX).map(normAccount);
+  }
+  function syncLegacyAccounts(accounts){
+    try{
+      const find=re=>accounts.find(a=>re.test(String(a&&a.name||'')));
+      const fd=find(/first\s*direct/i), monzo=find(/monzo/i);
+      if(fd){ const s=split(fd.balance); state.firstDirectBalance=s.balance; state.firstDirectOverdraft=s.overdraft; state.firstDirectOverdraftLimit=n(fd.limit||650); state.includeFirstDirectOverdraftForSpend=fd.includeOverdraftForSpend||'no'; }
+      if(monzo){ const s=split(monzo.balance); state.monzoBalance=s.balance; state.monzoOverdraft=s.overdraft; state.monzoOverdraftLimit=n(monzo.limit||200); state.includeMonzoOverdraftForSpend=monzo.includeOverdraftForSpend||'no'; }
+    }catch(e){}
+  }
+  function writeAccounts(accounts){
+    const clean=(accounts||[]).slice(0,ACCOUNT_MAX).map(normAccount);
+    try{ localStorage.setItem(accountStoreKey(),JSON.stringify(clean)); }catch(e){}
+    syncLegacyAccounts(clean);
+    try{ if(window.Data&&Data.save) Data.save(); }catch(e){}
+    return clean;
+  }
+  function accountField(prefix,kind,i){ return document.getElementById(prefix+kind+'_'+i); }
+  function accountIndexFromTarget(target){ const id=target&&target.id||''; const m=id.match(/^v(?:274|25531)Acc(?:Bal|Od|Limit|Include)_(\d+)$/); return m?Number(m[1]):null; }
+  function preferredPrefix(target){ const id=target&&target.id||''; if(id.indexOf('v274Acc')===0) return 'v274Acc'; if(id.indexOf('v25531Acc')===0) return 'v25531Acc'; return null; }
+  function pickAccountValue(prefixes,kind,i,fallback){
+    const active=activeEl();
+    for(const p of prefixes){ const el=accountField(p,kind,i); if(el && el===active) return el.value; }
+    for(const p of prefixes){ const el=accountField(p,kind,i); if(isVisible(el)) return el.value; }
+    for(const p of prefixes){ const el=accountField(p,kind,i); if(el && el.value!==undefined && el.value!=='') return el.value; }
+    return fallback;
+  }
+  function setFieldValue(id,value){
+    const el=document.getElementById(id); if(!el || el===activeEl()) return;
+    const v=String(value);
+    if(String(el.value)!==v) el.value=v;
+  }
+  function mirrorAccountInputs(i,account){
+    const s=split(account.balance);
+    ACCOUNT_PREFIXES.forEach(p=>{
+      setFieldValue(p+'Bal_'+i,s.balance);
+      setFieldValue(p+'Od_'+i,s.overdraft);
+      setFieldValue(p+'Limit_'+i,Math.max(0,n(account.limit)));
+      const inc=document.getElementById(p+'Include_'+i);
+      if(inc && inc!==activeEl()) inc.value=(account.includeOverdraftForSpend==='yes' && n(account.limit)>0)?'yes':'no';
+    });
+  }
+  function syncAccountFromDom(target){
+    const i=accountIndexFromTarget(target); if(i==null) return false;
+    const accounts=readAccounts(); if(!accounts[i]) return false;
+    const current=accounts[i], s=split(current.balance), pref=preferredPrefix(target);
+    const prefixes=pref?[pref, pref==='v274Acc'?'v25531Acc':'v274Acc']:ACCOUNT_PREFIXES;
+    const bal=Math.max(0,n(pickAccountValue(prefixes,'Bal',i,s.balance)));
+    const od=Math.max(0,n(pickAccountValue(prefixes,'Od',i,s.overdraft)));
+    const lim=Math.max(0,n(pickAccountValue(prefixes,'Limit',i,current.limit)));
+    const inc=String(pickAccountValue(prefixes,'Include',i,current.includeOverdraftForSpend||'no'));
+    current.balance=bal-od;
+    current.limit=lim;
+    current.includeOverdraftForSpend=(inc==='yes' && lim>0)?'yes':'no';
+    writeAccounts(accounts);
+    mirrorAccountInputs(i,current);
+    return true;
+  }
+  function syncAllAccountsFromDom(){
+    let changed=false; const accounts=readAccounts();
+    for(let i=0;i<accounts.length;i++){
+      const visibleOrActive=ACCOUNT_PREFIXES.some(p=>['Bal','Od','Limit','Include'].some(k=>{ const el=accountField(p,k,i); return el===activeEl() || isVisible(el); }));
+      if(visibleOrActive){ syncAccountFromDom(accountField(preferredPrefix(activeEl())||'v274Acc','Bal',i) || accountField('v25531Acc','Bal',i)); changed=true; }
+    }
+    return changed;
+  }
+  function syncCoreBudget(){
+    try{
+      ['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'].forEach(id=>{ const el=document.getElementById(id); if(el) state[id]=n(el.value); });
+      ['includeMonzoOverdraftForSpend','includeFirstDirectOverdraftForSpend'].forEach(id=>{ const el=document.getElementById(id); if(el) state[id]=el.value; });
+      if(window.Data&&Data.save) Data.save();
+    }catch(e){}
+  }
+  function syncGenericState(){
+    // Most table/mobile inputs already write directly to state in their inline handlers.
+    // This deliberately saves that state and avoids re-rendering the active editor.
+    try{ if(window.Data&&Data.save) Data.save(); }catch(e){}
+  }
+  function refreshLight(){
+    setVersion();
+    try{ if(window.GrantOSDateOnlyV283&&GrantOSDateOnlyV283.renderSpareCard) GrantOSDateOnlyV283.renderSpareCard(); }catch(e){}
+    try{ if(window.GrantOSDateAwareV284&&GrantOSDateAwareV284.renderSpareCard) GrantOSDateAwareV284.renderSpareCard(); }catch(e){}
+    try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){}
+    try{ if(window.Dashboard&&Dashboard.render) Dashboard.render(); }catch(e){}
+    try{ if(window.Timeline&&Timeline.render) Timeline.render(); }catch(e){}
+    try{ if(window.ForecastV21&&ForecastV21.renderForecastTable) ForecastV21.renderForecastTable(); }catch(e){}
+    try{ if(window.GraphsV21&&GraphsV21.render) GraphsV21.render(); }catch(e){}
+  }
+  function refreshViewsWhenSafe(){
+    setVersion();
+    if(isTyping()) return refreshLight();
+    try{ if(window.Budget&&Budget.render) Budget.render(); }catch(e){}
+    try{ if(window.Debt&&Debt.render) Debt.render(); }catch(e){}
+    try{ if(window.Holidays&&Holidays.render) Holidays.render(); }catch(e){}
+    try{ if(window.MobileV274&&MobileV274.renderAll) MobileV274.renderAll(); }catch(e){}
+    refreshLight();
+  }
+  let lightTimer=null, fullTimer=null;
+  function queue(target,full){
+    try{
+      if(target && /^v(?:274|25531)Acc(?:Bal|Od|Limit|Include)_\d+$/.test(target.id||'')) syncAccountFromDom(target);
+      else { syncCoreBudget(); syncGenericState(); }
+    }catch(e){}
+    clearTimeout(lightTimer); lightTimer=setTimeout(refreshLight,45);
+    if(full){ clearTimeout(fullTimer); fullTimer=setTimeout(refreshViewsWhenSafe,160); }
+  }
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,false); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,true); },true);
+  document.addEventListener('blur',function(e){ if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,true); },true);
+  function wrap(obj,name,afterFull){
+    try{ if(!obj||!obj[name]||obj[name].__crossViewSync) return; const old=obj[name].bind(obj); obj[name]=function(){ const r=old.apply(this,arguments); queue(null,!!afterFull); return r; }; obj[name].__crossViewSync=true; }catch(e){}
+  }
+  function patchControllers(){
+    wrap(window.Budget,'save',true); wrap(window.Budget,'v25531SaveDraft',false);
+    wrap(window.Debt,'add',true); wrap(window.Debt,'remove',true);
+    wrap(window.Holidays,'add',true); wrap(window.Holidays,'remove',true);
+    wrap(window.App,'saveAndRender',true); wrap(window.App,'render',true);
+    try{ if(window.MobileV274){ ['updateAccount','updateFixed','updateDebt','updateHoliday','commit'].forEach(k=>wrap(MobileV274,k,k==='commit')); } }catch(e){}
+    try{ if(window.AccountsUIV25527){ ['update','add','remove','render'].forEach(k=>wrap(AccountsUIV25527,k,true)); } }catch(e){}
+  }
+  function boot(){ setVersion(); patchControllers(); syncAllAccountsFromDom(); syncCoreBudget(); refreshViewsWhenSafe(); setTimeout(refreshViewsWhenSafe,250); setTimeout(refreshViewsWhenSafe,1000); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',()=>{ boot(); setTimeout(boot,500); });
+  window.addEventListener('resize',function(){ clearTimeout(fullTimer); fullTimer=setTimeout(refreshViewsWhenSafe,220); });
+  window.addEventListener('orientationchange',function(){ clearTimeout(fullTimer); fullTimer=setTimeout(refreshViewsWhenSafe,350); });
+  window.GrantOSCrossViewSync={VERSION,refresh:refreshViewsWhenSafe,syncAccounts:syncAllAccountsFromDom,syncAccountFromDom:syncAccountFromDom};
 })();
 </script>
 
