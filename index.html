@@ -9347,5 +9347,195 @@ body.gos-perf-scrolling #grantOSHelperBtn{animation:none!important;}
 })();
 </script>
 
+
+
+<style id="build30DropdownSummaryCleanupStyle">
+/* Build 3.0 dropdown summary cleanup: keeps tabs tidier without changing calculation sources. */
+.gos-section-dropdown{margin-top:12px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(15,23,42,.34);overflow:hidden;}
+.gos-section-dropdown summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:900;color:#dbeafe;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;}
+.gos-section-dropdown summary::-webkit-details-marker{display:none;}
+.gos-section-dropdown summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .18s ease;flex:0 0 auto;}
+.gos-section-dropdown[open] summary:after{transform:rotate(180deg);}
+.gos-dropdown-content{padding:0 12px 12px;}
+.gos-dropdown-content table{margin-top:0;}
+.gos-budget-bills-summary-card,.v276-debt-summary-card{min-height:unset!important;}
+.gos-summary-total,.v276-summary-total{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.40);border-radius:14px;padding:12px 14px;margin:10px 0;font-weight:800;}
+.gos-summary-total strong,.v276-summary-total strong{font-size:1.25rem;color:#e0f2fe;white-space:nowrap;}
+.gos-summary-list,.v276-debt-list{display:grid;gap:8px;margin-top:10px;}
+.gos-summary-line,.v276-debt-line{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.26);border-radius:12px;padding:9px 10px;}
+.gos-summary-line span,.v276-debt-line span{min-width:0;overflow-wrap:anywhere;}
+.gos-summary-line em,.v276-debt-line em{display:block;font-style:normal;color:#94a3b8;font-size:.78rem;margin-top:2px;}
+.gos-summary-line strong,.v276-debt-line strong{white-space:nowrap;color:#f8fafc;}
+@media(max-width:760px){
+  .gos-section-dropdown summary{padding:11px 12px;font-size:.95rem;}
+  .gos-dropdown-content{padding:0 10px 10px;}
+  .gos-summary-line,.v276-debt-line{display:block;}
+  .gos-summary-line strong,.v276-debt-line strong{display:block;margin-top:5px;}
+}
+</style>
+<script id="build30DropdownSummaryCleanup">
+(function(){
+  const PATCH='build30DropdownSummaryCleanup';
+  const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+  const num=v=>{ const n=Number(v); return Number.isFinite(n)?n:0; };
+  const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
+  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  let timer=null;
+
+  function cardByHeading(sectionSel, patterns){
+    const section=document.querySelector(sectionSel); if(!section) return null;
+    const pats=(Array.isArray(patterns)?patterns:[patterns]).map(p=>p instanceof RegExp?p:new RegExp('^'+String(p).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'));
+    const cards=[...section.querySelectorAll('.card')];
+    return cards.find(card=>{
+      const h=card.querySelector('h3'); const txt=(h&&h.textContent||'').trim();
+      return pats.some(p=>p.test(txt));
+    })||null;
+  }
+
+  function directChildren(el){ return Array.from(el.childNodes); }
+  function ensureDropdown(card, key, summaryText, anchor){
+    if(!card) return;
+    anchor = anchor || card.querySelector('h3');
+    if(!anchor) return;
+    const cls='gos-dd-'+key;
+    let details=Array.from(card.children).find(el=>el.classList&&el.classList.contains(cls));
+    if(!details){
+      details=document.createElement('details');
+      details.className='gos-section-dropdown '+cls;
+      const summary=document.createElement('summary');
+      const body=document.createElement('div'); body.className='gos-dropdown-content';
+      details.appendChild(summary); details.appendChild(body);
+      anchor.insertAdjacentElement('afterend', details);
+    }
+    const summary=details.querySelector('summary'); if(summary) summary.textContent=summaryText;
+    const body=details.querySelector('.gos-dropdown-content') || details.appendChild(document.createElement('div'));
+    body.className='gos-dropdown-content';
+
+    // Move every direct child after the heading/header into the dropdown, while keeping the heading/header visible.
+    let seenAnchor=false;
+    directChildren(card).forEach(node=>{
+      if(node===anchor){ seenAnchor=true; return; }
+      if(node===details) return;
+      if(!seenAnchor) return;
+      body.appendChild(node);
+    });
+  }
+
+  function wrapBudgetSections(){
+    const core=cardByHeading('#budget','Core Figures');
+    ensureDropdown(core,'budget-core','Open core figures', core&&core.querySelector('h3'));
+
+    const linked=document.getElementById('v25531BudgetAccountsCard');
+    if(linked){
+      const head=linked.querySelector('.v25531-linked-head') || linked.querySelector('h3');
+      ensureDropdown(linked,'budget-linked','Open linked accounts', head);
+    }
+
+    const fixed=cardByHeading('#budget',[/^Monthly Fixed Costs/i,/^Monthly Fixed Costs \/ Bills/i]);
+    ensureDropdown(fixed,'budget-bills','Open monthly bills', fixed&&fixed.querySelector('h3'));
+  }
+
+  function wrapDebtSections(){
+    const tracker=cardByHeading('#debts','Debt Tracker');
+    ensureDropdown(tracker,'debt-tracker','Open debt accounts', tracker&&tracker.querySelector('h3'));
+
+    const progress=cardByHeading('#debts','Debt Progress');
+    ensureDropdown(progress,'debt-progress','Open debt progress', progress&&progress.querySelector('h3'));
+  }
+
+  function wrapHolidaySections(){
+    const pots=cardByHeading('#holidays','Holiday Pots');
+    ensureDropdown(pots,'holiday-pots','Open holiday pots', pots&&pots.querySelector('h3'));
+  }
+
+  function normalBillRows(){
+    try{
+      if(typeof Calc!=='undefined' && Calc && typeof Calc.normalBillTotal==='function') Calc.normalBillTotal();
+    }catch(e){}
+    const fixed=(typeof state!=='undefined' && Array.isArray(state.fixed))?state.fixed:[];
+    const debtNames=new Set(((typeof state!=='undefined' && Array.isArray(state.debts))?state.debts:[]).map(d=>norm(d&&d[0])).filter(Boolean));
+    return fixed.filter(r=>r && !debtNames.has(norm(r[0]))).map(r=>({name:r[0]||'Bill', amount:num(r[1]), due:r[2]||''}));
+  }
+
+  function renderBillsSummary(){
+    try{
+      const fixed=cardByHeading('#budget',[/^Monthly Fixed Costs/i,/^Monthly Fixed Costs \/ Bills/i]);
+      if(!fixed) return;
+      let card=document.getElementById('gosBudgetBillsSummaryCard');
+      if(!card){
+        card=document.createElement('div');
+        card.id='gosBudgetBillsSummaryCard';
+        card.className='card full gos-budget-bills-summary-card';
+        fixed.insertAdjacentElement('afterend', card);
+      }
+      const rows=normalBillRows();
+      const total=rows.reduce((s,r)=>s+num(r.amount),0);
+      card.innerHTML=`
+        <h3>Monthly Bills from Budget Setup</h3>
+        <p class="note">Normal bills only. Debt repayments are shown in the Debt Tracker tab and still feed the wider calculations automatically.</p>
+        <div class="gos-summary-total"><span>Monthly bills total</span><strong>${money(total)}</strong></div>
+        ${rows.length?`<div class="gos-summary-list">${rows.map(r=>`<div class="gos-summary-line"><span>${esc(r.name)}${r.due?`<em>Due ${esc(r.due)}</em>`:''}</span><strong>${money(r.amount)}</strong></div>`).join('')}</div>`:`<div class="v274-mobile-empty">No monthly bills currently entered.</div>`}
+      `;
+    }catch(e){ console.warn(PATCH,'bills summary',e); }
+  }
+
+  function debtRepaymentRows(){
+    try{
+      if(typeof Calc!=='undefined' && Calc && typeof Calc.debtMonthlyRows==='function'){
+        const rows=Calc.debtMonthlyRows();
+        if(Array.isArray(rows)) return rows.map(r=>({name:r.name||'Debt', type:r.type||'', monthly:num(r.monthly)}));
+      }
+    }catch(e){}
+    const debts=(typeof state!=='undefined' && Array.isArray(state.debts))?state.debts:[];
+    return debts.filter(d=>d&&num(d[2])>0&&num(d[1])>0).map(d=>({name:d[0]||'Debt',type:d[4]||'',monthly:num(d[2])}));
+  }
+
+  function renderDebtRepaymentsInDebtTab(){
+    try{
+      const grid=document.querySelector('#debts .grid'); if(!grid) return;
+      let card=document.getElementById('v276DebtRepaymentsCard');
+      if(!card){
+        card=document.createElement('div');
+        card.id='v276DebtRepaymentsCard';
+      }
+      card.className='card wide v276-debt-summary-card';
+      const progress=cardByHeading('#debts','Debt Progress');
+      const tracker=cardByHeading('#debts','Debt Tracker');
+      if(!card.closest('#debts')){
+        if(progress) progress.insertAdjacentElement('afterend',card);
+        else if(tracker) tracker.insertAdjacentElement('afterend',card);
+        else grid.insertBefore(card, grid.firstChild);
+      }
+      const rows=debtRepaymentRows();
+      const total=rows.reduce((s,r)=>s+num(r.monthly),0);
+      card.innerHTML=`
+        <h3>Debt Repayments</h3>
+        <p class="note">Read-only summary. Add, remove or edit debt repayments above in Debt Tracker.</p>
+        <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${money(total)}</strong></div>
+        ${rows.length?`<div class="v276-debt-list">${rows.map(r=>`<div class="v276-debt-line"><span>${esc(r.name)} <em>${esc(r.type)}</em></span><strong>${money(r.monthly)}</strong></div>`).join('')}</div>`:`<div class="v274-mobile-empty">No monthly debt repayments currently active.</div>`}
+      `;
+    }catch(e){ console.warn(PATCH,'debt repayment move',e); }
+  }
+
+  function run(){
+    try{
+      renderBillsSummary();
+      renderDebtRepaymentsInDebtTab();
+      wrapBudgetSections();
+      wrapDebtSections();
+      wrapHolidaySections();
+    }catch(e){ console.warn(PATCH,e); }
+  }
+  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||120); }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  window.addEventListener('load',()=>{ run(); [250,800,1600].forEach(ms=>setTimeout(run,ms)); });
+  document.addEventListener('click',()=>schedule(160),true);
+  document.addEventListener('input',()=>schedule(180),true);
+  document.addEventListener('change',()=>schedule(180),true);
+  window.GrantOSBuild30DropdownSummaryCleanup={run};
+})();
+</script>
+
 </body>
 </html>
