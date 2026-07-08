@@ -43,6 +43,10 @@ commercially without written permission from Grant Bulmer.
 <style id="v2831RenderBootCSS">
   html.gos-render-booting body{opacity:0!important;overflow-anchor:none;}
   html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
+
+.gos-cr-actions{margin-top:12px;display:flex;justify-content:flex-start;gap:10px;flex-wrap:wrap;}
+#relocation table input,#career table input{min-width:0;width:100%;box-sizing:border-box;}
+#relocation table th:last-child,#career table th:last-child{width:96px;}
 </style>
 
 <title>Grant OS Main Build 3.0</title>
@@ -1436,8 +1440,8 @@ header .pill{vertical-align:middle;}
 
 <section id="relocation" class="section">
     <div class="grid">
-      <div class="card wide"><h3>Thailand Fund</h3><table id="thaiTable"></table></div>
-      <div class="card wide"><h3>New Zealand Fund</h3><table id="nzTable"></table></div>
+      <div class="card wide"><h3>Thailand Fund</h3><table id="thaiTable"></table><div class="gos-cr-actions"><button type="button" onclick="Relocation.add('thai')">Add Thailand item</button></div></div>
+      <div class="card wide"><h3>New Zealand Fund</h3><table id="nzTable"></table><div class="gos-cr-actions"><button type="button" onclick="Relocation.add('nz')">Add New Zealand item</button></div></div>
     </div>
   </section>
 
@@ -1793,15 +1797,80 @@ const Holidays = {
 };
 
 const Relocation = {
+  esc(v){ return String(v ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); },
+  rows(type){
+    Data.ensure();
+    if(!Array.isArray(state[type])) state[type]=[];
+    state[type]=state[type].map(r=>[r?.[0]||"", Number(r?.[1]||0), Number(r?.[2]||0)]);
+    return state[type];
+  },
+  softRefresh(){
+    try{ Data.save(); }catch(e){}
+    try{ Dashboard.render(); }catch(e){}
+    try{ GraphsV21.render(); }catch(e){}
+    try{ SnapshotV24.render(); }catch(e){}
+  },
+  update(type,i,field,value){
+    const rows=this.rows(type); if(!rows[i]) return;
+    rows[i][field] = field===0 ? value : Number(value||0);
+    this.softRefresh();
+  },
+  add(type){
+    const rows=this.rows(type);
+    rows.push(["New item",0,0]);
+    try{ Data.save(); }catch(e){}
+    this.render(); this.softRefresh();
+  },
+  remove(type,i){
+    const rows=this.rows(type); if(!rows[i]) return;
+    if(confirm("Remove this relocation item?")){
+      rows.splice(i,1);
+      try{ Data.save(); }catch(e){}
+      this.render(); this.softRefresh();
+    }
+  },
+  table(id,type){
+    this.rows(type);
+    UI.table(id,["Item","Target","Saved","Remove"],state[type],(r,i)=>`<td><input value="${this.esc(r[0])}" oninput="Relocation.update('${type}',${i},0,this.value)"></td><td><input type="number" value="${Number(r[1]||0)}" oninput="Relocation.update('${type}',${i},1,this.value)"></td><td><input type="number" value="${Number(r[2]||0)}" oninput="Relocation.update('${type}',${i},2,this.value)"></td><td><button type="button" class="danger" onclick="Relocation.remove('${type}',${i})">Remove</button></td>`);
+  },
   render(){
-    UI.table("thaiTable",["Item","Target","Saved"],state.thai,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" oninput="state.thai[${i}][2]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>`);
-    UI.table("nzTable",["Item","Target","Saved"],state.nz,(r,i)=>`<td>${r[0]}</td><td>${money(r[1])}</td><td><input type="number" value="${r[2]}" oninput="state.nz[${i}][2]=Number(this.value);Data.save()" onblur="App.saveAndRender()"></td>`);
+    this.table("thaiTable","thai");
+    this.table("nzTable","nz");
   }
 };
 
 const Career = {
-  render(){ UI.table("jobTable",["Employer","Role","Status","Country"],state.jobs,(r,i)=>`<td><input value="${r[0]}" oninput="state.jobs[${i}][0]=this.value;Data.save()" onblur="App.saveAndRender()"></td><td><input value="${r[1]}" oninput="state.jobs[${i}][1]=this.value;Data.save()" onblur="App.saveAndRender()"></td><td><input value="${r[2]}" oninput="state.jobs[${i}][2]=this.value;Data.save()" onblur="App.saveAndRender()"></td><td><input value="${r[3]}" oninput="state.jobs[${i}][3]=this.value;Data.save()" onblur="App.saveAndRender()"></td>`); },
-  add(){ state.jobs.push(["","","Applied",""]); App.saveAndRender(); }
+  esc(v){ return String(v ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); },
+  rows(){
+    Data.ensure();
+    if(!Array.isArray(state.jobs)) state.jobs=[];
+    state.jobs=state.jobs.map(r=>[r?.[0]||"", r?.[1]||"", r?.[2]||"", r?.[3]||""]);
+    return state.jobs;
+  },
+  softSave(){ try{ Data.save(); }catch(e){} },
+  update(i,field,value){
+    const rows=this.rows(); if(!rows[i]) return;
+    rows[i][field]=value;
+    this.softSave();
+  },
+  render(){
+    this.rows();
+    UI.table("jobTable",["Employer","Role","Country","Remove"],state.jobs,(r,i)=>`<td><input value="${this.esc(r[0])}" oninput="Career.update(${i},0,this.value)"></td><td><input value="${this.esc(r[1])}" oninput="Career.update(${i},1,this.value)"></td><td><input value="${this.esc(r[3])}" oninput="Career.update(${i},3,this.value)"></td><td><button type="button" class="danger" onclick="Career.remove(${i})">Remove</button></td>`);
+  },
+  add(){
+    this.rows();
+    state.jobs.push(["","","",""]);
+    this.softSave();
+    this.render();
+  },
+  remove(i){
+    this.rows(); if(!state.jobs[i]) return;
+    if(confirm("Remove this career entry?")){
+      state.jobs.splice(i,1);
+      this.softSave();
+      this.render();
+    }
+  }
 };
 
 const Settings = {
@@ -8710,17 +8779,28 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   }
   function staticHelperTips(){
     return [
-      {kind:'safe-spend-info',title:'Safe Spend',message:'Safe Daily Spend now follows Safe Weekly Spend, so the two figures stay connected.',meta:'Safe weekly spend uses your weekly target if it is affordable. If it is not affordable, the app reduces it and daily spend is weekly ÷ 7.',targetId:'safeWeek'},
-      {kind:'cashflow-info',title:'Cashflow Until Payday',message:'Cashflow protects bills and debts that are still due before payday before showing what is left for living spend.',meta:'This is why the app may reduce safe weekly spend even when there is money in the account.',targetId:'v283CashflowCard'},
-      {kind:'balance-info',title:'Update Balances',message:'The main regular update is your account balance and overdraft used.',meta:'Bills, debts and due dates can run in the background, but Safe Spend and Cashflow need your latest balance to stay accurate.',targetId:'totalBalance'},
-      {kind:'debt-type-info',title:'Debt Types',message:'Use BNPL for buy-now-pay-later debts so the app can prioritise them correctly.',meta:'Next Priority now looks at BNPL first, then one-off debts, then reduced weekly spend, then longer-running debts.',targetId:'debtRemaining'},
-      {kind:'financial-health-info',title:'Financial Health',message:'Financial Health separates real cash from overdraft so the score does not treat borrowed money as healthy spare cash.',meta:'Overdraft can help cashflow, but it still counts as pressure in the health score.',targetId:'financialScore'}
+      {kind:'cashflow-info',title:'Cashflow Until Payday',message:'Cashflow protects bills and debts that are still due before payday before showing what is left for living spend.',meta:'Use this when the figures feel confusing: the app protects due commitments first, then works out what living spend is left.',targetId:'cashflowUntilPaydayCard'},
+      {kind:'balance-info',title:'Main Regular Update',message:'The main regular update is your account balance and overdraft used.',meta:'Once bills, debts, due dates and payday are set up, updating balances is what keeps Safe Spend, Cashflow and Financial Health accurate.',targetId:'totalBalance'},
+      {kind:'safe-spend-info',title:'Safe Weekly Spend',message:'Safe Weekly Spend uses your weekly target when it is affordable.',meta:'If your target is not affordable until payday, the app reduces the weekly figure to what the current cashflow can support.',targetId:'safeWeek'},
+      {kind:'daily-spend-info',title:'Safe Daily Spend',message:'Safe Daily Spend simply follows Safe Weekly Spend divided by 7.',meta:'This keeps daily and weekly spend connected, so the daily card is not doing a separate balance calculation.',targetId:'safeToday'},
+      {kind:'overdraft-toggle-info',title:'Overdraft Setting',message:'Overdraft is only included in Safe Spend when the account is set to include it.',meta:'If the account says balance only, the app ignores the overdraft buffer for Safe Spend. If it is included, the app still treats it as borrowed money, not real cash.',targetId:'totalOverdraft'},
+      {kind:'due-date-info',title:'Due Before Payday',message:'Only bills and debt payments still due before payday reduce the current cashflow calculation.',meta:'A bill due after payday should not reduce this payday cycle. A bill due before payday should be protected first.',targetId:'fixedCostsTable'},
+      {kind:'true-spare-info',title:'Estimated Spare Until Payday',message:'Estimated Spare is what is left after due bills, due debts and planned living spend are protected.',meta:'If there is a shortfall, spare stays at £0 and the warning explains what is missing.',targetId:'v283EstimatedSpareCard'},
+      {kind:'bills-info',title:'Bills',message:'Bills are mostly set once and left to repeat monthly until something changes.',meta:'Only edit a bill when the amount changes, the due date changes, you add a new bill, or you cancel one.',targetId:'fixedCostsTable'},
+      {kind:'debt-type-info',title:'Debt Types',message:'Use BNPL for buy-now-pay-later debts so the app can prioritise them correctly.',meta:'Use one-off for a single debt to clear, and regular or flexible for longer-running repayments.',targetId:'debtRemaining'},
+      {kind:'debt-complete-info',title:'Completed Debts',message:'When a debt looks complete, review it before removing or archiving it.',meta:'This avoids the app dropping a debt too early if a payment failed or the balance still needs checking.',targetId:'debtRemaining'},
+      {kind:'accounts-info',title:'Accounts vs Budget',message:'Accounts is mainly for setting up account names and types. Budget is where the live money figures are updated.',meta:'That keeps setup separate from the regular balance updates you do day to day.',targetId:'budget'},
+      {kind:'alerts-info',title:'Immediate Action Alerts',message:'Immediate Action Alerts only show the top 3 actions, but the list stays live.',meta:'When one issue is completed, the next priority underneath moves into the visible top 3.',targetId:'alertsBox'},
+      {kind:'next-priority-info',title:'Next Priority',message:'Next Priority picks the strongest single action, not every possible issue.',meta:'It prioritises BNPL first, then one-off debts, reduced weekly spend, longer debts, overdraft, funding deadlines, completed debt review and emergency fund.',targetId:'nextPriority'},
+      {kind:'financial-health-info',title:'Financial Health',message:'Financial Health separates real cash from overdraft so borrowed money is not treated as healthy spare cash.',meta:'Overdraft can help cashflow, but it still counts as pressure in the health score.',targetId:'financialScore'},
+      {kind:'tester-info',title:'Testing Tip',message:'When testing, change one thing at a time and watch Safe Spend, Cashflow and Next Priority update.',meta:'That makes it easier to spot whether a bill, debt, balance or due date is driving the result.',targetId:'dashboard'}
     ];
   }
   function getHelperTips(){
     const seen=new Set();
+    const helpful=staticHelperTips();
     const active=buildActions().slice(0,8).map(a=>({kind:a.kind,title:a.title,message:helperText(a),meta:a.meta+' — '+a.reason,targetId:targetForAction(a),action:a}));
-    return active.concat(staticHelperTips()).filter(t=>{ const key=(t.kind||'')+'|'+(t.title||''); if(seen.has(key)) return false; seen.add(key); return true; });
+    return helpful.concat(active).filter(t=>{ const key=(t.kind||'')+'|'+(t.title||''); if(seen.has(key)) return false; seen.add(key); return true; });
   }
   function currentHelperTip(){
     const tips=getHelperTips();

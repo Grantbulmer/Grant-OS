@@ -1,7 +1,7 @@
 {
   "name": "Grant OS Main Build 3.0",
   "short_name": "Grant OS",
-  "start_url": "./?v=main-build-3-0-alerts-top3",
+  "start_url": "./?v=main-build-3-0-helper-guidance-tips",
   "scope": "./",
   "display": "standalone",
   "background_color": "#071021",
