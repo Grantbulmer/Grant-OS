@@ -37,7 +37,7 @@
   html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
 </style>
 
-<title>Grant OS v2.8.3 Cashflow Warning Card Fix</title>
+<title>Grant OS v2.8.4 Safe Spend Target Logic Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -1269,7 +1269,7 @@ header .pill{vertical-align:middle;}
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.8.3 Cashflow Warning Card Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.8.4 Safe Spend Target Logic Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -1972,7 +1972,7 @@ const Timeline = {
 };
 
 const HealthV21 = (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
@@ -3404,7 +3404,7 @@ StableInputV254.patch();
 <script>
 /* v2.5.5.32 dynamic accounts linked into Budget Setup - max 5 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const MAX_ACCOUNTS=5;
 
   function num(v){ return Number(v||0); }
@@ -3786,7 +3786,7 @@ StableInputV254.patch();
 <script>
 /* v2.6 Dashboard Clarity Pass */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Math.round(Number(v||0)).toLocaleString('en-GB');} }
   function num(v){ return Number(v||0); }
   function badgeHtml(b){ return '<span class="v25530-badge '+(b.type||'blue')+'">'+b.text+'</span>'; }
@@ -3923,7 +3923,7 @@ StableInputV254.patch();
 <script>
 /* v2.6.1 Dashboard layout + safe-spend fix */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function num(v){ return Number(v||0); }
   function moneySafe(n){ try{return money(n);}catch(e){ return '£'+num(n).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
   function accountList(){
@@ -4054,7 +4054,7 @@ StableInputV254.patch();
    used by the Accounts and Budget tabs. Uses lexical globals directly rather than window.*
    because this app defines core modules with const, so they are not attached to window. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function num(v){ return Number(v||0); }
   function fmtMoney(v){
     try{ return money(v); }
@@ -4198,7 +4198,7 @@ StableInputV254.patch();
 /* v2.6.4 Dashboard Card Order
    Moves Safe To Spend cards into the first row and moves bank/overdraft cards below Next Priority. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4245,7 +4245,7 @@ StableInputV254.patch();
    the original page-load date. If the app is left open overnight and no money is
    spent, the daily/weekly safe-spend allowance rolls forward automatically. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const MS_DAY=24*60*60*1000;
   let lastDateKey='';
   function num(v){ return Number(v||0); }
@@ -4339,7 +4339,7 @@ StableInputV254.patch();
 <script>
 /* v2.7 Responsive Device Layout Pass runtime tidy */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -4507,7 +4507,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.2 Mobile Form Access Fix runtime */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const TABLES=['fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4664,7 +4664,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.3 Mobile Full Form Fix + Fixed Cost Dates runtime */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const TABLES=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -4874,7 +4874,7 @@ StableInputV254.patch();
    Creates live mobile editor cards for Budget linked accounts, fixed costs, debts and holidays.
    Desktop/foldable keeps the existing table layout. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const MAX_ACCOUNTS=5;
   const tableIds=['dynamicBudgetAccountsTable','fixedCostsTable','debtTable','holidayTable','holidayControlTable'];
   const isPhone=()=>window.matchMedia && window.matchMedia('(max-width:640px)').matches;
@@ -5005,7 +5005,7 @@ StableInputV254.patch();
 /* v2.7.5 Mobile Add/Remove Fix
    Keeps the successful v2.7.4 mobile card layout, but makes Add/Remove update the mobile cards immediately. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5092,7 +5092,7 @@ StableInputV254.patch();
    Debt Tracker is the master source for debt balances/repayments.
    Safe-spend/forecast totals still include debt repayments via Calc.totalFixed(). */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -5260,7 +5260,7 @@ StableInputV254.patch();
    Adds remove controls for normal bills in Budget > Monthly Fixed Costs / Bills.
    Keeps Debt Tracker as the master place for debt repayments. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function updateVersion(){
@@ -5406,7 +5406,7 @@ StableInputV254.patch();
 <script>
 /* v2.7.10 version label only */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function updateVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5552,7 +5552,7 @@ StableInputV254.patch();
    Baseline guard only: keeps the visible version stable after older patch layers run.
    No calculation, layout, or data-model changes are made here. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   window.GRANT_OS_BASELINE_VERSION=VERSION;
   function setStableVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -5572,7 +5572,7 @@ StableInputV254.patch();
 /* v2.8 Priority 2: Collapsible Guidance + Calculation Breakdown Panels
    Adds explainers/help panels only. Does not change calculations, saving, or layout logic. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
   function esc(v){ return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
@@ -5743,7 +5743,7 @@ StableInputV254.patch();
    Legacy runtime patch blocks are preserved because some still provide active compatibility logic for desktop/foldable/mobile layouts.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -5764,7 +5764,7 @@ StableInputV254.patch();
    the linked account balances, which prevents the card from showing theoretical money as spare.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
   function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
   function fmt(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
@@ -6026,7 +6026,7 @@ StableInputV254.patch();
 
 <script id="v283AccountBudgetCleanupVersion">
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION; }catch(e){}
@@ -6043,7 +6043,7 @@ StableInputV254.patch();
 
 <script id="v283BudgetInputPersistenceFix">
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const CORE_NUMERIC=['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'];
   const CORE_SELECTS=[];
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -6242,7 +6242,7 @@ StableInputV254.patch();
 
 <script id="v283MobileAccountFocusFix">
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const ACCOUNT_INPUT_RE=/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_\d+$/;
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
@@ -6331,7 +6331,7 @@ StableInputV254.patch();
    Includes render stability and coalesces the older patch refresh timers on mobile so the app does not visibly shake on load.
    It does not change budget/debt/account calculations. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const nativeSetTimeout=window.__gosNativeSetTimeout||window.setTimeout.bind(window);
   const nativeClearTimeout=window.__gosNativeClearTimeout||window.clearTimeout.bind(window);
   const bootStart=performance.now();
@@ -6439,7 +6439,7 @@ StableInputV254.patch();
    fields for True Spare. Also forces new accounts from Accounts to appear immediately
    in Budget > Linked Account Figures. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const MAX_ACCOUNTS=5;
   const MS_DAY=24*60*60*1000;
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
@@ -6824,7 +6824,7 @@ StableInputV254.patch();
    Also hardens account sync so newly added Accounts rows immediately appear in Budget > Linked Account Figures.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   let baseCalcNextPaydayFn=null;
   const MAX_ACCOUNTS=5;
@@ -7316,7 +7316,7 @@ StableInputV254.patch();
    their one-off due date the same way. Undated items are still included cautiously.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   const MAX_ACCOUNTS=5;
   const DAY_MS=24*60*60*1000;
@@ -7523,7 +7523,7 @@ StableInputV254.patch();
    passed due dates are treated as already handled.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function setVersion(){ try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){} }
   function removeOldGuides(){
     try{
@@ -7581,7 +7581,7 @@ StableInputV254.patch();
    - Editing due dates/figures updates True Spare and Finance Health live without needing a page refresh.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const DAY_MS=24*60*60*1000;
   const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
   const ACCOUNT_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
@@ -7750,7 +7750,7 @@ StableInputV254.patch();
 
 <script id="v2835VersionFinalGuard">
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function setVersion(){
     try{ document.title='Grant OS '+VERSION; }catch(e){}
     try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
@@ -7762,10 +7762,10 @@ StableInputV254.patch();
 })();
 </script>
 <script id="v283FinancialHealthCleanSourceBridge">
-/* v2.8.3 Cashflow Warning Card Fix
+/* v2.8.4 Safe Spend Target Logic Fix
    Lightweight bridge only: no duplicate scoring. It calls the single HealthV21 renderer after relevant changes. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function setVersion(){ try{ document.title='Grant OS '+VERSION; }catch(e){} try{ document.querySelectorAll('header .pill,.version,.version-label,#versionLabel,#appVersion,[data-version]').forEach(el=>{ el.textContent=VERSION; }); }catch(e){} }
   function refresh(){ setVersion(); try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){} }
   let t=null; function queue(ms=60){ clearTimeout(t); t=setTimeout(refresh,ms); }
@@ -7779,12 +7779,12 @@ StableInputV254.patch();
 </script>
 
 <script id="v283FinancialHealthLiveAccountSyncFix">
-/* v2.8.3 Cashflow Warning Card Fix
+/* v2.8.4 Safe Spend Target Logic Fix
    One account source of truth for phone and desktop linked account fields.
    Any visible/active linked-account input writes immediately to the shared account store,
    then True Spare and Financial Health are recalculated from that shared store. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const STORE_KEY=()=>{ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} };
   const MAX=5;
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
@@ -7872,12 +7872,12 @@ StableInputV254.patch();
 </script>
 
 <script id="v283CrossViewInputSyncFix">
-/* v2.8.3 Cashflow Warning Card Fix
+/* v2.8.4 Safe Spend Target Logic Fix
    Final cross-view bridge for fields that exist in both desktop tables and mobile cards.
    Rule: the active/visible field writes to one shared state/account source immediately;
    desktop and mobile views are refreshed from that same source when it is safe to do so. */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   const ACCOUNT_MAX=5;
   const ACCOUNT_PREFIXES=['v274Acc','v25531Acc'];
   const SYNC_SELECTOR=[
@@ -8035,13 +8035,13 @@ StableInputV254.patch();
 
 
 <script id="v283CashflowWarningCardFix">
-/* v2.8.3 Cashflow Warning Card Fix
+/* v2.8.4 Safe Spend Target Logic Fix
    Converts the compact Days Until Payday dashboard card into a Cashflow Until Payday card.
    The card stays compact, keeps the days count, and adds a closed breakdown dropdown.
    It does not overwrite the user's weekly spend target; it highlights whether planned spend is covered.
 */
 (function(){
-  const VERSION='v2.8.3 Cashflow Warning Card Fix';
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
   function n(v){ const x=parseFloat(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(x)?x:0; }
   function money(v){ return (window.money ? window.money(n(v)) : '£'+n(v).toFixed(2)); }
   function setVersion(){
@@ -8151,6 +8151,245 @@ StableInputV254.patch();
   document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) setTimeout(render,80); },true);
   document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) setTimeout(render,120); },true);
   window.GrantOSCashflowWarningCard={VERSION,render,estimate};
+})();
+</script>
+
+
+
+<script id="v284SafeSpendTargetLogicFix">
+/* v2.8.4 Safe Spend Target Logic Fix
+   Safe Weekly Spend is now the source calculation.
+   Safe Daily Spend follows Safe Weekly Spend ÷ 7.
+   The weekly target is used when it is affordable until payday; if not, it is reduced.
+   Bills/debts due before payday reduce the living spend pot.
+   Overdraft buffer is only included for accounts where the safe-spend overdraft rule is selected.
+*/
+(function(){
+  const VERSION='v2.8.4 Safe Spend Target Logic Fix';
+  function n(v){ const x=parseFloat(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(x)?x:0; }
+  function fmt(v){ try{return money(n(v));}catch(e){return '£'+n(v).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function esc(v){ return String(v??'').replace(/[&<>\"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+  function setVersion(){
+    try{document.title='Grant OS '+VERSION;}catch(e){}
+    try{document.querySelectorAll('header .pill,.pill').forEach(function(p){p.textContent=VERSION;});}catch(e){}
+    window.GRANT_OS_BASELINE_VERSION=VERSION;
+  }
+  function isFD(name){return /first\s*direct/i.test(String(name||''));}
+  function isMonzo(name){return /monzo/i.test(String(name||''));}
+  function readAccounts(){
+    try{
+      if(typeof AccountsUIV25527!=='undefined' && AccountsUIV25527.accounts){
+        const list=AccountsUIV25527.accounts();
+        if(Array.isArray(list) && list.length) return list.filter(Boolean);
+      }
+    }catch(e){}
+    try{
+      if(typeof Calc!=='undefined' && Calc.accountList){
+        const list=Calc.accountList();
+        if(Array.isArray(list) && list.length) return list.filter(Boolean);
+      }
+    }catch(e){}
+    try{
+      return [
+        {name:'First Direct', balance:n(state.firstDirectBalance)-n(state.firstDirectOverdraft), limit:n(state.firstDirectOverdraftLimit||650), includeOverdraftForSpend:state.includeFirstDirectOverdraftForSpend||'no'},
+        {name:'Monzo', balance:n(state.monzoBalance)-n(state.monzoOverdraft), limit:n(state.monzoOverdraftLimit||200), includeOverdraftForSpend:state.includeMonzoOverdraftForSpend||'yes'}
+      ];
+    }catch(e){ return []; }
+  }
+  function includeFlag(a){
+    if(a && (a.includeOverdraftForSpend==='yes' || a.includeOverdraftForSpend==='no')) return a.includeOverdraftForSpend;
+    const name=String((a&&a.name)||'');
+    try{
+      if(isMonzo(name)) return state.includeMonzoOverdraftForSpend||'no';
+      if(isFD(name)) return state.includeFirstDirectOverdraftForSpend||'no';
+    }catch(e){}
+    return 'no';
+  }
+  function accountBreakdown(){
+    const rows=readAccounts().map(function(a,i){
+      const name=String((a&&a.name)||('Account '+(i+1)));
+      const balance=n(a&&a.balance);
+      const limit=Math.max(0,n(a&&a.limit));
+      const used=Math.max(0,-balance);
+      const positive=Math.max(0,balance);
+      const remainingBuffer=Math.max(0,limit-used);
+      const include=includeFlag(a)==='yes';
+      const includedBuffer=include ? remainingBuffer : 0;
+      return {name,balance,limit,used,positive,remainingBuffer,include,includedBuffer,add:positive+includedBuffer};
+    });
+    const selectedSpendPot=Math.max(0,rows.reduce(function(s,x){return s+x.add;},0));
+    const positiveCash=Math.max(0,rows.reduce(function(s,x){return s+x.positive;},0));
+    const includedBuffer=Math.max(0,rows.reduce(function(s,x){return s+x.includedBuffer;},0));
+    const excludedBuffer=Math.max(0,rows.reduce(function(s,x){return s+(!x.include?x.remainingBuffer:0);},0));
+    return {rows,selectedSpendPot,positiveCash,includedBuffer,excludedBuffer};
+  }
+  function fallbackDays(){ try{ if(typeof Calc!=='undefined' && Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){} return 1; }
+  function dueEstimate(){
+    try{ if(window.GrantOSDueDateV2835 && typeof GrantOSDueDateV2835.estimate==='function') return GrantOSDueDateV2835.estimate(); }catch(e){}
+    try{ if(window.GrantOSDateOnlyV283 && typeof GrantOSDateOnlyV283.estimate==='function') return GrantOSDateOnlyV283.estimate(); }catch(e){}
+    try{ if(typeof Calc!=='undefined' && Calc.trueSpareAfterCommitmentsBreakdown) return Calc.trueSpareAfterCommitmentsBreakdown(); }catch(e){}
+    return null;
+  }
+  function calculate(){
+    const acc=accountBreakdown();
+    const est=dueEstimate()||{};
+    const days=Math.max(1,n(est.days)||fallbackDays());
+    const target=Math.max(0,n((typeof state!=='undefined' && state)?state.weeklyBudget:60)||0);
+    const targetDaily=target/7;
+    const billsDue=n(est.bills&&est.bills.total);
+    const debtsDue=n(est.debts&&est.debts.total);
+    const dueCommitments=Math.max(0,billsDue+debtsDue);
+    const selectedSpendPot=acc.selectedSpendPot;
+    const livingSpendPot=Math.max(0,selectedSpendPot-dueCommitments);
+    const targetNeeded=targetDaily*days;
+    const affordable=targetNeeded<=livingSpendPot+0.004;
+    const safeWeekly=target<=0 ? 0 : (affordable ? target : Math.max(0,(livingSpendPot/days)*7));
+    const safeDaily=safeWeekly/7;
+    const shortfall=Math.max(0,targetNeeded-livingSpendPot);
+    let status='on-target';
+    if(safeWeekly<=0) status='none';
+    else if(!affordable) status='reduced';
+    return {acc,est,days,target,targetDaily,billsDue,debtsDue,dueCommitments,selectedSpendPot,livingSpendPot,targetNeeded,affordable,safeWeekly,safeDaily,shortfall,status};
+  }
+  function getDirectNote(card){
+    if(!card) return null;
+    const children=Array.from(card.children||[]);
+    return children.find(function(el){return el.classList&&el.classList.contains('note');}) || card.querySelector('.note');
+  }
+  function setValue(id,val,cls){
+    const el=document.getElementById(id); if(!el) return;
+    el.textContent=fmt(val);
+    el.className='big value-soft '+cls;
+  }
+  function badge(valueId,badges){
+    const value=document.getElementById(valueId); if(!value) return;
+    const card=value.closest('.stat-card,.card')||value.parentElement; if(!card) return;
+    let row=card.querySelector(':scope > .v25530-badge-row');
+    if(!row){row=document.createElement('div'); row.className='v25530-badge-row'; card.appendChild(row);} 
+    row.innerHTML=(badges||[]).slice(0,2).map(function(b){return '<span class="v25530-badge '+(b.type||'blue')+'">'+esc(b.text)+'</span>';}).join('');
+    row.style.display=badges&&badges.length?'flex':'none';
+  }
+  function row(a,b){return '<div><span>'+a+'</span><strong>'+b+'</strong></div>';}
+  function kv(rows){return '<div class="gos-kv">'+rows.map(function(x){return row(x[0],x[1]);}).join('')+'</div>';}
+  function formula(html){return '<div class="gos-formula">'+html+'</div>';}
+  function detail(id,title,body){
+    let el=document.getElementById(id);
+    const html='<summary><span>'+title+'</span><span class="gos-help-chevron">⌄</span></summary><div class="gos-help-body">'+body+'</div>';
+    if(!el){
+      const value=document.getElementById(id==='gosSafeTodayBreakdown'?'safeToday':'safeWeek');
+      const card=value&&(value.closest('.card')||value.parentElement);
+      if(!card) return;
+      el=document.createElement('details'); el.id=id; el.className='gos-help calc'; card.appendChild(el);
+    }
+    el.className='gos-help calc';
+    el.innerHTML=html;
+  }
+  function includedNames(c){ return c.acc.rows.filter(x=>x.include&&x.remainingBuffer>0).map(x=>esc(x.name)).join(', ')||'none'; }
+  function excludedNames(c){ return c.acc.rows.filter(x=>!x.include&&x.remainingBuffer>0).map(x=>esc(x.name)).join(', ')||'none'; }
+  function weeklyBody(c){
+    return kv([
+      ['Account spend pot',fmt(c.selectedSpendPot)],
+      ['Real positive balance',fmt(c.acc.positiveCash)],
+      ['Selected overdraft buffer',fmt(c.acc.includedBuffer)],
+      ['Bills/debts still due before payday','-'+fmt(c.dueCommitments)],
+      ['Living spend pot',fmt(c.livingSpendPot)],
+      ['Days until payday',String(Math.round(c.days))],
+      ['Weekly spend target',fmt(c.target)],
+      ['Target needed until payday',fmt(c.targetNeeded)],
+      ['Shown safe weekly spend',fmt(c.safeWeekly)]
+    ])+formula(c.affordable
+      ? 'Target covered: <strong>'+fmt(c.target)+'</strong> remains the safe weekly spend.'
+      : 'Target not covered: '+fmt(c.livingSpendPot)+' ÷ '+Math.round(c.days)+' day(s) × 7 = <strong>'+fmt(c.safeWeekly)+'</strong> per week.'
+    )+'<p class="note">Overdraft only counts where the account is set to include the remaining overdraft buffer. Excluded overdrafts: '+excludedNames(c)+'.</p>';
+  }
+  function dailyBody(c){
+    return kv([
+      ['Safe weekly spend',fmt(c.safeWeekly)],
+      ['Daily calculation','Safe weekly spend ÷ 7'],
+      ['Safe daily spend',fmt(c.safeDaily)],
+      ['Included overdraft account(s)',includedNames(c)],
+      ['Weekly target status',c.affordable?'Covered':'Not fully covered']
+    ])+formula(fmt(c.safeWeekly)+' ÷ 7 = <strong>'+fmt(c.safeDaily)+'</strong>')+'<p class="note">Daily spend now follows the weekly safe spend figure, so both cards stay connected.</p>';
+  }
+  function updateCards(){
+    const c=calculate();
+    setValue('safeWeek',c.safeWeekly,c.safeWeekly>0?(c.affordable?'value-info':'value-warning'):'value-warning');
+    setValue('safeToday',c.safeDaily,c.safeDaily>0?(c.affordable?'value-positive':'value-warning'):'value-warning');
+    const weekCard=document.getElementById('safeWeek')&&(document.getElementById('safeWeek').closest('.card')||document.getElementById('safeWeek').parentElement);
+    const dayCard=document.getElementById('safeToday')&&(document.getElementById('safeToday').closest('.card')||document.getElementById('safeToday').parentElement);
+    if(weekCard){
+      const h=weekCard.querySelector('h3'); if(h) h.textContent='Safe To Spend This Week';
+      const note=getDirectNote(weekCard);
+      if(note){
+        if(c.safeWeekly<=0) note.innerHTML='No safe spend currently available after due bills/debts are protected.';
+        else if(c.affordable && c.acc.includedBuffer>0) note.innerHTML='On target — your '+fmt(c.target)+' weekly spend target is covered using selected overdraft buffer.';
+        else if(c.affordable) note.innerHTML='On target — your '+fmt(c.target)+' weekly spend target is covered by the account spend pot.';
+        else if(c.acc.includedBuffer>0) note.innerHTML='Reduced — your '+fmt(c.target)+' weekly target is not currently covered, even with selected overdraft buffer.';
+        else note.innerHTML='Reduced — your '+fmt(c.target)+' weekly target is not currently covered by the account balance.';
+      }
+    }
+    if(dayCard){
+      const h=dayCard.querySelector('h3'); if(h) h.textContent='Safe To Spend Today';
+      const note=getDirectNote(dayCard);
+      if(note){
+        if(c.safeWeekly<=0) note.innerHTML='Based on Safe Weekly Spend: '+fmt(0)+' ÷ 7.';
+        else if(c.affordable && c.acc.includedBuffer>0) note.innerHTML='Based on weekly spend target — includes selected overdraft buffer. '+fmt(c.safeWeekly)+' ÷ 7.';
+        else if(c.affordable) note.innerHTML='Based on weekly spend target — account balance covers it. '+fmt(c.safeWeekly)+' ÷ 7.';
+        else if(c.acc.includedBuffer>0) note.innerHTML='Based on reduced Safe Weekly Spend — reduced even with selected overdraft buffer.';
+        else note.innerHTML='Based on reduced Safe Weekly Spend — reduced by balance after due bills/debts.';
+      }
+    }
+    const wkBadges=[];
+    if(c.safeWeekly<=0) wkBadges.push({text:'No safe spend',type:'red'});
+    else if(c.affordable) wkBadges.push({text:'On target',type:'green'});
+    else wkBadges.push({text:'Reduced',type:'amber'});
+    if(c.acc.includedBuffer>0) wkBadges.push({text:'OD included',type:'amber'});
+    badge('safeWeek',wkBadges);
+    const dayBadges=[{text:'From weekly',type:'blue'}];
+    if(c.acc.includedBuffer>0) dayBadges.push({text:'OD included',type:'amber'});
+    else if(c.status==='reduced') dayBadges.push({text:'Balance only',type:'blue'});
+    badge('safeToday',dayBadges);
+    detail('gosSafeWeekBreakdown','How is this calculated?',weeklyBody(c));
+    detail('gosSafeTodayBreakdown','How is this calculated?',dailyBody(c));
+    try{ window.GrantOSSafeSpendTarget=c; }catch(e){}
+    return c;
+  }
+  function patchCalc(){
+    try{
+      if(typeof Calc==='undefined') return;
+      Calc.selectedSpendPot=function(){ return calculate().selectedSpendPot; };
+      Calc.safeSpendLivingPot=function(){ return calculate().livingSpendPot; };
+      Calc.safeWeek=function(){ return calculate().safeWeekly; };
+      Calc.safeToday=function(){ return calculate().safeDaily; };
+      Calc.__v284SafeSpendTargetLogic=true;
+    }catch(e){console.warn('Grant OS safe spend target calc patch',e);}
+  }
+  function refresh(){ setVersion(); patchCalc(); updateCards(); try{ if(window.GrantOSCashflowWarningCard&&GrantOSCashflowWarningCard.render) GrantOSCashflowWarningCard.render(); }catch(e){} }
+  function wrap(obj,name){
+    try{ if(!obj||!obj[name]||obj[name].__v284SafeSpendTargetWrap) return; const old=obj[name].bind(obj); obj[name]=function(){ const r=old.apply(this,arguments); setTimeout(refresh,0); setTimeout(refresh,120); return r; }; obj[name].__v284SafeSpendTargetWrap=true; }catch(e){}
+  }
+  function boot(){
+    patchCalc();
+    wrap(typeof Dashboard!=='undefined'?Dashboard:null,'render');
+    wrap(typeof Budget!=='undefined'?Budget:null,'save');
+    wrap(typeof Budget!=='undefined'?Budget:null,'v25531SaveDraft');
+    wrap(typeof Debt!=='undefined'?Debt:null,'add');
+    wrap(typeof Debt!=='undefined'?Debt:null,'remove');
+    try{ if(window.GrantOSDueDateV2835){ ['updateBill','updateDebt','removeBill','removeDebt','finalRefresh'].forEach(function(k){wrap(GrantOSDueDateV2835,k);}); } }catch(e){}
+    try{ if(window.GrantOSDateOnlyV283){ ['updateBill','updateDebt','removeBill','removeDebt','commit'].forEach(function(k){wrap(GrantOSDateOnlyV283,k);}); } }catch(e){}
+    try{ if(typeof AccountsUIV25527!=='undefined'){ ['update','add','remove','render'].forEach(function(k){wrap(AccountsUIV25527,k);}); } }catch(e){}
+    refresh();
+    [80,250,700,1500,3000,6000].forEach(function(ms){setTimeout(refresh,ms);});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+  document.addEventListener('input',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(refresh,60);
+  },true);
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(refresh,80);
+  },true);
+  window.GrantOSSafeSpendV284={VERSION,calculate,refresh};
 })();
 </script>
 
