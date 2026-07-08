@@ -1,27 +1,25 @@
-// Grant OS v2.8.3 Due Date + Live Refresh Fix service worker
-// Network-first and clears older cached builds so GitHub Pages/PWA installs do not keep stale code.
-const GRANT_OS_CACHE_VERSION = 'grant-os-v2-8-3-due-date-live-refresh-fix';
-
+const CACHE_NAME = 'grant-os-v2-8-3-financial-health-rebalance';
+const CORE_ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './favicon-32.png',
+  './apple-touch-icon.png'
+];
 self.addEventListener('install', event => {
   self.skipWaiting();
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS)).catch(() => null));
 });
-
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.map(key => key === CACHE_NAME ? null : caches.delete(key)))).then(() => self.clients.claim()));
 });
-
 self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
-
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
-    return;
-  }
-
-  event.respondWith(fetch(request).catch(() => caches.match(request)));
+  if (event.request.method !== 'GET') return;
+  event.respondWith(fetch(event.request).then(response => {
+    const copy = response.clone();
+    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => null);
+    return response;
+  }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html'))));
 });

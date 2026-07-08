@@ -37,7 +37,7 @@
   html.gos-render-ready body{opacity:1;transition:opacity .14s ease-out;}
 </style>
 
-<title>Grant OS v2.8.3 Due Date + Live Refresh Fix</title>
+<title>Grant OS v2.8.3 Financial Health Rebalance Fix</title>
 <style>
 :root{
   --bg:#071021;--panel:#1e2a38;--panel2:#111827;--border:#334155;--text:#f8fafc;
@@ -1301,7 +1301,7 @@ header .pill{vertical-align:middle;}
 </head>
 <body>
 <header>
-  <h1>Grant OS <span class="pill">v2.8.3 Due Date + Live Refresh Fix</span></h1>
+  <h1>Grant OS <span class="pill">v2.8.3 Financial Health Rebalance Fix</span></h1>
   <div class="sub">Finance • Debt • Holidays • Relocation • Career</div>
 </header>
 <main>
@@ -8585,6 +8585,1080 @@ StableInputV254.patch();
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setVersion); else setVersion();
   window.addEventListener('load',setVersion);
   [50,200,500,1000,2500,5000,9000].forEach(function(ms){ setTimeout(setVersion,ms); });
+})();
+</script>
+
+
+
+<script id="v2836FinancialHealthLiveRefreshFix">
+/* v2.8.3 Financial Health Live Refresh Fix
+   Ensures Finance Health recalculates immediately from the currently visible Budget, Account and Debt inputs.
+   This fixes stale score/breakdown values that previously only corrected after a full page refresh. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Live Refresh Fix';
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2});} }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function fieldValue(id,fallback){
+    try{ const el=document.getElementById(id); if(el && el.value!==undefined && String(el.value).trim()!=='') return n(el.value); }catch(e){}
+    return n(fallback);
+  }
+  function accountStoreKey(){ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} }
+  function readStoredAccounts(){
+    try{ const raw=JSON.parse(localStorage.getItem(accountStoreKey())||'[]'); if(Array.isArray(raw)) return raw.filter(Boolean); }catch(e){}
+    try{ if(window.AccountsUIV25527&&AccountsUIV25527.accounts) return AccountsUIV25527.accounts(); }catch(e){}
+    return [];
+  }
+  function readVisibleAccounts(){
+    const rows=[];
+    try{
+      document.querySelectorAll('#dynamicBudgetAccountsTable tr[data-account-index]').forEach(function(row,i){
+        const idx=Number(row.getAttribute('data-account-index')||i);
+        const name=(row.querySelector('.v25531-account-name')&&row.querySelector('.v25531-account-name').textContent)||('Account '+(idx+1));
+        const type=(row.querySelector('.v25531-account-type')&&row.querySelector('.v25531-account-type').textContent)||'Current';
+        const bal=n((document.getElementById('v25531AccBal_'+idx)||{}).value);
+        const od=n((document.getElementById('v25531AccOd_'+idx)||{}).value);
+        const limit=n((document.getElementById('v25531AccLimit_'+idx)||{}).value);
+        const include=((document.getElementById('v25531AccInclude_'+idx)||{}).value)==='yes'?'yes':'no';
+        rows[idx]={name,type,balance:Math.max(0,bal)-Math.max(0,od),limit:Math.max(0,limit),includeOverdraftForSpend:include};
+      });
+    }catch(e){}
+    return rows.filter(Boolean);
+  }
+  function accountsLive(){
+    let a=readVisibleAccounts();
+    if(!a.length) a=readStoredAccounts();
+    if(!Array.isArray(a)) a=[];
+    return a.map(function(x,i){
+      const bal=n(x&&x.balance), limit=Math.max(0,n(x&&x.limit));
+      return {name:String((x&&x.name)||('Account '+(i+1))),type:String((x&&x.type)||'Current'),balance:bal,limit,includeOverdraftForSpend:(x&&x.includeOverdraftForSpend)==='yes'?'yes':'no'};
+    });
+  }
+  function accountInfo(){
+    const rows=accountsLive(); let bank=0, odUsed=0, odLimit=0, selectedSpendPot=0;
+    rows.forEach(function(a){
+      const bal=n(a.balance), limit=Math.max(0,n(a.limit));
+      const used=Math.max(0,-bal); const remaining=Math.max(0,limit-used);
+      bank+=bal; odUsed+=used; odLimit+=limit;
+      selectedSpendPot+=Math.max(0,bal)+(a.includeOverdraftForSpend==='yes'?remaining:0);
+    });
+    // Legacy fallback where the dynamic account table is not present yet.
+    if(!rows.length){
+      const fd=fieldValue('firstDirectBalance',state&&state.firstDirectBalance)-fieldValue('firstDirectOverdraft',state&&state.firstDirectOverdraft);
+      const mz=fieldValue('monzoBalance',state&&state.monzoBalance)-fieldValue('monzoOverdraft',state&&state.monzoOverdraft);
+      const mzLimit=fieldValue('monzoOverdraftLimit',state&&state.monzoOverdraftLimit);
+      bank=fd+mz; odUsed=Math.max(0,-fd)+Math.max(0,-mz); odLimit=mzLimit+Math.max(0,fieldValue('firstDirectOverdraftLimit',state&&state.firstDirectOverdraftLimit));
+      selectedSpendPot=Math.max(0,fd)+Math.max(0,mz);
+    }
+    return {rows,bank,odUsed,odLimit:Math.max(odLimit,odUsed,1),selectedSpendPot:Math.max(0,selectedSpendPot)};
+  }
+  function rowsFromDebtTable(){
+    const out=[];
+    try{
+      document.querySelectorAll('#debtTable tr').forEach(function(tr,i){
+        if(i===0) return;
+        const cells=[...tr.querySelectorAll('td')]; if(cells.length<3) return;
+        const val=function(idx){ const el=cells[idx]&&cells[idx].querySelector('input,select,textarea'); return el?el.value:''; };
+        const name=val(0), bal=n(val(1)), monthly=n(val(2)), finish=val(3), type=val(4)||'Regular', due=val(5), pri=n(val(7)||val(6)||i);
+        if(String(name).trim()||bal>0||monthly>0) out.push([name,bal,monthly,finish,type,due,pri]);
+      });
+    }catch(e){}
+    return out;
+  }
+  function rowsFromDebtMobile(){
+    const out=[];
+    try{
+      document.querySelectorAll('#v274DebtMobile .v274-mobile-card').forEach(function(card,i){
+        const vals=[...card.querySelectorAll('input,select')].map(el=>el.value);
+        if(!vals.length) return;
+        const name=vals[0]||'', bal=n(vals[1]), monthly=n(vals[2]), finish=vals[3]||'', type=vals[4]||'Regular', due=vals[5]||'', pri=n(vals[6]||i+1);
+        if(String(name).trim()||bal>0||monthly>0) out.push([name,bal,monthly,finish,type,due,pri]);
+      });
+    }catch(e){}
+    return out;
+  }
+  function debtsLive(){
+    const mob=rowsFromDebtMobile(), tab=rowsFromDebtTable();
+    try{ if(window.matchMedia&&window.matchMedia('(max-width:640px)').matches&&mob.length) return mob; }catch(e){}
+    if(tab.length) return tab;
+    if(mob.length) return mob;
+    try{ return Array.isArray(state&&state.debts)?state.debts:[]; }catch(e){return [];}
+  }
+  function fixedLive(){
+    const rows=[];
+    try{
+      document.querySelectorAll('#fixedCostsTable tr').forEach(function(tr,i){
+        if(i===0) return;
+        const cells=[...tr.querySelectorAll('td')]; if(cells.length<2) return;
+        const val=function(idx){ const el=cells[idx]&&cells[idx].querySelector('input,select,textarea'); return el?el.value:''; };
+        const name=val(0), amount=n(val(1)), due=val(2);
+        if(String(name).trim()||amount>0) rows.push([name,amount,due]);
+      });
+    }catch(e){}
+    if(rows.length) return rows;
+    try{return Array.isArray(state&&state.fixed)?state.fixed:[];}catch(e){return [];}
+  }
+  function syncLiveStateSoft(){
+    try{
+      if(!window.state) return;
+      const d=debtsLive(); if(d.length) state.debts=d.map((r,i)=>[r[0]||'New debt',n(r[1]),n(r[2]),r[3]||'',r[4]||'Regular',r[5]||'',n(r[6]||i+1),'','no']);
+      const f=fixedLive(); if(f.length) state.fixed=f.map(r=>[r[0]||'New bill',n(r[1]),r[2]||'','no']);
+      ['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'].forEach(function(k){ const el=document.getElementById(k); if(el&&el.value!==undefined) state[k]=n(el.value); });
+      try{ if(window.Data&&Data.save) Data.save(); }catch(e){}
+    }catch(e){}
+  }
+  function daysToPayday(){
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate) return Math.max(1,n(GrantOSDueDateV2835.estimate().days)); }catch(e){}
+    try{ if(window.Calc&&Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){}
+    return 1;
+  }
+  function calcHealth(){
+    const wage=Math.max(fieldValue('wage',state&&state.wage)||2200,1);
+    const weeklyBudget=Math.max(fieldValue('weeklyBudget',state&&state.weeklyBudget)||60,1);
+    const emergency=fieldValue('emergencyFund',state&&state.emergencyFund);
+    const emergencyTarget=Math.max(fieldValue('emergencyTarget',state&&state.emergencyTarget)||1000,1);
+    const acc=accountInfo();
+    const debtRows=debtsLive();
+    const active=debtRows.filter(d=>Math.max(0,n(d&&d[1]))>0);
+    const totalDebt=active.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(String(d&&d[0]||'')) || /^one/i.test(String(d&&d[4]||''))).reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const dailyTarget=Math.max(weeklyBudget/7,1);
+    const dailySafe=Math.max(0,acc.selectedSpendPot)/Math.max(1,daysToPayday());
+    const debtPenalty=clamp((totalDebt/(wage*6))*26,0,30);
+    const activeDebtPenalty=clamp(active.length*2.0,0,12);
+    const overdraftPenalty=acc.odUsed>0?clamp(8+(acc.odUsed/acc.odLimit)*7,0,15):0;
+    const oneOffPenalty=oneOff>0?clamp(8+(oneOff/900)*4,0,12):0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*15,0,15);
+    const safeSpendPenalty=clamp((1-(dailySafe/dailyTarget))*7,0,7);
+    const bankPenalty=acc.bank<0?clamp(Math.abs(acc.bank)/(wage/2)*4,0,4):0;
+    const raw=100-(debtPenalty+activeDebtPenalty+overdraftPenalty+oneOffPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty);
+    const total=Math.round(clamp(raw,0,100));
+    const status=total>=75?{label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'}:total>=55?{label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'}:total>=35?{label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'}:{label:'Critical',type:'red',detail:'Debt, BNPL/one-off debt, overdraft use, low safe spend and/or low emergency savings are pulling the score down.'};
+    const next=oneOff>0?'Clear BNPL/one-off debt first to remove short-term pressure.':acc.odUsed>0?'Reduce overdraft reliance before increasing discretionary spend.':emergency<emergencyTarget?'Build emergency fund towards '+moneySafe(emergencyTarget)+'.':totalDebt>0?'Keep debt reducing and protect the repayment plan.':'Maintain the plan and build longer-term savings.';
+    return {total,status,next,parts:[
+      ['Debt load',30-debtPenalty,30,moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',12-activeDebtPenalty,12,active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15,acc.odUsed>0?moneySafe(acc.odUsed)+' used of '+moneySafe(acc.odLimit)+' limit':'No overdraft used'],
+      ['BNPL / one-off pressure',12-oneOffPenalty,12,oneOff>0?moneySafe(oneOff)+' short-term balance':'No BNPL pressure'],
+      ['Emergency fund',15-emergencyPenalty,15,moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',7-safeSpendPenalty,7,moneySafe(dailySafe)+' today vs target '+moneySafe(dailyTarget)],
+      ['Bank position',4-bankPenalty,4,moneySafe(acc.bank)+' net position']
+    ]};
+  }
+  function paintHealth(){
+    try{
+      setVersion();
+      const data=calcHealth();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+esc(data.status.label)+'<br><span class="muted">'+esc(data.status.detail)+'</span>';
+      try{
+        const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement);
+        const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+esc(data.status.label)+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){ box.innerHTML=data.parts.map(function(p){ const pct=Math.max(0,Math.min(100,(p[1]/p[2])*100)); return '<div class="score-box"><span class="small">'+esc(p[0])+'</span><strong>'+Math.round(Math.max(0,p[1]))+'/'+p[2]+'</strong><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><div class="note">'+esc(p[3])+'</div></div>'; }).join(''); }
+      window.__grantOSFinancialHealthLive=data;
+      return data;
+    }catch(e){ console.warn('Grant OS financial health live refresh',e); }
+  }
+  function fullLiveRefresh(){
+    clearTimeout(window.__grantOSFinancialHealthLiveTimer);
+    window.__grantOSFinancialHealthLiveTimer=setTimeout(function(){
+      syncLiveStateSoft();
+      paintHealth();
+      try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+      try{ if(window.Timeline&&Timeline.render) Timeline.render(); }catch(e){}
+    },45);
+  }
+  function patch(){
+    setVersion();
+    try{ window.financeHealth=function(){ return calcHealth().total; }; }catch(e){}
+    try{ if(window.HealthV21){ HealthV21.score=calcHealth; HealthV21.render=paintHealth; HealthV21.__v2836FinancialHealthLive=true; } }catch(e){}
+    try{
+      if(window.Budget&&Budget.v25531SaveDraft&&!Budget.v25531SaveDraft.__v2836HealthLive){
+        const old=Budget.v25531SaveDraft.bind(Budget);
+        Budget.v25531SaveDraft=function(){ const r=old.apply(Budget,arguments); fullLiveRefresh(); return r; };
+        Budget.v25531SaveDraft.__v2836HealthLive=true;
+      }
+      if(window.Budget&&Budget.save&&!Budget.save.__v2836HealthLive){
+        const oldSave=Budget.save.bind(Budget);
+        Budget.save=function(){ const r=oldSave.apply(Budget,arguments); setTimeout(fullLiveRefresh,60); setTimeout(fullLiveRefresh,220); return r; };
+        Budget.save.__v2836HealthLive=true;
+      }
+    }catch(e){}
+    try{
+      if(window.Dashboard&&Dashboard.render&&!Dashboard.render.__v2836HealthLive){
+        const oldDash=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const r=oldDash.apply(Dashboard,arguments); setTimeout(paintHealth,0); setTimeout(paintHealth,120); return r; };
+        Dashboard.render.__v2836HealthLive=true;
+      }
+    }catch(e){}
+    paintHealth();
+  }
+  document.addEventListener('input',function(e){
+    const t=e.target;
+    if(t&&t.closest&&t.closest('#budget,#debt,#accounts,#dynamicBudgetAccountsTable,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) fullLiveRefresh();
+  },true);
+  document.addEventListener('change',function(e){
+    const t=e.target;
+    if(t&&t.closest&&t.closest('#budget,#debt,#accounts,#dynamicBudgetAccountsTable,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) fullLiveRefresh();
+  },true);
+  function boot(){ patch(); fullLiveRefresh(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+  [100,300,800,1600,3200,6200,9000].forEach(ms=>setTimeout(boot,ms));
+})();
+</script>
+
+
+
+<script id="v2837FinancialHealthDeterministicRefreshFix">
+/* v2.8.3 Financial Health Deterministic Refresh Fix
+   Makes Finance Health use one deterministic live source of truth for account values.
+   Fixes the stale mobile/desktop input mismatch where the score only corrected after a full page refresh. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Deterministic Refresh Fix';
+  const MAX_ACCOUNTS=5;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function storeKey(){ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} }
+  function readAccountsBase(){
+    try{ const raw=JSON.parse(localStorage.getItem(storeKey())||'[]'); if(Array.isArray(raw)&&raw.length) return raw.filter(Boolean).slice(0,MAX_ACCOUNTS); }catch(e){}
+    try{ if(window.AccountsUIV25527&&AccountsUIV25527.accounts){ const a=AccountsUIV25527.accounts(); if(Array.isArray(a)) return a.filter(Boolean).slice(0,MAX_ACCOUNTS); } }catch(e){}
+    return [];
+  }
+  function writeAccounts(accounts){
+    try{ localStorage.setItem(storeKey(),JSON.stringify(accounts)); }catch(e){}
+    try{ if(window.AccountsUIV25527&&AccountsUIV25527.write) AccountsUIV25527.write(accounts); }catch(e){}
+  }
+  function splitNet(v){ const x=n(v); return {balance:Math.max(0,x), overdraft:Math.max(0,-x)}; }
+  function isMobileView(){ try{return window.matchMedia&&window.matchMedia('(max-width:900px)').matches;}catch(e){return false;} }
+  function val(id){ const el=document.getElementById(id); return el?el.value:undefined; }
+  function pickValue(i,suffix,fallback){
+    const desktop='v25531Acc'+suffix+'_'+i;
+    const mobile='v274Acc'+suffix+'_'+i;
+    const active=document.activeElement;
+    if(active && (active.id===desktop || active.id===mobile)) return active.value;
+    const prefer=isMobileView()?mobile:desktop;
+    const other=isMobileView()?desktop:mobile;
+    const pv=val(prefer); if(pv!==undefined) return pv;
+    const ov=val(other); if(ov!==undefined) return ov;
+    return fallback;
+  }
+  function syncAccountInputsToStore(){
+    const accounts=readAccountsBase();
+    if(!accounts.length) return accounts;
+    accounts.forEach(function(a,i){
+      const current=splitNet(a&&a.balance);
+      const bal=pickValue(i,'Bal',current.balance);
+      const od=pickValue(i,'Od',current.overdraft);
+      const limit=pickValue(i,'Limit',a&&a.limit);
+      const inc=pickValue(i,'Include',(a&&a.includeOverdraftForSpend)||'no');
+      a.name=(a&&a.name)||('Account '+(i+1));
+      a.type=(a&&a.type)||'Current';
+      a.balance=Math.max(0,n(bal))-Math.max(0,n(od));
+      a.limit=Math.max(0,n(limit));
+      a.includeOverdraftForSpend=(inc==='yes'&&a.limit>0)?'yes':'no';
+    });
+    writeAccounts(accounts);
+    try{ if(window.Data&&Data.save) Data.save(); }catch(e){}
+    return accounts;
+  }
+  function accountsLive(){
+    const accounts=syncAccountInputsToStore();
+    return accounts.map(function(a,i){
+      return {name:String((a&&a.name)||('Account '+(i+1))),type:String((a&&a.type)||'Current'),balance:n(a&&a.balance),limit:Math.max(0,n(a&&a.limit)),includeOverdraftForSpend:(a&&a.includeOverdraftForSpend)==='yes'?'yes':'no'};
+    });
+  }
+  function accountInfo(){
+    const rows=accountsLive(); let bank=0, odUsed=0, odLimit=0, selectedSpendPot=0, positiveCash=0;
+    rows.forEach(function(a){
+      const bal=n(a.balance), lim=Math.max(0,n(a.limit)), used=Math.max(0,-bal), rem=Math.max(0,lim-used);
+      bank+=bal; odUsed+=used; odLimit+=lim; positiveCash+=Math.max(0,bal);
+      selectedSpendPot+=Math.max(0,bal)+(a.includeOverdraftForSpend==='yes'?rem:0);
+    });
+    if(!rows.length){
+      const fd=Math.max(0,n(state&&state.firstDirectBalance))-Math.max(0,n(state&&state.firstDirectOverdraft));
+      const mz=Math.max(0,n(state&&state.monzoBalance))-Math.max(0,n(state&&state.monzoOverdraft));
+      bank=fd+mz; odUsed=Math.max(0,-fd)+Math.max(0,-mz); odLimit=Math.max(0,n(state&&state.firstDirectOverdraftLimit))+Math.max(0,n(state&&state.monzoOverdraftLimit)); positiveCash=Math.max(0,fd)+Math.max(0,mz); selectedSpendPot=positiveCash;
+    }
+    return {rows,bank,odUsed,odLimit:Math.max(odLimit,odUsed,1),selectedSpendPot:Math.max(0,selectedSpendPot),positiveCash:Math.max(0,positiveCash)};
+  }
+  function syncCoreInputs(){
+    try{ ['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'].forEach(function(k){ const el=document.getElementById(k); if(el&&el.value!==undefined&&String(el.value).trim()!=='') state[k]=n(el.value); }); }catch(e){}
+  }
+  function debtsLive(){
+    try{ if(window.GrantOSDueDateV2835&&window.state&&Array.isArray(state.debts)) return state.debts; }catch(e){}
+    try{ return Array.isArray(state&&state.debts)?state.debts:[]; }catch(e){return [];}
+  }
+  function daysToPayday(){
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate){ const e=GrantOSDueDateV2835.estimate(); if(e&&n(e.days)>=0) return Math.max(1,n(e.days)); } }catch(e){}
+    try{ if(window.Calc&&Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){}
+    return 1;
+  }
+  function calcHealth(){
+    syncCoreInputs();
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const weeklyBudget=Math.max(n(state&&state.weeklyBudget)||60,1);
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const acc=accountInfo();
+    const debtRows=debtsLive();
+    const active=debtRows.filter(d=>Math.max(0,n(d&&d[1]))>0);
+    const totalDebt=active.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(String(d&&d[0]||'')) || /^one/i.test(String(d&&d[4]||''))).reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const dailyTarget=Math.max(weeklyBudget/7,1);
+    const dailySafe=Math.max(0,acc.selectedSpendPot)/Math.max(1,daysToPayday());
+    const debtPenalty=clamp((totalDebt/(wage*6))*26,0,30);
+    const activeDebtPenalty=clamp(active.length*2.0,0,12);
+    const overdraftPenalty=acc.odUsed>0?clamp(8+(acc.odUsed/acc.odLimit)*7,0,15):0;
+    const oneOffPenalty=oneOff>0?clamp(8+(oneOff/900)*4,0,12):0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*15,0,15);
+    const safeSpendPenalty=clamp((1-(dailySafe/dailyTarget))*7,0,7);
+    const bankPenalty=acc.bank<0?clamp(Math.abs(acc.bank)/(wage/2)*4,0,4):0;
+    const raw=100-(debtPenalty+activeDebtPenalty+overdraftPenalty+oneOffPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty);
+    const total=Math.round(clamp(raw,0,100));
+    const status=total>=75?{label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'}:total>=55?{label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'}:total>=35?{label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'}:{label:'Critical',type:'red',detail:'Debt, BNPL/one-off debt, overdraft use, low safe spend and/or low emergency savings are pulling the score down.'};
+    const next=oneOff>0?'Clear BNPL/one-off debt first to remove short-term pressure.':acc.odUsed>0?'Reduce overdraft reliance before increasing discretionary spend.':emergency<emergencyTarget?'Build emergency fund towards '+moneySafe(emergencyTarget)+'.':totalDebt>0?'Keep debt reducing and protect the repayment plan.':'Maintain the plan and build longer-term savings.';
+    return {total,status,next,acc,parts:[
+      ['Debt load',30-debtPenalty,30,moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',12-activeDebtPenalty,12,active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15,acc.odUsed>0?moneySafe(acc.odUsed)+' used of '+moneySafe(acc.odLimit)+' limit':'No overdraft used'],
+      ['BNPL / one-off pressure',12-oneOffPenalty,12,oneOff>0?moneySafe(oneOff)+' short-term balance':'No BNPL pressure'],
+      ['Emergency fund',15-emergencyPenalty,15,moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',7-safeSpendPenalty,7,moneySafe(dailySafe)+' per day vs target '+moneySafe(dailyTarget)],
+      ['Bank position',4-bankPenalty,4,moneySafe(acc.bank)+' net position']
+    ]};
+  }
+  function paintHealth(){
+    try{
+      setVersion();
+      const data=calcHealth();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+esc(data.status.label)+'<br><span class="muted">'+esc(data.status.detail)+'</span>';
+      try{ const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement); const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row'); if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+esc(data.status.label)+'</span>'; badgeRow.style.display='flex'; } }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){ box.innerHTML=data.parts.map(function(p){ const pct=Math.max(0,Math.min(100,(p[1]/p[2])*100)); return '<div class="score-box"><span class="small">'+esc(p[0])+'</span><strong>'+Math.round(Math.max(0,p[1]))+'/'+p[2]+'</strong><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><div class="note">'+esc(p[3])+'</div></div>'; }).join(''); }
+      window.__grantOSFinancialHealthDeterministic=data;
+      return data;
+    }catch(e){ console.warn('Grant OS deterministic financial health refresh',e); }
+  }
+  function refreshNow(){
+    try{ syncAccountInputsToStore(); }catch(e){}
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+    paintHealth();
+  }
+  function schedule(){ clearTimeout(window.__grantOSHealthDeterministicTimer); window.__grantOSHealthDeterministicTimer=setTimeout(refreshNow,25); }
+  function patch(){
+    setVersion();
+    try{ window.financeHealth=function(){ return calcHealth().total; }; }catch(e){}
+    try{ window.GrantOSFinancialHealth={score:calcHealth,render:paintHealth,refresh:refreshNow,__v2837:true}; }catch(e){}
+    try{ if(window.HealthV21){ HealthV21.score=calcHealth; HealthV21.render=paintHealth; HealthV21.__v2837Deterministic=true; } }catch(e){}
+    try{ if(window.Dashboard&&Dashboard.render&&!Dashboard.render.__v2837HealthFinal){ const old=Dashboard.render.bind(Dashboard); Dashboard.render=function(){ const r=old.apply(Dashboard,arguments); setTimeout(refreshNow,0); setTimeout(refreshNow,100); return r; }; Dashboard.render.__v2837HealthFinal=true; } }catch(e){}
+    try{ if(window.Budget&&Budget.v25531SaveDraft&&!Budget.v25531SaveDraft.__v2837HealthFinal){ const old=Budget.v25531SaveDraft.bind(Budget); Budget.v25531SaveDraft=function(){ const r=old.apply(Budget,arguments); schedule(); return r; }; Budget.v25531SaveDraft.__v2837HealthFinal=true; } }catch(e){}
+    refreshNow();
+  }
+  document.addEventListener('input',function(e){ const t=e.target; if(t&&t.closest&&t.closest('#budget,#debt,#accounts,#dynamicBudgetAccountsTable,#v274BudgetAccountsMobile,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) schedule(); },true);
+  document.addEventListener('change',function(e){ const t=e.target; if(t&&t.closest&&t.closest('#budget,#debt,#accounts,#dynamicBudgetAccountsTable,#v274BudgetAccountsMobile,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) schedule(); },true);
+  function boot(){ patch(); schedule(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',boot);
+  [80,250,600,1200,2500,5000,9000].forEach(ms=>setTimeout(boot,ms));
+})();
+</script>
+
+<script id="v2838FinancialHealthAccountLiveHardFix">
+/* v2.8.3 Financial Health Single Source Display Fix
+   Finalises the Financial Health live-refresh path by making account input values the source of truth immediately.
+   This stops the score showing one value before refresh and another after refresh. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Single Source Display Fix';
+  const MAX_ACCOUNTS=5;
+  window.__grantOSLiveAccountFields = window.__grantOSLiveAccountFields || {};
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function storeKey(){ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} }
+  function readAccounts(){
+    try{ const raw=JSON.parse(localStorage.getItem(storeKey())||'[]'); if(Array.isArray(raw)&&raw.length) return raw.filter(Boolean).slice(0,MAX_ACCOUNTS); }catch(e){}
+    try{ if(window.AccountsUIV25527&&AccountsUIV25527.accounts){ const a=AccountsUIV25527.accounts(); if(Array.isArray(a)&&a.length) return a.filter(Boolean).slice(0,MAX_ACCOUNTS); } }catch(e){}
+    return [];
+  }
+  function writeAccounts(accounts){
+    try{ localStorage.setItem(storeKey(),JSON.stringify(accounts)); }catch(e){}
+    try{ if(window.AccountsUIV25527&&AccountsUIV25527.write) AccountsUIV25527.write(accounts); }catch(e){}
+    try{ if(window.Data&&Data.save) Data.save(); }catch(e){}
+  }
+  function splitNet(v){ const x=n(v); return {Bal:Math.max(0,x), Od:Math.max(0,-x)}; }
+  function getInputValue(i,suffix,fallback){
+    const live=window.__grantOSLiveAccountFields[i]||{};
+    if(Object.prototype.hasOwnProperty.call(live,suffix)) return live[suffix];
+    const active=document.activeElement;
+    if(active && active.id && active.id.match(new RegExp('^(v274Acc|v25531Acc)'+suffix+'_'+i+'$'))) return active.value;
+    const mob=document.getElementById('v274Acc'+suffix+'_'+i);
+    const desk=document.getElementById('v25531Acc'+suffix+'_'+i);
+    /* Prefer the mobile card if it exists. The hidden desktop table often retains an older value on phones. */
+    if(mob && mob.value!==undefined) return mob.value;
+    if(desk && desk.value!==undefined) return desk.value;
+    return fallback;
+  }
+  function rememberTarget(t){
+    try{
+      if(!t||!t.id) return;
+      const m=t.id.match(/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_(\d+)$/);
+      if(!m) return;
+      const i=Number(m[3]);
+      window.__grantOSLiveAccountFields[i]=window.__grantOSLiveAccountFields[i]||{};
+      window.__grantOSLiveAccountFields[i][m[2]]=t.value;
+    }catch(e){}
+  }
+  function syncAccountsFromInputs(){
+    const accounts=readAccounts();
+    accounts.forEach(function(a,i){
+      const s=splitNet(a&&a.balance);
+      const bal=getInputValue(i,'Bal',s.Bal);
+      const od=getInputValue(i,'Od',s.Od);
+      const lim=getInputValue(i,'Limit',a&&a.limit);
+      const inc=getInputValue(i,'Include',(a&&a.includeOverdraftForSpend)||'no');
+      a.name=(a&&a.name)||('Account '+(i+1));
+      a.type=(a&&a.type)||'Current';
+      a.balance=Math.max(0,n(bal))-Math.max(0,n(od));
+      a.limit=Math.max(0,n(lim));
+      a.includeOverdraftForSpend=(inc==='yes'&&a.limit>0)?'yes':'no';
+    });
+    if(accounts.length) writeAccounts(accounts);
+    return accounts;
+  }
+  function accountInfo(){
+    const rows=syncAccountsFromInputs();
+    let bank=0, odUsed=0, odLimit=0, selectedSpendPot=0, positiveCash=0;
+    rows.forEach(function(a){
+      const bal=n(a.balance), lim=Math.max(0,n(a.limit));
+      const used=Math.max(0,-bal), rem=Math.max(0,lim-used);
+      bank+=bal; odUsed+=used; odLimit+=lim; positiveCash+=Math.max(0,bal);
+      selectedSpendPot+=Math.max(0,bal)+(a.includeOverdraftForSpend==='yes'?rem:0);
+    });
+    if(!rows.length && window.state){
+      const fd=Math.max(0,n(state.firstDirectBalance))-Math.max(0,n(state.firstDirectOverdraft));
+      const mz=Math.max(0,n(state.monzoBalance))-Math.max(0,n(state.monzoOverdraft));
+      bank=fd+mz;
+      odUsed=Math.max(0,-fd)+Math.max(0,-mz);
+      odLimit=Math.max(0,n(state.firstDirectOverdraftLimit))+Math.max(0,n(state.monzoOverdraftLimit));
+      positiveCash=Math.max(0,fd)+Math.max(0,mz);
+      selectedSpendPot=positiveCash;
+    }
+    return {rows,bank,odUsed,odLimit:Math.max(odLimit,odUsed,1),selectedSpendPot:Math.max(0,selectedSpendPot),positiveCash:Math.max(0,positiveCash)};
+  }
+  function syncCoreInputs(){
+    try{ if(!window.state) return; ['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'].forEach(function(k){ const el=document.getElementById(k); if(el&&el.value!==undefined&&String(el.value).trim()!=='') state[k]=n(el.value); }); }catch(e){}
+  }
+  function debtsLive(){ try{ return Array.isArray(state&&state.debts)?state.debts:[]; }catch(e){ return []; } }
+  function daysToPayday(){
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate){ const e=GrantOSDueDateV2835.estimate(); if(e&&n(e.days)>=0) return Math.max(1,n(e.days)); } }catch(e){}
+    try{ if(window.Calc&&Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){}
+    return 1;
+  }
+  function calcHealth(){
+    syncCoreInputs();
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const weeklyBudget=Math.max(n(state&&state.weeklyBudget)||60,1);
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const acc=accountInfo();
+    const active=debtsLive().filter(d=>Math.max(0,n(d&&d[1]))>0);
+    const totalDebt=active.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(String(d&&d[0]||'')) || /^one/i.test(String(d&&d[4]||''))).reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const dailyTarget=Math.max(weeklyBudget/7,1);
+    const dailySafe=Math.max(0,acc.selectedSpendPot)/Math.max(1,daysToPayday());
+    const debtPenalty=clamp((totalDebt/(wage*6))*26,0,30);
+    const activeDebtPenalty=clamp(active.length*2.0,0,12);
+    const overdraftPenalty=acc.odUsed>0?clamp(8+(acc.odUsed/acc.odLimit)*7,0,15):0;
+    const oneOffPenalty=oneOff>0?clamp(8+(oneOff/900)*4,0,12):0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*15,0,15);
+    const safeSpendPenalty=clamp((1-(dailySafe/dailyTarget))*7,0,7);
+    const bankPenalty=acc.bank<0?clamp(Math.abs(acc.bank)/(wage/2)*4,0,4):0;
+    const total=Math.round(clamp(100-(debtPenalty+activeDebtPenalty+overdraftPenalty+oneOffPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty),0,100));
+    const status=total>=75?{label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'}:total>=55?{label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'}:total>=35?{label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'}:{label:'Critical',type:'red',detail:'Debt, BNPL/one-off debt, overdraft use, low safe spend and/or low emergency savings are pulling the score down.'};
+    const next=oneOff>0?'Clear BNPL/one-off debt first to remove short-term pressure.':acc.odUsed>0?'Reduce overdraft reliance before increasing discretionary spend.':emergency<emergencyTarget?'Build emergency fund towards '+moneySafe(emergencyTarget)+'.':totalDebt>0?'Keep debt reducing and protect the repayment plan.':'Maintain the plan and build longer-term savings.';
+    return {total,status,next,acc,parts:[
+      ['Debt load',30-debtPenalty,30,moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',12-activeDebtPenalty,12,active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15,acc.odUsed>0?moneySafe(acc.odUsed)+' used of '+moneySafe(acc.odLimit)+' limit':'No overdraft used'],
+      ['BNPL / one-off pressure',12-oneOffPenalty,12,oneOff>0?moneySafe(oneOff)+' short-term balance':'No BNPL pressure'],
+      ['Emergency fund',15-emergencyPenalty,15,moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',7-safeSpendPenalty,7,moneySafe(dailySafe)+' per day vs target '+moneySafe(dailyTarget)],
+      ['Bank position',4-bankPenalty,4,moneySafe(acc.bank)+' net position']
+    ]};
+  }
+  function paintHealth(){
+    try{
+      setVersion();
+      const data=calcHealth();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+esc(data.status.label)+'<br><span class="muted">'+esc(data.status.detail)+'</span>';
+      try{ const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement); const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row'); if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+esc(data.status.label)+'</span>'; badgeRow.style.display='flex'; } }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){ box.innerHTML=data.parts.map(function(p){ const pct=Math.max(0,Math.min(100,(p[1]/p[2])*100)); return '<div class="score-box"><span class="small">'+esc(p[0])+'</span><strong>'+Math.round(Math.max(0,p[1]))+'/'+p[2]+'</strong><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><div class="note">'+esc(p[3])+'</div></div>'; }).join(''); }
+      window.__grantOSFinancialHealthHardLive=data;
+      return data;
+    }catch(e){ console.warn('Grant OS hard financial health refresh',e); }
+  }
+  function hardRefresh(){
+    try{ syncAccountsFromInputs(); }catch(e){}
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+    return paintHealth();
+  }
+  function queue(){
+    clearTimeout(window.__grantOSHealthHardLiveTimer);
+    hardRefresh();
+    window.__grantOSHealthHardLiveTimer=setTimeout(hardRefresh,35);
+    setTimeout(hardRefresh,120);
+    setTimeout(hardRefresh,300);
+  }
+  function patchUpdateAccount(){
+    try{
+      if(window.GrantOSDateAwareV284 && !GrantOSDateAwareV284.updateAccount.__v2838HardLive){
+        GrantOSDateAwareV284.updateAccount=function(i){
+          const active=document.activeElement; rememberTarget(active);
+          syncAccountsFromInputs();
+          try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+          queue();
+        };
+        GrantOSDateAwareV284.updateAccount.__v2838HardLive=true;
+      }
+    }catch(e){}
+    try{ window.financeHealth=function(){ return calcHealth().total; }; }catch(e){}
+    try{ window.GrantOSFinancialHealth={score:calcHealth,render:paintHealth,refresh:hardRefresh,__v2838:true}; }catch(e){}
+    try{ if(window.HealthV21){ HealthV21.score=calcHealth; HealthV21.render=paintHealth; HealthV21.__v2838HardLive=true; } }catch(e){}
+  }
+  function install(){
+    setVersion(); patchUpdateAccount(); hardRefresh();
+  }
+  document.addEventListener('input',function(e){ rememberTarget(e.target); if(e.target&&e.target.closest&&e.target.closest('#budget,#debt,#accounts,#dynamicBudgetAccountsTable,#v274BudgetAccountsMobile,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) queue(); },true);
+  document.addEventListener('change',function(e){ rememberTarget(e.target); if(e.target&&e.target.closest&&e.target.closest('#budget,#debt,#accounts,#dynamicBudgetAccountsTable,#v274BudgetAccountsMobile,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) queue(); },true);
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('[data-tab],.tab,button')) setTimeout(()=>{patchUpdateAccount();hardRefresh();},80); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
+  window.addEventListener('load',install);
+  [60,180,400,900,1600,3000,6000,10000].forEach(ms=>setTimeout(install,ms));
+})();
+</script>
+
+
+
+<script id="v283FinancialHealthCrossDeviceLiveFix">
+/* v2.8.3 Financial Health Single Source Display Fix
+   One shared account data source for phone and desktop. The active/visible edited input updates
+   the same account store immediately; Finance Health then reads only that shared store. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Single Source Display Fix';
+  const MAX_ACCOUNTS=5;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function storeKey(){ try{return (window.AccountsUIV25527&&AccountsUIV25527.storeKey)||'grantOS.accounts.v2554';}catch(e){return 'grantOS.accounts.v2554';} }
+  function split(balance){ const b=n(balance); return {Bal:Math.max(0,b),Od:Math.max(0,-b)}; }
+  function normalizeAccount(a,i){
+    return {name:String((a&&a.name)||('Account '+(i+1))).trim()||('Account '+(i+1)),type:String((a&&a.type)||'Current'),balance:n(a&&a.balance),limit:Math.max(0,n(a&&a.limit)),includeOverdraftForSpend:(a&&a.includeOverdraftForSpend)==='yes'&&n(a&&a.limit)>0?'yes':'no'};
+  }
+  function readAccounts(){
+    let rows=[];
+    try{ rows=JSON.parse(localStorage.getItem(storeKey())||'[]'); }catch(e){ rows=[]; }
+    if((!Array.isArray(rows)||!rows.length) && window.AccountsUIV25527&&AccountsUIV25527.accounts){ try{ rows=AccountsUIV25527.accounts(); }catch(e){} }
+    return (Array.isArray(rows)?rows:[]).filter(Boolean).slice(0,MAX_ACCOUNTS).map(normalizeAccount);
+  }
+  function syncLegacyState(accounts){
+    try{
+      if(!window.state) return;
+      const find=re=>accounts.find(a=>re.test(String(a.name||'')));
+      const fd=find(/first\s*direct/i), monzo=find(/monzo/i);
+      if(fd){ const s=split(fd.balance); state.firstDirectBalance=s.Bal; state.firstDirectOverdraft=s.Od; state.firstDirectOverdraftLimit=n(fd.limit||650); state.includeFirstDirectOverdraftForSpend=fd.includeOverdraftForSpend||'no'; }
+      if(monzo){ const s=split(monzo.balance); state.monzoBalance=s.Bal; state.monzoOverdraft=s.Od; state.monzoOverdraftLimit=n(monzo.limit||200); state.includeMonzoOverdraftForSpend=monzo.includeOverdraftForSpend||'no'; }
+    }catch(e){}
+  }
+  function writeAccounts(accounts){
+    const clean=(Array.isArray(accounts)?accounts:[]).filter(Boolean).slice(0,MAX_ACCOUNTS).map(normalizeAccount);
+    try{ localStorage.setItem(storeKey(),JSON.stringify(clean)); }catch(e){}
+    try{ if(window.AccountsUIV25527&&AccountsUIV25527.write) AccountsUIV25527.write(clean); }catch(e){}
+    try{ syncLegacyState(clean); }catch(e){}
+    try{ if(window.Data&&Data.save) Data.save(); }catch(e){}
+    return clean;
+  }
+  function visible(el){
+    try{
+      if(!el) return false;
+      const st=getComputedStyle(el);
+      if(st.display==='none'||st.visibility==='hidden'||st.opacity==='0') return false;
+      if(el.getClientRects && !el.getClientRects().length) return false;
+      return true;
+    }catch(e){ return !!el; }
+  }
+  function fieldMeta(t){
+    try{
+      if(!t||!t.id) return null;
+      const m=t.id.match(/^(v274Acc|v25531Acc)(Bal|Od|Limit|Include)_(\d+)$/);
+      if(!m) return null;
+      return {prefix:m[1],suffix:m[2],index:Number(m[3])};
+    }catch(e){ return null; }
+  }
+  function field(id){ return document.getElementById(id); }
+  function draft(){ return window.__grantOSCrossDeviceAccountDraft||(window.__grantOSCrossDeviceAccountDraft={}); }
+  function remember(t){
+    const m=fieldMeta(t); if(!m) return null;
+    const d=draft(); d[m.index]=d[m.index]||{}; d[m.index][m.suffix]=t.value; d[m.index].__prefix=m.prefix; d[m.index].__ts=Date.now();
+    return m;
+  }
+  function chooseValue(i,suffix,fallback,target){
+    const tm=fieldMeta(target);
+    if(tm&&tm.index===i&&tm.suffix===suffix) return target.value;
+    const active=document.activeElement, am=fieldMeta(active);
+    if(am&&am.index===i&&am.suffix===suffix) return active.value;
+    const d=draft()[i];
+    if(d && Object.prototype.hasOwnProperty.call(d,suffix)) return d[suffix];
+    if(tm&&tm.index===i){ const same=field(tm.prefix+suffix+'_'+i); if(same) return same.value; }
+    const mob=field('v274Acc'+suffix+'_'+i), desk=field('v25531Acc'+suffix+'_'+i);
+    const candidates=[mob,desk].filter(Boolean);
+    const visibleEls=candidates.filter(visible);
+    if(visibleEls.length===1) return visibleEls[0].value;
+    if(visibleEls.length>1){
+      const pref=d&&d.__prefix; const byPref=pref&&visibleEls.find(el=>el.id.indexOf(pref+suffix+'_')===0);
+      return (byPref||visibleEls[0]).value;
+    }
+    return fallback;
+  }
+  function mirrorPair(i,suffix,value,sourcePrefix){
+    try{
+      ['v274Acc','v25531Acc'].forEach(function(prefix){
+        const el=field(prefix+suffix+'_'+i);
+        if(el && el!==document.activeElement && (sourcePrefix?prefix!==sourcePrefix:true)) el.value=value;
+      });
+    }catch(e){}
+  }
+  function applyAccountFromInputs(i,target){
+    const accounts=readAccounts();
+    const a=accounts[i]; if(!a) return accounts;
+    const current=split(a.balance);
+    const tm=fieldMeta(target);
+    const bal=chooseValue(i,'Bal',current.Bal,target);
+    const od=chooseValue(i,'Od',current.Od,target);
+    const lim=chooseValue(i,'Limit',a.limit,target);
+    const inc=chooseValue(i,'Include',a.includeOverdraftForSpend||'no',target);
+    a.balance=Math.max(0,n(bal))-Math.max(0,n(od));
+    a.limit=Math.max(0,n(lim));
+    a.includeOverdraftForSpend=(inc==='yes'&&a.limit>0)?'yes':'no';
+    const sourcePrefix=tm&&tm.index===i?tm.prefix:null;
+    mirrorPair(i,'Bal',String(Math.max(0,n(bal))),sourcePrefix);
+    mirrorPair(i,'Od',String(Math.max(0,n(od))),sourcePrefix);
+    mirrorPair(i,'Limit',String(Math.max(0,n(lim))),sourcePrefix);
+    mirrorPair(i,'Include',a.includeOverdraftForSpend,sourcePrefix);
+    return writeAccounts(accounts);
+  }
+  function applyActiveAccount(){
+    const m=remember(document.activeElement);
+    if(m) return applyAccountFromInputs(m.index,document.activeElement);
+    return readAccounts();
+  }
+  function accountInfo(){
+    const rows=readAccounts();
+    let bank=0, odUsed=0, odLimit=0, selectedSpendPot=0, positiveCash=0;
+    rows.forEach(function(a){
+      const bal=n(a.balance), lim=Math.max(0,n(a.limit)), used=Math.max(0,-bal), rem=Math.max(0,lim-used);
+      bank+=bal; odUsed+=used; odLimit+=lim; positiveCash+=Math.max(0,bal);
+      selectedSpendPot+=Math.max(0,bal)+(a.includeOverdraftForSpend==='yes'?rem:0);
+    });
+    if(!rows.length && window.state){
+      const fd=Math.max(0,n(state.firstDirectBalance))-Math.max(0,n(state.firstDirectOverdraft));
+      const mz=Math.max(0,n(state.monzoBalance))-Math.max(0,n(state.monzoOverdraft));
+      bank=fd+mz; odUsed=Math.max(0,-fd)+Math.max(0,-mz); odLimit=Math.max(0,n(state.firstDirectOverdraftLimit))+Math.max(0,n(state.monzoOverdraftLimit)); positiveCash=Math.max(0,fd)+Math.max(0,mz); selectedSpendPot=positiveCash;
+    }
+    return {rows,bank,odUsed,odLimit:Math.max(odLimit,odUsed,1),selectedSpendPot:Math.max(0,selectedSpendPot),positiveCash:Math.max(0,positiveCash)};
+  }
+  function syncCoreInputs(){
+    try{ if(!window.state) return; ['wage','weeklyBudget','payday','emergencyFund','emergencyTarget'].forEach(function(k){ const el=document.getElementById(k); if(el&&el.value!==undefined&&String(el.value).trim()!=='') state[k]=n(el.value); }); if(window.Data&&Data.save) Data.save(); }catch(e){}
+  }
+  function debtsLive(){ try{ return Array.isArray(state&&state.debts)?state.debts:[]; }catch(e){ return []; } }
+  function daysToPayday(){
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate){ const e=GrantOSDueDateV2835.estimate(); if(e&&n(e.days)>=0) return Math.max(1,n(e.days)); } }catch(e){}
+    try{ if(window.Calc&&Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){}
+    return 1;
+  }
+  function calcHealth(){
+    applyActiveAccount();
+    syncCoreInputs();
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const weeklyBudget=Math.max(n(state&&state.weeklyBudget)||60,1);
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const acc=accountInfo();
+    const active=debtsLive().filter(d=>Math.max(0,n(d&&d[1]))>0);
+    const totalDebt=active.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay/i.test(String(d&&d[0]||'')) || /^one/i.test(String(d&&d[4]||''))).reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const dailyTarget=Math.max(weeklyBudget/7,1);
+    const dailySafe=Math.max(0,acc.selectedSpendPot)/Math.max(1,daysToPayday());
+    const debtPenalty=clamp((totalDebt/(wage*6))*26,0,30);
+    const activeDebtPenalty=clamp(active.length*2.0,0,12);
+    const overdraftPenalty=acc.odUsed>0?clamp(8+(acc.odUsed/acc.odLimit)*7,0,15):0;
+    const oneOffPenalty=oneOff>0?clamp(8+(oneOff/900)*4,0,12):0;
+    const emergencyPenalty=clamp((1-(emergency/emergencyTarget))*15,0,15);
+    const safeSpendPenalty=clamp((1-(dailySafe/dailyTarget))*7,0,7);
+    const bankPenalty=acc.bank<0?clamp(Math.abs(acc.bank)/(wage/2)*4,0,4):0;
+    const total=Math.round(clamp(100-(debtPenalty+activeDebtPenalty+overdraftPenalty+oneOffPenalty+emergencyPenalty+safeSpendPenalty+bankPenalty),0,100));
+    const status=total>=75?{label:'Strong',type:'green',detail:'Good cover and fewer short-term pressure points.'}:total>=55?{label:'Improving',type:'amber',detail:'Some areas are improving, but debt, overdraft or savings still need attention.'}:total>=35?{label:'Tight',type:'amber',detail:'Money is under pressure from debt, overdraft use, low savings or limited safe spend.'}:{label:'Critical',type:'red',detail:'Debt, BNPL/one-off debt, overdraft use, low safe spend and/or low emergency savings are pulling the score down.'};
+    const next=oneOff>0?'Clear BNPL/one-off debt first to remove short-term pressure.':acc.odUsed>0?'Reduce overdraft reliance before increasing discretionary spend.':emergency<emergencyTarget?'Build emergency fund towards '+moneySafe(emergencyTarget)+'.':totalDebt>0?'Keep debt reducing and protect the repayment plan.':'Maintain the plan and build longer-term savings.';
+    return {total,status,next,acc,parts:[
+      ['Debt load',30-debtPenalty,30,moneySafe(totalDebt)+' total debt'],
+      ['Active debt count',12-activeDebtPenalty,12,active.length+' active debt(s)'],
+      ['Overdraft pressure',15-overdraftPenalty,15,acc.odUsed>0?moneySafe(acc.odUsed)+' used of '+moneySafe(acc.odLimit)+' limit':'No overdraft used'],
+      ['BNPL / one-off pressure',12-oneOffPenalty,12,oneOff>0?moneySafe(oneOff)+' short-term balance':'No BNPL pressure'],
+      ['Emergency fund',15-emergencyPenalty,15,moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Safe spend',7-safeSpendPenalty,7,moneySafe(dailySafe)+' per day vs target '+moneySafe(dailyTarget)],
+      ['Bank position',4-bankPenalty,4,moneySafe(acc.bank)+' net position']
+    ]};
+  }
+  function paintHealth(){
+    try{
+      setVersion();
+      const data=calcHealth();
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+esc(data.status.label)+'<br><span class="muted">'+esc(data.status.detail)+'</span>';
+      try{ const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement); const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row'); if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+data.status.type+'">Status: '+esc(data.status.label)+'</span>'; badgeRow.style.display='flex'; } }catch(e){}
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){ box.innerHTML=data.parts.map(function(p){ const pct=Math.max(0,Math.min(100,(p[1]/p[2])*100)); return '<div class="score-box"><span class="small">'+esc(p[0])+'</span><strong>'+Math.round(Math.max(0,p[1]))+'/'+p[2]+'</strong><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><div class="note">'+esc(p[3])+'</div></div>'; }).join(''); }
+      window.__grantOSFinancialHealthCrossDevice=data;
+      return data;
+    }catch(e){ console.warn('Grant OS cross-device financial health refresh',e); }
+  }
+  function refresh(){
+    try{ applyActiveAccount(); }catch(e){}
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+    return paintHealth();
+  }
+  function queue(){
+    clearTimeout(window.__grantOSHealthCrossDeviceTimer);
+    refresh();
+    window.__grantOSHealthCrossDeviceTimer=setTimeout(refresh,25);
+    setTimeout(refresh,95);
+    setTimeout(refresh,190);
+    setTimeout(refresh,380);
+    setTimeout(refresh,760);
+  }
+  function patchUpdateAccount(){
+    try{
+      if(window.GrantOSDateAwareV284){
+        GrantOSDateAwareV284.updateAccount=function(i){
+          const active=document.activeElement;
+          const m=fieldMeta(active);
+          applyAccountFromInputs(i,(m&&m.index===i)?active:null);
+          try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+          queue();
+        };
+        GrantOSDateAwareV284.updateAccount.__v2838HardLive=true;
+        GrantOSDateAwareV284.updateAccount.__v2839CrossDevice=true;
+      }
+    }catch(e){}
+    try{
+      if(window.MobileV274){
+        MobileV274.updateAccount=function(i){
+          const active=document.activeElement;
+          const m=fieldMeta(active);
+          applyAccountFromInputs(i,(m&&m.index===i)?active:null);
+          queue();
+        };
+        MobileV274.updateAccount.__v2838HardLive=true;
+        MobileV274.updateAccount.__v2839CrossDevice=true;
+      }
+    }catch(e){}
+    try{ window.financeHealth=function(){ return calcHealth().total; }; }catch(e){}
+    try{ window.GrantOSFinancialHealth={score:calcHealth,render:paintHealth,refresh:refresh,__v2839CrossDevice:true}; }catch(e){}
+    try{ if(window.HealthV21){ HealthV21.score=calcHealth; HealthV21.render=paintHealth; HealthV21.__v2839CrossDevice=true; } }catch(e){}
+  }
+  function handleInput(t){
+    const m=remember(t);
+    if(m){ applyAccountFromInputs(m.index,t); queue(); return true; }
+    return false;
+  }
+  function install(){ setVersion(); patchUpdateAccount(); refresh(); }
+  document.addEventListener('input',function(e){ const t=e.target; if(handleInput(t)) return; if(t&&t.closest&&t.closest('#budget,#debt,#accounts,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) queue(); },true);
+  document.addEventListener('change',function(e){ const t=e.target; if(handleInput(t)) return; if(t&&t.closest&&t.closest('#budget,#debt,#accounts,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) queue(); },true);
+  document.addEventListener('focusout',function(e){ if(handleInput(e.target)) return; },true);
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('[data-tab],.tab,button,summary')) setTimeout(function(){ patchUpdateAccount(); refresh(); },80); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
+  window.addEventListener('load',install);
+  [70,210,520,1100,1800,3200,6200,10150,12200].forEach(ms=>setTimeout(install,ms));
+})();
+</script>
+
+
+<script>
+/* v2.8.3 Financial Health Single Source Display Fix
+   The collapsed Finance Health card and expanded score breakdown must always use
+   the same canonical calculation. Opening/closing the breakdown must not change
+   the score. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Single Source Display Fix';
+  let painting=false;
+  let lastPaint=0;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function canonical(){
+    try{
+      if(window.GrantOSFinancialHealth && typeof GrantOSFinancialHealth.score==='function'){
+        const d=GrantOSFinancialHealth.score();
+        if(d && typeof d.total!=='undefined') return d;
+      }
+    }catch(e){}
+    try{
+      if(window.GrantOSFinancialHealth && typeof GrantOSFinancialHealth.refresh==='function'){
+        const d=GrantOSFinancialHealth.refresh();
+        if(d && typeof d.total!=='undefined') return d;
+      }
+    }catch(e){}
+    try{
+      const raw=(document.getElementById('financeHealth')?.textContent||'0').match(/\d+/);
+      const total=raw?Number(raw[0]):0;
+      return {total,status:{label:total>=75?'Strong':total>=55?'Improving':total>=35?'Tight':'Critical',type:total>=75?'green':total>=35?'amber':'red',detail:''},next:'',parts:[]};
+    }catch(e){ return {total:0,status:{label:'Critical',type:'red',detail:''},next:'',parts:[]}; }
+  }
+  function breakdownHTML(data){
+    const parts=Array.isArray(data.parts)?data.parts:[];
+    const rows=parts.map(function(p){
+      return '<div><span>'+esc(p[0])+'</span><strong>'+Math.round(Math.max(0,n(p[1])))+'/'+esc(p[2])+' — '+esc(p[3])+'</strong></div>';
+    }).join('');
+    const accountDebug=data.acc?'<div class="gos-formula"><strong>Score source:</strong> bank position '+moneySafe(data.acc.bank||0)+', overdraft used '+moneySafe(data.acc.odUsed||0)+', selected spend pot '+moneySafe(data.acc.selectedSpendPot||0)+'</div>':'';
+    return '<p class="note">Score reduces when debt, overdraft, BNPL/one-off pressure, low safe spend or low emergency savings increase.</p>'+
+      '<div class="gos-kv">'+rows+'</div>'+accountDebug+
+      '<div class="gos-formula">Current score: <strong>'+esc(data.total)+'/100</strong></div>';
+  }
+  function scoreBoxesHTML(data){
+    const parts=Array.isArray(data.parts)?data.parts:[];
+    return parts.map(function(p){
+      const pct=Math.max(0,Math.min(100,(n(p[1])/Math.max(n(p[2]),1))*100));
+      return '<div class="score-box"><span class="small">'+esc(p[0])+'</span><strong>'+Math.round(Math.max(0,n(p[1])))+'/'+esc(p[2])+'</strong><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><div class="note">'+esc(p[3])+'</div></div>';
+    }).join('');
+  }
+  function paint(){
+    if(painting) return;
+    painting=true;
+    try{
+      setVersion();
+      const data=canonical();
+      const total=n(data.total);
+      const status=data.status||{};
+      const fh=document.getElementById('financeHealth');
+      if(fh){
+        const cls=total>=75?'value-positive':total>=35?'value-warning':'value-negative';
+        fh.textContent=total+'/100';
+        fh.className='big value-soft '+cls;
+      }
+      const note=document.getElementById('financeHealthNote');
+      if(note && data.next) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason');
+      if(detail){ detail.innerHTML='<strong>Status:</strong> '+esc(status.label||'')+'<br><span class="muted">'+esc(status.detail||'')+'</span>'; }
+      try{
+        const card=fh&&(fh.closest('.stat-card,.card')||fh.parentElement);
+        const badgeRow=card&&card.querySelector(':scope > .v25530-badge-row');
+        if(badgeRow){ badgeRow.innerHTML='<span class="v25530-badge '+esc(status.type||'amber')+'">Status: '+esc(status.label||'')+'</span>'; badgeRow.style.display='flex'; }
+      }catch(e){}
+      const scoreBox=document.getElementById('financeHealthBreakdown');
+      if(scoreBox) scoreBox.innerHTML=scoreBoxesHTML(data);
+      const gos=document.querySelector('#gosHealthBreakdown .gos-help-body');
+      if(gos) gos.innerHTML=breakdownHTML(data);
+      lastPaint=Date.now();
+      window.__grantOSFinancialHealthSingleSource=data;
+    }catch(e){ console.warn('Grant OS single-source financial health display',e); }
+    finally{ painting=false; }
+  }
+  function queue(){ clearTimeout(window.__grantOSFinancialHealthSingleSourceTimer); window.__grantOSFinancialHealthSingleSourceTimer=setTimeout(paint,20); }
+  function install(){
+    setVersion();
+    try{
+      if(window.Dashboard && Dashboard.render && !Dashboard.render.__v2840SingleSource){
+        const original=Dashboard.render.bind(Dashboard);
+        Dashboard.render=function(){ const out=original(); setTimeout(paint,0); setTimeout(paint,60); return out; };
+        Dashboard.render.__v2840SingleSource=true;
+      }
+    }catch(e){}
+    paint();
+    try{
+      const fh=document.getElementById('financeHealth');
+      if(fh && !fh.__v2840SingleSourceObserved){
+        const obs=new MutationObserver(function(){ if(!painting && Date.now()-lastPaint>30) queue(); });
+        obs.observe(fh,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
+        fh.__v2840SingleSourceObserved=true;
+      }
+    }catch(e){}
+  }
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debt,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')){ queue(); setTimeout(paint,100); } },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debt,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')){ queue(); setTimeout(paint,100); } },true);
+  document.addEventListener('toggle',function(e){ if(e.target&&e.target.id==='gosHealthBreakdown') setTimeout(paint,0); },true);
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#gosHealthBreakdown, summary, button, [data-tab], .tab')) setTimeout(paint,80); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
+  window.addEventListener('load',install);
+  [25,80,180,360,760,1500,3000,6500,9500,13000,18000].forEach(ms=>setTimeout(install,ms));
+  window.GrantOSFinancialHealthSingleSource={render:paint,refresh:paint,version:VERSION};
+})();
+</script>
+
+
+<script>
+/* v2.8.3 Financial Health Rebalance Fix
+   Makes the score easier and stricter:
+   - every breakdown category is shown out of 10
+   - no hidden score boosts
+   - available overdraft buffer does not count as healthy cash
+   - overall score is the average of the visible /10 categories. */
+(function(){
+  const VERSION='v2.8.3 Financial Health Rebalance Fix';
+  const PREV=window.GrantOSFinancialHealth&&typeof window.GrantOSFinancialHealth.score==='function'?window.GrantOSFinancialHealth:null;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isNaN(x)?0:x; }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function esc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function moneySafe(v){ try{return money(v);}catch(e){return '£'+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2});} }
+  function setVersion(){
+    try{ document.title='Grant OS '+VERSION; }catch(e){}
+    try{ document.querySelectorAll('.pill').forEach(function(el){ if(/v2\./i.test(el.textContent||'')) el.textContent=VERSION; }); }catch(e){}
+    try{ document.querySelectorAll('[data-version], .version, .version-label, #versionLabel, #appVersion').forEach(function(el){ el.textContent=VERSION; }); }catch(e){}
+  }
+  function daysToPayday(){
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate){ const e=GrantOSDueDateV2835.estimate(); if(e&&n(e.days)>=0) return Math.max(1,n(e.days)); } }catch(e){}
+    try{ if(window.Calc&&Calc.daysToPayday) return Math.max(1,n(Calc.daysToPayday())); }catch(e){}
+    return 1;
+  }
+  function trueSpareEstimate(){
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate){ const e=GrantOSDueDateV2835.estimate(); if(e) return e; } }catch(e){}
+    try{ if(window.GrantOSDateOnlyTrueSpare) return window.GrantOSDateOnlyTrueSpare; }catch(e){}
+    return {value:0, cashAvailable:0, commitmentsDue:0, living:0, days:daysToPayday()};
+  }
+  function debtRows(){ try{return Array.isArray(state&&state.debts)?state.debts:[];}catch(e){return [];} }
+  function billRows(){ try{return Array.isArray(state&&state.fixed)?state.fixed:[];}catch(e){return [];} }
+  function scoreStatus(total){
+    if(total>=75) return {label:'Strong',type:'green',detail:'Good cover, real cash buffer and fewer pressure points.'};
+    if(total>=55) return {label:'Improving',type:'amber',detail:'Some areas are improving, but there are still pressure points to watch.'};
+    if(total>=35) return {label:'Tight',type:'amber',detail:'Money is under pressure from debt, low cash, low savings or upcoming commitments.'};
+    return {label:'Critical',type:'red',detail:'Debt, short-term pressure, low real cash and low emergency savings are pulling the score down.'};
+  }
+  function roundScore(v){ return Math.round(clamp(v,0,10)); }
+  function calcHealth(){
+    setVersion();
+    let previous=null;
+    try{ if(PREV&&PREV.score) previous=PREV.score(); }catch(e){}
+    const wage=Math.max(n(state&&state.wage)||2200,1);
+    const weeklyBudget=Math.max(n(state&&state.weeklyBudget)||60,1);
+    const emergency=n(state&&state.emergencyFund);
+    const emergencyTarget=Math.max(n(state&&state.emergencyTarget)||1000,1);
+    const acc=(previous&&previous.acc)||{bank:0,odUsed:0,odLimit:1,positiveCash:0,selectedSpendPot:0};
+    const bank=n(acc.bank);
+    const odUsed=Math.max(0,n(acc.odUsed));
+    const odLimit=Math.max(odUsed,n(acc.odLimit)||1);
+    const positiveCash=Math.max(0,n(acc.positiveCash));
+    const selectedSpendPot=Math.max(0,n(acc.selectedSpendPot));
+    const overdraftBuffer=Math.max(0,selectedSpendPot-positiveCash);
+    const active=debtRows().filter(d=>Math.max(0,n(d&&d[1]))>0);
+    const totalDebt=active.reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const oneOff=active.filter(d=>/bnpl|currys|klarna|clearpay|one[-\s]?off/i.test(String(d&&d[0]||'')+' '+String(d&&d[4]||''))).reduce((s,d)=>s+Math.max(0,n(d&&d[1])),0);
+    const estimate=trueSpareEstimate();
+    const trueSpare=Math.max(0,n(estimate&&estimate.value));
+    const days=Math.max(1,n(estimate&&estimate.days)||daysToPayday());
+    const dailyTarget=Math.max(weeklyBudget/7,1);
+    const realCashDays=positiveCash/dailyTarget;
+
+    const debtScore= totalDebt<=0 ? 10 : roundScore(10 - clamp(totalDebt/(wage*6)*10,0,10));
+    const activeDebtScore= active.length<=0 ? 10 : roundScore(10 - clamp(active.length*1.6,0,10));
+    const overdraftScore= odUsed<=0 ? 10 : roundScore(10 - clamp(4 + (odUsed/odLimit)*6,0,10));
+    const shortTermScore= oneOff<=0 ? 10 : roundScore(10 - clamp(4 + (oneOff/100),0,10));
+    const emergencyScore= roundScore((emergency/emergencyTarget)*10);
+    const realCashScore= positiveCash<=0 ? 0 : roundScore((positiveCash/Math.max(weeklyBudget*2,1))*10);
+    const trueSpareScore= trueSpare<=0 ? 0 : roundScore((trueSpare/Math.max(weeklyBudget,1))*10);
+
+    const parts=[
+      ['Debt burden',debtScore,10,totalDebt>0?moneySafe(totalDebt)+' total debt vs '+moneySafe(wage)+' wage':'No debt balance'],
+      ['Active debts',activeDebtScore,10,active.length+' active debt(s)'],
+      ['Overdraft use',overdraftScore,10,odUsed>0?moneySafe(odUsed)+' overdraft currently used':'No overdraft currently used'],
+      ['Short-term / BNPL pressure',shortTermScore,10,oneOff>0?moneySafe(oneOff)+' short-term balance':'No short-term/BNPL pressure'],
+      ['Emergency fund',emergencyScore,10,moneySafe(emergency)+' / '+moneySafe(emergencyTarget)],
+      ['Real cash position',realCashScore,10,moneySafe(positiveCash)+' real cash; '+moneySafe(overdraftBuffer)+' overdraft buffer not counted as health cash'],
+      ['True spare until payday',trueSpareScore,10,trueSpare>0?moneySafe(trueSpare)+' left after due commitments':'£0 spare after due commitments and living reserve']
+    ];
+    const sum=parts.reduce((s,p)=>s+n(p[1]),0);
+    const total=Math.round((sum/(parts.length*10))*100);
+    const status=scoreStatus(total);
+    const next= trueSpare<=0?'Get true spare positive first: cover due bills, debts and living reserve from real cash.'
+      : emergency<emergencyTarget?'Build emergency fund towards '+moneySafe(emergencyTarget)+' so you are not relying on overdraft as a safety net.'
+      : oneOff>0?'Clear short-term/BNPL balances to reduce immediate pressure.'
+      : totalDebt>0?'Keep reducing debt while protecting real cash buffer.'
+      :'Maintain the plan and grow longer-term savings.';
+    return {
+      total,status,next,parts,
+      method:'Overall score is the average of the visible 1-10 category scores. Available overdraft is ignored for Financial Health.',
+      acc:{bank:bank,odUsed:odUsed,odLimit:odLimit,positiveCash:positiveCash,selectedSpendPot:positiveCash,overdraftBuffer:overdraftBuffer,realCashDays:realCashDays,days:days},
+      raw:{wage:wage,weeklyBudget:weeklyBudget,emergency:emergency,emergencyTarget:emergencyTarget,totalDebt:totalDebt,oneOff:oneOff,trueSpare:trueSpare,bills:billRows().length}
+    };
+  }
+  function refreshSingleSource(){
+    try{ if(window.GrantOSFinancialHealthSingleSource&&typeof GrantOSFinancialHealthSingleSource.refresh==='function') GrantOSFinancialHealthSingleSource.refresh(); }
+    catch(e){}
+  }
+  function paint(){
+    const data=calcHealth();
+    try{
+      const fh=document.getElementById('financeHealth');
+      if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
+      const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
+      const detail=document.getElementById('v26FinanceHealthReason'); if(detail) detail.innerHTML='<strong>Status:</strong> '+esc(data.status.label)+'<br><span class="muted">'+esc(data.status.detail)+'</span>';
+      const box=document.getElementById('financeHealthBreakdown');
+      if(box){ box.innerHTML=data.parts.map(function(p){ const pct=Math.max(0,Math.min(100,(n(p[1])/10)*100)); return '<div class="score-box"><span class="small">'+esc(p[0])+'</span><strong>'+Math.round(n(p[1]))+'/10</strong><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><div class="note">'+esc(p[3])+'</div></div>'; }).join(''); }
+      window.__grantOSFinancialHealthRebalance=data;
+    }catch(e){ console.warn('Grant OS financial health rebalance paint',e); }
+    setTimeout(refreshSingleSource,0);
+    return data;
+  }
+  function queue(){ clearTimeout(window.__grantOSFinancialHealthRebalanceTimer); window.__grantOSFinancialHealthRebalanceTimer=setTimeout(paint,30); }
+  window.GrantOSFinancialHealth={score:calcHealth,render:paint,refresh:paint,__v283Rebalance:true};
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debt,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) queue(); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debt,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) queue(); },true);
+  document.addEventListener('toggle',function(e){ if(e.target&&e.target.id==='gosHealthBreakdown') queue(); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',paint); else paint();
+  window.addEventListener('load',paint);
+  [80,250,700,1500,3200,6500,10000,14500,19000,24000,30000].forEach(ms=>setTimeout(paint,ms));
 })();
 </script>
 

@@ -1,15 +1,13 @@
 {
   "name": "Grant OS",
   "short_name": "Grant OS",
-  "description": "Grant OS personal finance board - due date and live refresh fix",
-  "start_url": "./?v=283-due-date-live-refresh",
+  "start_url": "./?v=283-financial-health-rebalance",
   "scope": "./",
   "display": "standalone",
   "background_color": "#020617",
-  "theme_color": "#020617",
+  "theme_color": "#0f172a",
   "icons": [
-    {"src":"icon-192.png?v=283-due-date-live-refresh","sizes":"192x192","type":"image/png"},
-    {"src":"icon-512.png?v=283-due-date-live-refresh","sizes":"512x512","type":"image/png"},
-    {"src":"apple-touch-icon.png?v=283-due-date-live-refresh","sizes":"180x180","type":"image/png"}
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
