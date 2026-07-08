@@ -1,7 +1,7 @@
 {
   "name": "Grant OS",
   "short_name": "Grant OS",
-  "start_url": "./?v=283-financial-health-rebalance-override",
+  "start_url": "./?v=283-financial-health-clean-source-fix",
   "scope": "./",
   "display": "standalone",
   "background_color": "#020617",

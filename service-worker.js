@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-v2-8-3-financial-health-rebalance-override';
+const CACHE_NAME = 'grant-os-v2-8-3-financial-health-clean-source-fix';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -17,9 +17,11 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(fetch(event.request).then(response => {
-    const copy = response.clone();
-    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => null);
-    return response;
-  }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html'))));
+  event.respondWith(
+    fetch(event.request, { cache: 'no-store' }).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => null);
+      return response;
+    }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
+  );
 });
