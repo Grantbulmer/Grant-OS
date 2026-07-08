@@ -1,7 +1,7 @@
 {
   "name": "Grant OS Main Build 3.0",
   "short_name": "Grant OS",
-  "start_url": "./?v=main-build-3-0-helper-guidance-tips",
+  "start_url": "./?v=main-build-3-0-no-priority-spare-dropdown",
   "scope": "./",
   "display": "standalone",
   "background_color": "#071021",
