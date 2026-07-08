@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+Grant OS
+Copyright © 2026 Grant Bulmer. All rights reserved.
+
+This app, source code, design, calculations, written content and branding
+may not be copied, modified, redistributed, rebranded, sold, or used
+commercially without written permission from Grant Bulmer.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8498,145 +8506,39 @@ body.gos-is-scrolling .stat-card .big,body.gos-is-scrolling .value-soft,body.gos
 
 
 
-<style id="v287Priority2HelperCSS">
-/* Main Build 3.0 + Debt Scroll Stability */
-:root{--gos-helper-bg:#061426;--gos-helper-border:#1f8fc7;--gos-helper-glow:rgba(56,189,248,.30)}
-#grantOSHelper{position:fixed;right:16px;bottom:16px;z-index:99999;font-family:inherit;}
-#grantOSHelperBtn{width:54px;height:54px;border-radius:18px;border:1px solid rgba(56,189,248,.65);background:linear-gradient(145deg,#164e63,#0f172a);box-shadow:0 12px 34px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.05) inset;color:#dff7ff;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
-#grantOSHelperBtn.gos-helper-tip{animation:gosHelperPulse 2.4s ease-in-out infinite;}
-#grantOSHelperBtn.gos-helper-warn{animation:gosHelperPulse 1.45s ease-in-out infinite;box-shadow:0 12px 34px rgba(0,0,0,.42),0 0 0 4px rgba(245,158,11,.15),0 0 22px rgba(245,158,11,.23);}
-@keyframes gosHelperPulse{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-2px) scale(1.03)}70%{transform:translateY(0) scale(1)}}
-#grantOSHelperBubble{position:absolute;right:0;bottom:66px;width:min(335px,calc(100vw - 28px));border:1px solid rgba(56,189,248,.55);border-radius:20px;background:linear-gradient(180deg,rgba(10,23,45,.98),rgba(2,10,24,.98));box-shadow:0 18px 48px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04) inset;padding:14px;display:none;color:#e5f4ff;}
-#grantOSHelperBubble.open{display:block;animation:gosBubbleIn .18s ease-out both;}
-@keyframes gosBubbleIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-.gos-helper-title{font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:13px;color:#93e8ff;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.gos-helper-message{font-size:15px;line-height:1.35;color:#e7f7ff;margin:6px 0 12px;}
-.gos-helper-reason{font-size:13px;line-height:1.35;color:#bed3e8;margin:0 0 12px;}
-.gos-helper-actions{display:flex;flex-wrap:wrap;gap:8px;}
-.gos-helper-actions button{border-radius:12px;border:1px solid rgba(56,189,248,.35);background:#071426;color:#eaf8ff;padding:9px 10px;font-weight:800;cursor:pointer;}
-.gos-helper-actions button.primary{background:linear-gradient(145deg,#0ea5e9,#075985);border-color:#38bdf8;color:white;}
-.gos-helper-actions button.ghost{background:transparent;color:#c8d7ea;}
-.gos-action-alert{display:block;line-height:1.35}.gos-action-title{display:block;font-weight:900}.gos-action-meta,.gos-action-reason{display:block;color:#dbeafe;margin-top:3px}.gos-action-reason{font-size:.92em;color:#b8c7d9}.gos-action-priority{display:inline-flex;margin-top:8px;padding:4px 8px;border:1px solid rgba(56,189,248,.35);border-radius:999px;font-size:.8em;color:#dff7ff;background:rgba(14,165,233,.12)}
-#debtTable,#v274DebtMobile,#priorityQueue,#debtProgressList{overflow-anchor:none!important;}
-#debtTable input,#debtTable select,#v274DebtMobile input,#v274DebtMobile select{font-variant-numeric:tabular-nums!important;}
-#v274DebtMobile .v274-mobile-card{min-height:196px;contain:layout paint;}
-body.gos-is-scrolling #debtTable,body.gos-is-scrolling #v274DebtMobile,body.gos-is-scrolling #priorityQueue,body.gos-is-scrolling #debtProgressList{transition:none!important;}
-body.gos-is-scrolling #debtTable input,body.gos-is-scrolling #debtTable select,body.gos-is-scrolling #v274DebtMobile input,body.gos-is-scrolling #v274DebtMobile select{transition:none!important;}
-@media(max-width:640px){#grantOSHelper{right:12px;bottom:12px}#grantOSHelperBtn{width:50px;height:50px;border-radius:17px;font-size:23px}#grantOSHelperBubble{bottom:62px}}
-</style>
-<script id="v287Priority2HelperAlerts">
-(function(){
-  const VERSION='Main Build 3.0';
-  const AUTO_KEY='grantOSHelperAutoTipsOff_v287';
-  const DISMISSED_KEY='grantOSHelperDismissedSession_v287';
-  const DAY=24*60*60*1000;
-  let scrolling=false, scrollTimer=null, queued=new Map();
-  function n(v){ const x=Number(v||0); return isFinite(x)?x:0; }
-  function fmt(v){ try{return money(v);}catch(e){ return '£'+Number(v||0).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
-  function esc(v){ return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-  function setVersion(){ try{document.title='Grant OS '+VERSION;}catch(e){} try{const pill=document.querySelector('header .pill'); if(pill) pill.textContent=VERSION;}catch(e){} }
-  function calcObj(){ try{return (typeof Calc!=='undefined')?Calc:null;}catch(e){return null;} }
-  function st(){ try{return (typeof state!=='undefined')?state:null;}catch(e){return null;} }
-  function daysToPayday(){ try{const c=calcObj(); if(c&&c.daysToPayday) return Math.max(1,n(c.daysToPayday()));}catch(e){} return 1; }
-  function nextPayday(){ try{const c=calcObj(); if(c&&c.nextPayday) return c.nextPayday();}catch(e){} return new Date(Date.now()+daysToPayday()*DAY); }
-  function parseDate(v){ const s=String(v||'').trim(); if(!s) return null; const d=new Date(s); return isNaN(d.getTime())?null:d; }
-  function dueSoonLabel(dateText){ const d=parseDate(dateText); if(!d) return ''; const diff=Math.ceil((d-new Date())/DAY); if(diff<0) return 'already passed'; if(diff===0) return 'due today'; if(diff<=31) return 'due in '+diff+' day'+(diff===1?'':'s'); return 'due '+d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
-  function debtType(d){ const t=String((d&&d[4])||'Regular'); return /bnpl/i.test(t)?'BNPL':t; }
-  function isShortDebt(d){ const t=String(debtType(d)).toLowerCase(); const name=String((d&&d[0])||'').toLowerCase(); return t.includes('bnpl') || t.includes('one') || /klarna|clearpay|currys|pay in 3|pay later|bnpl/.test(name); }
-  function debtDue(d){ try{const c=calcObj(); if(c&&c.debtDue) return c.debtDue(d);}catch(e){} return (d&&d[5])||(d&&d[3])||''; }
-  function debtPriority(d,i){ try{const c=calcObj(); if(c&&c.debtPriority) return n(c.debtPriority(d));}catch(e){} return n((d&&d[6])||i+1||99); }
-  function activeDebts(){ const s=st(); return (s&&Array.isArray(s.debts)?s.debts:[]).filter(d=>n(d&&d[1])>0); }
-  function dueEstimate(){ try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.estimate) return GrantOSDueDateV2835.estimate(); }catch(e){} try{ if(window.GrantOSDateAwareTrueSpare) return window.GrantOSDateAwareTrueSpare; }catch(e){} return {}; }
-  function safeSpend(){ try{ if(window.GrantOSSafeSpendV284&&GrantOSSafeSpendV284.calculate) return GrantOSSafeSpendV284.calculate(); }catch(e){} try{ if(window.GrantOSSafeSpendV285&&GrantOSSafeSpendV285.calculate) return GrantOSSafeSpendV285.calculate(); }catch(e){} const s=st()||{}; const c=calcObj(); const target=n(s.weeklyBudget||60); const week=c&&c.safeWeek?n(c.safeWeek()):target; return {safeWeekly:week,safeDaily:week/7,target,affordable:week>=target-0.01,acc:{includedBuffer:0}}; }
-  function totalOverdraft(){ try{const c=calcObj(); if(c&&c.totalOverdraft) return n(c.totalOverdraft());}catch(e){} return 0; }
-  function holidayItems(){ const s=st(); const list=(s&&Array.isArray(s.holidays))?s.holidays:[]; return list.map(h=>{ const target=n(h&&h[2]), saved=n(h&&h[3]), remaining=Math.max(0,target-saved); const d=parseDate(h&&h[4]); const days=d?Math.ceil((d-new Date())/DAY):9999; return {name:String((h&&h[0])||'Goal'), note:String((h&&h[1])||''), remaining, date:d, days}; }).filter(x=>x.remaining>0).sort((a,b)=>a.days-b.days); }
-  function emergencyGap(){ const s=st()||{}; return Math.max(0,n(s.emergencyTarget||1000)-n(s.emergencyFund)); }
-  function completedDebtReview(){ const s=st(); const all=(s&&Array.isArray(s.debts))?s.debts:[]; return all.filter(d=>String((d&&d[0])||'').trim() && n(d&&d[1])<=0); }
-  function action(level,title,meta,reason,score,kind){ return {level,title,meta,reason,score,kind}; }
-  function actionEngine(){
-    const out=[]; const ss=safeSpend(); const target=n(ss.target||((st()||{}).weeklyBudget||60)); const safe=n(ss.safeWeekly);
-    const est=dueEstimate(); const dueBills=n(est&&est.bills&&est.bills.total); const dueDebts=n(est&&est.debts&&est.debts.total);
-    if(safe+0.01<target){ out.push(action('amber','Protect weekly spend','Safe week: '+fmt(safe)+' / target '+fmt(target),'Bills/debts still due before payday are reducing what is safely affordable.',5,'safe-spend')); }
-    activeDebts().filter(isShortDebt).sort((a,b)=>debtPriority(a)-debtPriority(b)).forEach((d,i)=>{ const due=debtDue(d), dueTxt=dueSoonLabel(due); out.push(action('amber','Clear '+String(d[0]||'short-term debt'),fmt(n(d[1]))+(dueTxt?' • '+dueTxt:''),(debtType(d)==='BNPL'?'BNPL':'One-off')+' balances create short-term pressure and should be cleared before lower-impact goals.',10+i,'short-debt')); });
-    const h=holidayItems()[0]; if(h && (h.days<=45 || /flight|due|deposit|stag|holiday/i.test(h.name+' '+h.note))){ out.push(action('amber','Ringfence '+h.name,fmt(h.remaining)+(h.days<9999?' • '+(h.days<0?'date passed':'due in '+h.days+' day'+(h.days===1?'':'s')):''),'This is an upcoming funding deadline and should be protected if it is still unpaid.',30,'funding')); }
-    const od=totalOverdraft(); if(od>0){ out.push(action('amber','Reduce overdraft reliance','Currently used: '+fmt(od),'Active overdraft use lowers your real bank position and increases financial pressure.',40,'overdraft')); }
-    const comp=completedDebtReview(); if(comp.length){ out.push(action('green','Review completed debts',comp.length+' debt'+(comp.length===1?' looks':'s look')+' complete','Archive or remove completed debts so alerts and priorities stay clean.',60,'debt-review')); }
-    const eg=emergencyGap(); if(eg>0){ const s=st()||{}; out.push(action('amber','Build emergency fund','Saved: '+fmt(n(s.emergencyFund))+' / '+fmt(n(s.emergencyTarget||1000)),'A real cash buffer reduces reliance on overdraft, BNPL or borrowing.',80,'emergency')); }
-    if(dueBills>0 || dueDebts>0){ out.push(action('blue','Check due commitments','Bills/debts before payday: '+fmt(dueBills+dueDebts),'These are already protected in Cashflow and Safe Spend, but they explain why spend may be reduced.',90,'due-commitments')); }
-    out.sort((a,b)=>a.score-b.score); return out;
-  }
-  function topAction(){ const a=actionEngine(); if(a.length) return a[0]; return action('green','Keep following the plan','No immediate finance alerts','Your current setup looks covered based on the saved figures.',999,'clear'); }
-  function alertHTML(a){ return '<span class="gos-action-alert"><span class="gos-action-title">Action: '+esc(a.title)+'</span><span class="gos-action-meta">'+esc(a.meta)+'</span><span class="gos-action-reason">Why: '+esc(a.reason)+'</span><span class="gos-action-priority">'+esc(a.kind.replace(/-/g,' '))+'</span></span>'; }
-  function patchCalc(){ try{ const c=calcObj(); if(!c||c.__v287AlertsClean) return; c.nextPriority=function(){ return topAction().title; }; c.alerts=function(){ const acts=actionEngine().filter(a=>a.kind!=='due-commitments').slice(0,6); if(!acts.length) return [['green',alertHTML(topAction())]]; return acts.map(a=>[a.level,alertHTML(a)]); }; const oldType=c.debtType?c.debtType.bind(c):null; c.debtType=function(d){ const t=oldType?oldType(d):((d&&d[4])||'Regular'); return /bnpl/i.test(String(t))?'BNPL':t; }; c.__v287AlertsClean=true; }catch(e){ console.warn('v287 calc patch',e); } }
-  function renderDebtPriorityQueue(){ try{ const q=document.getElementById('priorityQueue'); if(!q) return; const acts=actionEngine().filter(a=>a.kind!=='due-commitments').slice(0,6); q.innerHTML=(acts.length?acts:[topAction()]).map((a,i)=>'<div style="margin:10px 0"><span class="pill">#'+(i+1)+'</span> <strong>'+esc(a.title)+'</strong><br><span class="note">'+esc(a.meta)+' — '+esc(a.reason)+'</span></div>').join(''); }catch(e){} }
-  function enrichDebtTypeSelects(){
-    try{
-      const containers=[document.getElementById('debtTable'),document.getElementById('v274DebtMobile')].filter(Boolean);
-      containers.forEach(container=>{
-        const selects=[...container.querySelectorAll('select')].filter(sel=>{
-          const text=[...sel.options].map(o=>o.textContent.trim()).join('|'); return text.includes('Regular')&&text.includes('One-off')&&text.includes('Flexible');
-        });
-        selects.forEach((sel,i)=>{
-          if(![...sel.options].some(o=>o.value==='BNPL'||o.textContent.trim()==='BNPL')){ const opt=document.createElement('option'); opt.value='BNPL'; opt.textContent='BNPL'; sel.appendChild(opt); }
-          try{ const row=(st()&&st().debts&&st().debts[i])?st().debts[i]:null; if(row && String(row[4])==='BNPL') sel.value='BNPL'; }catch(e){}
-        });
-      });
-    }catch(e){}
-  }
-  function updateDashboardText(){ try{ const a=topAction(); const np=document.getElementById('nextPriority'); if(np) np.textContent=a.title; const det=document.getElementById('v26NextPriorityReason')||document.getElementById('gosPriorityBreakdown'); if(det && det.classList && det.classList.contains('v26-card-detail')) det.innerHTML='<strong>Why this matters:</strong> '+esc(a.reason); renderDebtPriorityQueue(); }catch(e){} }
-  function isEditing(){ try{ const a=document.activeElement; const tag=String(a&&a.tagName||'').toLowerCase(); return tag==='input'||tag==='select'||tag==='textarea'||(a&&a.isContentEditable); }catch(e){return false;} }
-  function markScrolling(){ scrolling=true; try{document.body.classList.add('gos-is-scrolling');}catch(e){} clearTimeout(scrollTimer); scrollTimer=setTimeout(flushScroll,190); }
-  function flushScroll(){ scrolling=false; try{document.body.classList.remove('gos-is-scrolling');}catch(e){} const jobs=[...queued.values()]; queued.clear(); jobs.forEach(fn=>{try{fn();}catch(e){}}); setTimeout(()=>{enrichDebtTypeSelects();updateDashboardText();},20); }
-  function guardedWrap(obj,name,key){ try{ if(!obj||!obj[name]||obj[name].__v287Guard) return; const old=obj[name].bind(obj); obj[name]=function(){ const args=arguments; if(scrolling && !isEditing()){ queued.set(key||name,()=>old.apply(obj,args)); return; } const r=old.apply(obj,args); setTimeout(()=>{enrichDebtTypeSelects();updateDashboardText();},20); return r; }; obj[name].__v287Guard=true; }catch(e){} }
-  function patchDebtObjects(){
-    try{ if(typeof Debt!=='undefined'){ guardedWrap(Debt,'render','Debt.render'); guardedWrap(Debt,'priority','Debt.priority'); if(Debt.add&&!Debt.add.__v287Add){ const oldAdd=Debt.add.bind(Debt); Debt.add=function(){ const r=oldAdd(); setTimeout(enrichDebtTypeSelects,40); return r; }; Debt.add.__v287Add=true; } } }catch(e){}
-    try{ if(window.GrantOSDueDateV2835){ ['renderDebts','renderDebtsMobile','finalRefresh'].forEach(k=>guardedWrap(GrantOSDueDateV2835,k,'DueDate.'+k)); } }catch(e){}
-    try{ if(window.GrantOSDateOnlyV283){ ['renderDebtTable','renderDebtsMobile','commit'].forEach(k=>guardedWrap(GrantOSDateOnlyV283,k,'DateOnly.'+k)); } }catch(e){}
-    try{ if(typeof Dashboard!=='undefined') guardedWrap(Dashboard,'render','Dashboard.render'); }catch(e){}
-  }
-  function ensureHelper(){
-    if(document.getElementById('grantOSHelper')) return;
-    const root=document.createElement('div'); root.id='grantOSHelper';
-    root.innerHTML='<button id="grantOSHelperBtn" type="button" aria-label="Grant OS Helper">🤖</button><div id="grantOSHelperBubble" role="dialog" aria-live="polite"><div class="gos-helper-title">🤖 Grant OS Helper</div><div class="gos-helper-message" id="grantOSHelperMsg"></div><div class="gos-helper-reason" id="grantOSHelperReason"></div><div class="gos-helper-actions"><button class="primary" id="grantOSHelperUnderstand" type="button">Help me understand this</button><button id="grantOSHelperDismiss" type="button">Dismiss</button><button class="ghost" id="grantOSHelperOff" type="button">Don\'t show again</button></div></div>';
-    document.body.appendChild(root);
-    document.getElementById('grantOSHelperBtn').addEventListener('click',()=>showHelper(true));
-    document.getElementById('grantOSHelperDismiss').addEventListener('click',()=>{ sessionStorage.setItem(DISMISSED_KEY,'yes'); hideHelper(); });
-    document.getElementById('grantOSHelperOff').addEventListener('click',()=>{ localStorage.setItem(AUTO_KEY,'yes'); hideHelper(); });
-    document.getElementById('grantOSHelperUnderstand').addEventListener('click',()=>explainTopAction());
-  }
-  function helperMessage(a){
-    if(a.kind==='safe-spend') return 'Your safe weekly spend has been reduced because your weekly target is not currently covered.';
-    if(a.kind==='short-debt') return a.title+' is currently the strongest short-term action.';
-    if(a.kind==='funding') return a.title+' is showing as an upcoming funding priority.';
-    if(a.kind==='overdraft') return 'You are currently using overdraft, so reducing reliance is a priority.';
-    if(a.kind==='emergency') return 'Your emergency fund is below target, so building a real cash buffer would help.';
-    if(a.kind==='debt-review') return 'Some debts look complete. Review them so your tracker stays tidy.';
-    return 'Your dashboard is using the latest saved figures. Tap the cards for breakdowns.';
-  }
-  function updateHelperIcon(){ try{ ensureHelper(); const a=topAction(); const btn=document.getElementById('grantOSHelperBtn'); if(!btn) return; btn.classList.remove('gos-helper-tip','gos-helper-warn'); if(a.kind!=='clear'){ btn.classList.add(a.level==='amber'?'gos-helper-warn':'gos-helper-tip'); } }catch(e){} }
-  function showHelper(manual){ ensureHelper(); const a=topAction(); const msg=document.getElementById('grantOSHelperMsg'), reason=document.getElementById('grantOSHelperReason'), bubble=document.getElementById('grantOSHelperBubble'); if(msg) msg.textContent=helperMessage(a); if(reason) reason.textContent=a.meta+' — '+a.reason; if(bubble) bubble.classList.add('open'); if(manual) sessionStorage.removeItem(DISMISSED_KEY); }
-  function hideHelper(){ const b=document.getElementById('grantOSHelperBubble'); if(b) b.classList.remove('open'); }
-  function explainTopAction(){ const a=topAction(); let id='nextPriority'; if(a.kind==='safe-spend') id='safeWeek'; else if(a.kind==='short-debt'||a.kind==='debt-review') id='debtRemaining'; else if(a.kind==='overdraft') id='totalOverdraft'; else if(a.kind==='emergency') id='emergencyProgress'; const el=document.getElementById(id); try{ if(el) el.closest('.card')?.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} const bubble=document.getElementById('grantOSHelperBubble'); const reason=document.getElementById('grantOSHelperReason'); if(reason) reason.textContent=a.reason+' The dashboard cards and dropdowns show the calculation behind this.'; if(bubble) bubble.classList.add('open'); }
-  function maybeAutoHelper(){ try{ if(localStorage.getItem(AUTO_KEY)==='yes') return; if(sessionStorage.getItem(DISMISSED_KEY)==='yes') return; const a=topAction(); if(a.kind==='clear') return; setTimeout(()=>{ if(!isEditing() && !scrolling) showHelper(false); },1300); }catch(e){} }
-  function renderAll(){ setVersion(); patchCalc(); patchDebtObjects(); enrichDebtTypeSelects(); updateDashboardText(); ensureHelper(); updateHelperIcon(); }
-  function boot(){ renderAll(); [120,400,900,1800,3500].forEach(ms=>setTimeout(renderAll,ms)); setTimeout(maybeAutoHelper,1600); }
-  document.addEventListener('scroll',markScrolling,{passive:true,capture:true}); document.addEventListener('touchmove',markScrolling,{passive:true}); document.addEventListener('wheel',markScrolling,{passive:true});
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(renderAll,120); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(renderAll,160); },true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot(); window.addEventListener('load',()=>{boot();setTimeout(boot,700);});
-  window.GrantOSPriority2HelperV287={VERSION,actionEngine,topAction,renderAll,showHelper};
-})();
-</script>
+<footer id="grantOSCopyrightFooter"><strong>Grant OS © 2026 Grant Bulmer.</strong> All rights reserved.</footer>
 
-
-<style id="v300MainBuildHousekeepingCSS">
-/* Build 3.0 housekeeping: visual stability only, no finance maths changed here. */
+<style id="v301CopyrightPriorityStabilityCSS">
+/* Build 3.0 copyright + next-priority stability cleanup. No finance maths changed here. */
+#nextPriority{
+  display:block!important;
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+  line-height:1.08!important;
+  font-size:clamp(22px,7.6vw,38px)!important;
+  min-height:2.25em!important;
+  font-variant-numeric:tabular-nums!important;
+}
+#nextPriority.closest-card{}
+#nextPriority.gos-priority-locked{transition:none!important;animation:none!important;}
+#nextPriority .note,#priorityQueue .note{overflow-wrap:anywhere!important;white-space:normal!important;}
+#priorityQueue{max-width:100%!important;overflow:hidden!important;overflow-anchor:none!important;}
+#priorityQueue > div{max-width:100%!important;overflow:hidden!important;overflow-wrap:anywhere!important;}
+#priorityQueue strong{overflow-wrap:anywhere!important;}
+#paydayResult .alert,#alertsBox .alert{overflow-wrap:anywhere!important;}
+.gos-action-alert{display:block;line-height:1.35;max-width:100%;overflow-wrap:anywhere;}
+.gos-action-title{display:block;font-weight:900;overflow-wrap:anywhere;}
+.gos-action-meta,.gos-action-reason{display:block;color:#dbeafe;margin-top:3px;overflow-wrap:anywhere;}
+.gos-action-reason{font-size:.92em;color:#b8c7d9;}
+.gos-action-priority{display:inline-flex;margin-top:8px;padding:4px 8px;border:1px solid rgba(56,189,248,.35);border-radius:999px;font-size:.8em;color:#dff7ff;background:rgba(14,165,233,.12);}
 #v283EstimatedSpareCard,#v283EstimatedSpareCard *{overflow-anchor:none!important;}
 #v283EstimatedSpareCard{min-height:300px;contain:layout paint!important;transform:translateZ(0);}
 #v283EstimatedSpareCard .big,#v283EstimatedSpareCard .value-soft,#spareAfterWage{font-variant-numeric:tabular-nums!important;white-space:nowrap!important;min-width:6.5ch;display:inline-block;}
 #v283SpareStatus,.v283-spare-status{min-height:2.6em;display:block;}
 #v283DateAwareBreakdownNote,.v283-date-extra{min-height:4.2em;display:block;}
-#debtTable,#v274DebtMobile,#debtProgressList,#priorityQueue{overflow-anchor:none!important;}
+#debtTable,#v274DebtMobile,#debtProgressList{overflow-anchor:none!important;}
 #debtTable td,#debtTable th{vertical-align:top;}
 #debtTable input,#debtTable select,#v274DebtMobile input,#v274DebtMobile select{font-variant-numeric:tabular-nums!important;min-height:46px;}
 .v283-date-status{display:inline-flex!important;align-items:center;min-height:34px;line-height:1.15;white-space:normal;}
@@ -8647,20 +8549,46 @@ body.gos-is-scrolling #v283EstimatedSpareCard,
 body.gos-is-scrolling #v274DebtMobile .v274-mobile-card,
 body.gos-is-scrolling #debtTable,
 body.gos-is-scrolling #debtProgressList,
-body.gos-is-scrolling #priorityQueue{transition:none!important;animation:none!important;}
-#grantOSHelperBtn{font-size:25px!important;}
-#grantOSHelperBtn::before{content:"";}
+body.gos-is-scrolling #priorityQueue,
+body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!important;}
+#grantOSHelper{position:fixed;right:16px;bottom:16px;z-index:99999;font-family:inherit;}
+#grantOSHelperBtn{width:54px;height:54px;border-radius:18px;border:1px solid rgba(56,189,248,.65);background:linear-gradient(145deg,#164e63,#0f172a);box-shadow:0 12px 34px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.05) inset;color:#dff7ff;font-size:25px!important;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+#grantOSHelperBtn.gos-helper-tip{animation:gosHelperPulse 2.4s ease-in-out infinite;}
+#grantOSHelperBtn.gos-helper-warn{animation:gosHelperPulse 1.45s ease-in-out infinite;box-shadow:0 12px 34px rgba(0,0,0,.42),0 0 0 4px rgba(245,158,11,.15),0 0 22px rgba(245,158,11,.23);}
+@keyframes gosHelperPulse{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-2px) scale(1.03)}70%{transform:translateY(0) scale(1)}}
+#grantOSHelperBubble{position:absolute;right:0;bottom:66px;width:min(335px,calc(100vw - 28px));border:1px solid rgba(56,189,248,.55);border-radius:20px;background:linear-gradient(180deg,rgba(10,23,45,.98),rgba(2,10,24,.98));box-shadow:0 18px 48px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04) inset;padding:14px;display:none;color:#e5f4ff;}
+#grantOSHelperBubble.open{display:block;animation:gosBubbleIn .18s ease-out both;}
+@keyframes gosBubbleIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.gos-helper-title{font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:13px;color:#93e8ff;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.gos-helper-message{font-size:15px;line-height:1.35;color:#e7f7ff;margin:6px 0 12px;}
+.gos-helper-reason{font-size:13px;line-height:1.35;color:#bed3e8;margin:0 0 12px;min-height:2.7em;}
+.gos-helper-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px;padding:8px 10px;border:1px solid rgba(56,189,248,.22);border-radius:14px;background:rgba(7,20,38,.55);}
+.gos-helper-nav button{width:38px;height:34px;border-radius:12px;border:1px solid rgba(56,189,248,.35);background:#071426;color:#eaf8ff;font-weight:900;font-size:18px;cursor:pointer;line-height:1;}
+.gos-helper-nav button:disabled{opacity:.45;cursor:default;}
+.gos-helper-count{flex:1;text-align:center;font-size:12px;font-weight:900;color:#a9d8ef;letter-spacing:.03em;}
+.gos-helper-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.gos-helper-actions button{border-radius:12px;border:1px solid rgba(56,189,248,.35);background:#071426;color:#eaf8ff;padding:9px 10px;font-weight:800;cursor:pointer;}
+.gos-helper-actions button.primary{background:linear-gradient(145deg,#0ea5e9,#075985);border-color:#38bdf8;color:white;}
+.gos-helper-actions button.ghost{background:transparent;color:#c8d7ea;}
+#grantOSCopyrightFooter{max-width:1500px;margin:18px auto 86px;padding:0 24px 20px;color:#8fa6bf;font-size:12px;text-align:center;}
+#grantOSCopyrightFooter strong{color:#cfe8ff;}
+@media(max-width:640px){#grantOSHelper{right:12px;bottom:12px}#grantOSHelperBtn{width:50px;height:50px;border-radius:17px;font-size:23px!important}#grantOSHelperBubble{bottom:62px}#nextPriority{font-size:clamp(21px,7vw,32px)!important;}}
 </style>
-<script id="v300MainBuildPatch">
+
+<script id="v301CopyrightPriorityStability">
 (function(){
   const VERSION='Main Build 3.0';
   const DAY=24*60*60*1000;
-  const AUTO_KEY='grantOSHelperAutoTipsOff_v300';
-  const DISMISSED_KEY='grantOSHelperDismissedSession_v300';
+  const AUTO_KEY='grantOSHelperAutoTipsOff_v301';
+  const DISMISSED_KEY='grantOSHelperDismissedSession_v301';
   let scrollTimer=null;
+  let stableAction=null;
+  let observerAttached=false;
+  let repairingPriority=false;
+  let helperTipIndex=0;
   function n(v){ const x=Number(v||0); return isFinite(x)?x:0; }
   function esc(v){ return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-  function fmt(v){ try{return money(n(v));}catch(e){ return '£'+n(v).toLocaleString('en-GB',{maximumFractionDigits:2}); } }
+  function fmt(v){ try{return money(n(v));}catch(e){ return '£'+n(v).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2}); } }
   function st(){ try{return (typeof state!=='undefined')?state:null;}catch(e){return null;} }
   function c(){ try{return (typeof Calc!=='undefined')?Calc:null;}catch(e){return null;} }
   function setVersion(){
@@ -8698,7 +8626,7 @@ body.gos-is-scrolling #priorityQueue{transition:none!important;animation:none!im
     const debts=activeDebts().map((d,i)=>({d,i,type:debtType(d),priority:debtPriority(d,i)}));
     debts.filter(x=>x.type==='BNPL').sort((a,b)=>a.priority-b.priority).forEach((x,i)=>{
       const due=dueSoonLabel(debtDue(x.d));
-      out.push(action('amber','Clear '+String(x.d[0]||'BNPL debt'),fmt(x.d[1])+(due?' • '+due:''),'BNPL is the top priority because it is short-term debt pressure and should be cleared before normal spending increases.',10+i,'bnpl-debt'));
+      out.push(action('amber','Clear '+String(x.d[0]||'BNPL debt'),fmt(x.d[1])+(due?' • '+due:''),'BNPL is treated as the highest short-term debt pressure and should be cleared before normal spending increases.',10+i,'bnpl-debt'));
     });
     debts.filter(x=>x.type==='One-off').sort((a,b)=>a.priority-b.priority).forEach((x,i)=>{
       const due=dueSoonLabel(debtDue(x.d));
@@ -8719,21 +8647,87 @@ body.gos-is-scrolling #priorityQueue{transition:none!important;animation:none!im
     return out.sort((a,b)=>a.score-b.score);
   }
   function topAction(){ return buildActions()[0]||action('green','Keep following the plan','No immediate finance alerts','Your saved figures do not show an urgent action right now.',999,'clear'); }
+  function getStableAction(force){ if(force||!stableAction) stableAction=topAction(); return stableAction; }
   function alertHTML(a){ return '<span class="gos-action-alert"><span class="gos-action-title">Action: '+esc(a.title)+'</span><span class="gos-action-meta">'+esc(a.meta)+'</span><span class="gos-action-reason">Why: '+esc(a.reason)+'</span><span class="gos-action-priority">'+esc(a.kind.replace(/-/g,' '))+'</span></span>'; }
   function patchCalc(){
     try{
       const cc=c(); if(!cc) return;
-      cc.nextPriority=function(){ return topAction().title; };
+      cc.nextPriority=function(){ return getStableAction(false).title; };
       cc.alerts=function(){ return buildActions().slice(0,6).map(a=>[a.level,alertHTML(a)]); };
-      const oldDebtType=cc.__v30OldDebtType||(cc.debtType?cc.debtType.bind(cc):null); cc.__v30OldDebtType=oldDebtType;
-      cc.debtType=function(d){ const t=debtType(d); return t; };
-    }catch(e){ console.warn('Build 3.0 priority patch',e); }
+      cc.debtType=function(d){ return debtType(d); };
+    }catch(e){ console.warn('Build 3.0 priority stability patch',e); }
   }
   function renderPriorityQueue(){
-    try{ const q=document.getElementById('priorityQueue'); if(!q) return; q.innerHTML=buildActions().slice(0,6).map((a,i)=>'<div style="margin:10px 0"><span class="pill">#'+(i+1)+'</span> <strong>'+esc(a.title)+'</strong><br><span class="note">'+esc(a.meta)+' — '+esc(a.reason)+'</span></div>').join(''); }catch(e){}
+    try{
+      const q=document.getElementById('priorityQueue'); if(!q) return;
+      q.innerHTML=buildActions().slice(0,6).map((a,i)=>'<div class="gos-priority-row" style="margin:10px 0"><span class="pill">#'+(i+1)+'</span> <strong>'+esc(a.title)+'</strong><br><span class="note">'+esc(a.meta)+' — '+esc(a.reason)+'</span></div>').join('');
+    }catch(e){}
   }
-  function updateDashboard(){
-    try{ const a=topAction(); const np=document.getElementById('nextPriority'); if(np) np.textContent=a.title; const pr=document.getElementById('paydayResult'); if(pr) pr.innerHTML='<div class="alert '+a.level+'">Current next priority: <strong>'+esc(a.title)+'</strong></div>'; const alerts=document.getElementById('alertsBox'); if(alerts) alerts.innerHTML=buildActions().slice(0,6).map(x=>'<div class="alert '+x.level+'">'+alertHTML(x)+'</div>').join(''); renderPriorityQueue(); const reason=document.getElementById('v26NextPriorityReason'); if(reason) reason.innerHTML='<strong>Why this matters:</strong> '+esc(a.reason); }catch(e){}
+  function setNextPriorityText(a){
+    try{
+      const np=document.getElementById('nextPriority'); if(!np) return;
+      const title=String(a.title||'Keep following the plan');
+      repairingPriority=true;
+      if(np.textContent.trim()!==title) np.textContent=title;
+      np.classList.add('gos-priority-locked');
+      np.setAttribute('title',title+' — '+String(a.reason||''));
+      np.dataset.gosPriority=title;
+      repairingPriority=false;
+    }catch(e){repairingPriority=false;}
+  }
+  function observeNextPriority(){
+    try{
+      const np=document.getElementById('nextPriority'); if(!np||observerAttached) return;
+      observerAttached=true;
+      const obs=new MutationObserver(function(){
+        if(repairingPriority) return;
+        const a=getStableAction(false);
+        const title=String(a.title||'Keep following the plan');
+        if(np.textContent.trim()!==title){ setNextPriorityText(a); }
+      });
+      obs.observe(np,{childList:true,characterData:true,subtree:true});
+    }catch(e){}
+  }
+  function updateDashboard(force){
+    try{
+      const a=getStableAction(!!force);
+      setNextPriorityText(a);
+      const pr=document.getElementById('paydayResult'); if(pr) pr.innerHTML='<div class="alert '+a.level+'">Current next priority: <strong>'+esc(a.title)+'</strong></div>';
+      const alerts=document.getElementById('alertsBox'); if(alerts) alerts.innerHTML=buildActions().slice(0,6).map(x=>'<div class="alert '+x.level+'">'+alertHTML(x)+'</div>').join('');
+      renderPriorityQueue();
+      const reason=document.getElementById('v26NextPriorityReason'); if(reason) reason.innerHTML='<strong>Why this matters:</strong> '+esc(a.reason);
+      const alt=document.getElementById('gosPriorityBreakdown'); if(alt && /Current priority/.test(alt.innerHTML||'')) alt.innerHTML='<summary>Why this priority?</summary><p>Your next priority is chosen in this order: BNPL debt first, one-off debts second, reduced weekly spend third, then loans or longer-running debts, overdraft reliance, funding deadlines, completed debt review and emergency fund.</p><div class="row"><span>Current priority</span><strong>'+esc(a.title)+'</strong></div><div class="row"><span>Reason</span><strong>'+esc(a.reason)+'</strong></div>';
+    }catch(e){}
+  }
+  function targetForAction(a){
+    const kind=String((a&&a.kind)||'');
+    if(kind==='safe-spend') return 'safeWeek';
+    if(kind==='bnpl-debt'||kind==='one-off-debt'||kind==='loan-debt'||kind==='debt-review') return 'debtRemaining';
+    if(kind==='overdraft') return 'totalOverdraft';
+    if(kind==='emergency') return 'emergencyProgress';
+    if(kind==='funding') return 'holidaySummary';
+    return 'nextPriority';
+  }
+  function staticHelperTips(){
+    return [
+      {kind:'safe-spend-info',title:'Safe Spend',message:'Safe Daily Spend now follows Safe Weekly Spend, so the two figures stay connected.',meta:'Safe weekly spend uses your weekly target if it is affordable. If it is not affordable, the app reduces it and daily spend is weekly ÷ 7.',targetId:'safeWeek'},
+      {kind:'cashflow-info',title:'Cashflow Until Payday',message:'Cashflow protects bills and debts that are still due before payday before showing what is left for living spend.',meta:'This is why the app may reduce safe weekly spend even when there is money in the account.',targetId:'v283CashflowCard'},
+      {kind:'balance-info',title:'Update Balances',message:'The main regular update is your account balance and overdraft used.',meta:'Bills, debts and due dates can run in the background, but Safe Spend and Cashflow need your latest balance to stay accurate.',targetId:'totalBalance'},
+      {kind:'debt-type-info',title:'Debt Types',message:'Use BNPL for buy-now-pay-later debts so the app can prioritise them correctly.',meta:'Next Priority now looks at BNPL first, then one-off debts, then reduced weekly spend, then longer-running debts.',targetId:'debtRemaining'},
+      {kind:'financial-health-info',title:'Financial Health',message:'Financial Health separates real cash from overdraft so the score does not treat borrowed money as healthy spare cash.',meta:'Overdraft can help cashflow, but it still counts as pressure in the health score.',targetId:'financialScore'}
+    ];
+  }
+  function getHelperTips(){
+    const seen=new Set();
+    const active=buildActions().slice(0,8).map(a=>({kind:a.kind,title:a.title,message:helperText(a),meta:a.meta+' — '+a.reason,targetId:targetForAction(a),action:a}));
+    return active.concat(staticHelperTips()).filter(t=>{ const key=(t.kind||'')+'|'+(t.title||''); if(seen.has(key)) return false; seen.add(key); return true; });
+  }
+  function currentHelperTip(){
+    const tips=getHelperTips();
+    if(!tips.length) return {kind:'clear',title:'Grant OS Helper',message:'Your dashboard is using the latest saved figures.',meta:'Tap the cards for breakdowns.',targetId:'nextPriority'};
+    if(helperTipIndex<0) helperTipIndex=tips.length-1;
+    if(helperTipIndex>=tips.length) helperTipIndex=0;
+    return tips[helperTipIndex];
   }
   function helperText(a){
     if(a.kind==='bnpl-debt') return a.title+' is your top priority because BNPL is treated as the highest short-term debt pressure.';
@@ -8746,48 +8740,82 @@ body.gos-is-scrolling #priorityQueue{transition:none!important;animation:none!im
     if(a.kind==='emergency') return 'Your emergency fund is below target, so building a real cash buffer would help.';
     return 'Your dashboard is using the latest saved figures. Tap the cards for breakdowns.';
   }
-  function ensureRobotHelper(){
+  function ensureHelper(){
     try{
+      let root=document.getElementById('grantOSHelper');
+      if(!root){
+        root=document.createElement('div'); root.id='grantOSHelper';
+        root.innerHTML='<button id="grantOSHelperBtn" type="button" aria-label="Grant OS Helper">🤖</button><div id="grantOSHelperBubble" role="dialog" aria-live="polite"><div class="gos-helper-title">🤖 Grant OS Helper</div><div class="gos-helper-message" id="grantOSHelperMsg"></div><div class="gos-helper-reason" id="grantOSHelperReason"></div><div class="gos-helper-nav" aria-label="Helper tips"><button id="grantOSHelperPrev" type="button" aria-label="Previous tip">‹</button><span class="gos-helper-count" id="grantOSHelperCount">Tip 1 of 1</span><button id="grantOSHelperNext" type="button" aria-label="Next tip">›</button></div><div class="gos-helper-actions"><button class="primary" id="grantOSHelperUnderstand" type="button">Help me understand this</button><button id="grantOSHelperDismiss" type="button">Dismiss</button><button class="ghost" id="grantOSHelperOff" type="button">Don\'t show again</button></div></div>';
+        document.body.appendChild(root);
+      }
       const btn=document.getElementById('grantOSHelperBtn');
       const title=document.querySelector('#grantOSHelperBubble .gos-helper-title');
       if(btn){ btn.textContent='🤖'; btn.setAttribute('aria-label','Grant OS Helper'); }
       if(title) title.textContent='🤖 Grant OS Helper';
-      const msg=document.getElementById('grantOSHelperMsg'); const reason=document.getElementById('grantOSHelperReason'); const bubble=document.getElementById('grantOSHelperBubble'); const a=topAction();
-      if(bubble&&bubble.classList.contains('open')){ if(msg) msg.textContent=helperText(a); if(reason) reason.textContent=a.meta+' — '+a.reason; }
-      if(btn){ btn.classList.remove('gos-helper-tip','gos-helper-warn'); if(a.kind!=='clear') btn.classList.add(a.level==='amber'?'gos-helper-warn':'gos-helper-tip'); }
+      attachHelperButtons();
+      updateHelperIcon();
     }catch(e){}
   }
-  function showV30Helper(){
+  function updateHelperIcon(){
     try{
-      const bubble=document.getElementById('grantOSHelperBubble'); const msg=document.getElementById('grantOSHelperMsg'); const reason=document.getElementById('grantOSHelperReason'); const a=topAction();
-      if(msg) msg.textContent=helperText(a); if(reason) reason.textContent=a.meta+' — '+a.reason; if(bubble) bubble.classList.add('open');
+      const a=getStableAction(false); const btn=document.getElementById('grantOSHelperBtn'); if(!btn) return;
+      btn.classList.remove('gos-helper-tip','gos-helper-warn');
+      if(a.kind!=='clear') btn.classList.add(a.level==='amber'?'gos-helper-warn':'gos-helper-tip');
+      const bubble=document.getElementById('grantOSHelperBubble');
+      if(bubble&&bubble.classList.contains('open')) showHelper(false);
     }catch(e){}
+  }
+  function showHelper(manual){
+    try{
+      const tips=getHelperTips();
+      if(manual){ helperTipIndex=0; sessionStorage.removeItem(DISMISSED_KEY); }
+      if(helperTipIndex<0) helperTipIndex=tips.length-1;
+      if(helperTipIndex>=tips.length) helperTipIndex=0;
+      const tip=currentHelperTip();
+      const msg=document.getElementById('grantOSHelperMsg'), reason=document.getElementById('grantOSHelperReason'), bubble=document.getElementById('grantOSHelperBubble'), count=document.getElementById('grantOSHelperCount'), prev=document.getElementById('grantOSHelperPrev'), next=document.getElementById('grantOSHelperNext');
+      if(msg) msg.textContent=tip.message;
+      if(reason) reason.textContent=tip.meta;
+      if(count) count.textContent='Tip '+(helperTipIndex+1)+' of '+Math.max(1,tips.length);
+      if(prev) prev.disabled=tips.length<=1;
+      if(next) next.disabled=tips.length<=1;
+      if(bubble) bubble.classList.add('open');
+    }catch(e){}
+  }
+  function hideHelper(){ const b=document.getElementById('grantOSHelperBubble'); if(b) b.classList.remove('open'); }
+  function explainTopAction(){
+    const tip=currentHelperTip(); const id=tip.targetId||'nextPriority';
+    const el=document.getElementById(id); try{ if(el) (el.closest('.card')||el).scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+    showHelper(false);
   }
   function attachHelperButtons(){
     try{
       const btn=document.getElementById('grantOSHelperBtn');
-      if(btn&&!btn.__v30RobotClick){ btn.addEventListener('click',function(e){ setTimeout(showV30Helper,0); sessionStorage.removeItem(DISMISSED_KEY); },true); btn.__v30RobotClick=true; }
-      const dismiss=document.getElementById('grantOSHelperDismiss'); if(dismiss&&!dismiss.__v30){ dismiss.addEventListener('click',()=>sessionStorage.setItem(DISMISSED_KEY,'yes')); dismiss.__v30=true; }
-      const off=document.getElementById('grantOSHelperOff'); if(off&&!off.__v30){ off.addEventListener('click',()=>localStorage.setItem(AUTO_KEY,'yes')); off.__v30=true; }
+      if(btn&&!btn.__v301Click){ btn.addEventListener('click',function(){ stableAction=topAction(); showHelper(true); },true); btn.__v301Click=true; }
+      const prev=document.getElementById('grantOSHelperPrev'); if(prev&&!prev.__v301){ prev.addEventListener('click',()=>{ helperTipIndex-=1; showHelper(false); }); prev.__v301=true; }
+      const next=document.getElementById('grantOSHelperNext'); if(next&&!next.__v301){ next.addEventListener('click',()=>{ helperTipIndex+=1; showHelper(false); }); next.__v301=true; }
+      const dismiss=document.getElementById('grantOSHelperDismiss'); if(dismiss&&!dismiss.__v301){ dismiss.addEventListener('click',()=>{ sessionStorage.setItem(DISMISSED_KEY,'yes'); hideHelper(); }); dismiss.__v301=true; }
+      const off=document.getElementById('grantOSHelperOff'); if(off&&!off.__v301){ off.addEventListener('click',()=>{ localStorage.setItem(AUTO_KEY,'yes'); hideHelper(); }); off.__v301=true; }
+      const understand=document.getElementById('grantOSHelperUnderstand'); if(understand&&!understand.__v301){ understand.addEventListener('click',explainTopAction); understand.__v301=true; }
     }catch(e){}
   }
   function freezeScrollLayout(){
     try{ document.body&&document.body.classList.add('gos-is-scrolling'); }catch(e){}
-    const selectors=['#v283EstimatedSpareCard','#v274DebtMobile','#debtTable','#debtProgressList','#priorityQueue'];
+    const selectors=['#v283EstimatedSpareCard','#nextPriority','#priorityQueue','#v274DebtMobile','#debtTable','#debtProgressList'];
     selectors.forEach(sel=>{ const el=document.querySelector(sel); if(el&&el.offsetHeight>0){ el.style.minHeight=Math.max(el.offsetHeight, parseFloat(getComputedStyle(el).minHeight)||0)+'px'; } });
+    const np=document.getElementById('nextPriority'); if(np&&stableAction) setNextPriorityText(stableAction);
     clearTimeout(scrollTimer);
-    scrollTimer=setTimeout(()=>{ try{document.body&&document.body.classList.remove('gos-is-scrolling');}catch(e){} selectors.forEach(sel=>{ const el=document.querySelector(sel); if(el) el.style.minHeight=''; }); patchCalc(); updateDashboard(); ensureRobotHelper(); },260);
+    scrollTimer=setTimeout(()=>{ try{document.body&&document.body.classList.remove('gos-is-scrolling');}catch(e){} selectors.forEach(sel=>{ const el=document.querySelector(sel); if(el) el.style.minHeight=''; }); renderAll(true); },300);
   }
-  function renderAll(){ setVersion(); patchCalc(); updateDashboard(); ensureRobotHelper(); attachHelperButtons(); }
-  function boot(){ renderAll(); [80,250,650,1300,2500,4200].forEach(ms=>setTimeout(renderAll,ms)); }
+  function renderAll(force){ setVersion(); stableAction=topAction(); patchCalc(); updateDashboard(force); ensureHelper(); observeNextPriority(); }
+  function boot(){ renderAll(true); [80,250,650,1300,2500,4200].forEach(ms=>setTimeout(()=>renderAll(true),ms)); }
   document.addEventListener('scroll',freezeScrollLayout,{passive:true,capture:true});
   document.addEventListener('touchmove',freezeScrollLayout,{passive:true});
   document.addEventListener('wheel',freezeScrollLayout,{passive:true});
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(renderAll,120); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(renderAll,160); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),160); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),180); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
-  window.addEventListener('load',()=>{boot();setTimeout(boot,700);});
-  window.GrantOSBuild300={VERSION,buildActions,topAction,renderAll};
+  window.addEventListener('load',()=>{boot();setTimeout(()=>renderAll(true),700);});
+  window.GrantOSBuild301={VERSION,buildActions,topAction,renderAll,getHelperTips};
 })();
 </script>
 

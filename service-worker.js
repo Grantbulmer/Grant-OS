@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-build-3-0-main';
+const CACHE_NAME = 'grant-os-main-build-3-0-helper-arrows';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './favicon-32.png', './apple-touch-icon.png'];
 self.addEventListener('install', event => {
   self.skipWaiting();
