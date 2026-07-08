@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-v286-housekeeping-scroll-stability';
+const CACHE_NAME = 'grant-os-v287-priority-2-helper-alerts';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './favicon-32.png', './apple-touch-icon.png'];
 self.addEventListener('install', event => {
   self.skipWaiting();

@@ -1,7 +1,7 @@
 {
   "name": "Grant OS",
   "short_name": "Grant OS",
-  "start_url": "./?v=286-housekeeping-scroll-stability",
+  "start_url": "./?v=287-priority-2-helper-alerts",
   "scope": "./",
   "display": "standalone",
   "background_color": "#071021",
