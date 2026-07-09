@@ -9809,5 +9809,165 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
 })();
 </script>
 
+
+<style id="build30TwoTargetBillsSpareFixStyle">
+/* Build 3.0 two-target fix only:
+   1) keep Estimated Spare Until Payday text stable while account/budget renders refresh;
+   2) make Monthly Fixed Costs / Bills visibly operate as a dropdown again. */
+#gosBudgetBillsMainDropdown{display:block!important;margin-top:0!important;border:1px solid rgba(56,189,248,.35)!important;border-radius:16px!important;background:rgba(15,23,42,.42)!important;overflow:hidden!important;}
+#gosBudgetBillsMainDropdown > summary{cursor:pointer!important;list-style:none!important;padding:13px 14px!important;font-weight:950!important;color:#dbeafe!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;min-height:46px!important;letter-spacing:.01em!important;}
+#gosBudgetBillsMainDropdown > summary::-webkit-details-marker{display:none!important;}
+#gosBudgetBillsMainDropdown > summary:after{content:'⌄'!important;font-size:1rem!important;color:#93c5fd!important;transition:transform .18s ease!important;flex:0 0 auto!important;}
+#gosBudgetBillsMainDropdown[open] > summary:after{transform:rotate(180deg)!important;}
+#gosBudgetBillsMainDropdown .gos-dropdown-content{padding:0 12px 12px!important;}
+#gosBudgetBillsMainDropdown table{margin-top:0!important;}
+#v283EstimatedSpareCard{overflow-anchor:none!important;min-height:360px!important;contain:layout paint!important;}
+#v283EstimatedSpareCard > p.note{min-height:3.2em!important;}
+#v283SpareStatus{min-height:3.2em!important;}
+#v283DateAwareBreakdownNote{min-height:3.2em!important;}
+#v283SpareValue{font-variant-numeric:tabular-nums!important;min-width:7ch!important;display:inline-block!important;white-space:nowrap!important;}
+</style>
+
+<script id="build30TwoTargetBillsSpareFix">
+(function(){
+  const PATCH='build30TwoTargetBillsSpareFix';
+  const num=v=>{ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(x)?x:0; };
+  const store={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
+  let spareObserver=null, spareBusy=false, renderTimer=null;
+
+  function cardForFixedCosts(){
+    const table=document.getElementById('fixedCostsTable');
+    if(table) return table.closest('.card') || table.parentElement;
+    const budget=document.getElementById('budget');
+    if(!budget) return null;
+    return Array.from(budget.querySelectorAll('.card')).find(card=>{
+      const h=card.querySelector(':scope > h3, h3');
+      return h && /monthly\s+fixed\s+costs/i.test((h.textContent||'').trim());
+    }) || null;
+  }
+  function ensureBody(dd){
+    let body=dd.querySelector(':scope > .gos-dropdown-content');
+    if(!body){ body=document.createElement('div'); body.className='gos-dropdown-content'; dd.appendChild(body); }
+    return body;
+  }
+  function rememberOpen(dd){
+    const key='gos-open-gosBudgetBillsMainDropdown';
+    const saved=store.get(key);
+    if(saved===null) dd.open=true; else dd.open=saved==='yes';
+    if(!dd.__twoTargetRemember){
+      dd.addEventListener('toggle',()=>store.set(key,dd.open?'yes':'no'));
+      dd.__twoTargetRemember=true;
+    }
+  }
+  function moveIntoBillsDropdown(card, dd){
+    const body=ensureBody(dd);
+    const skipIds=new Set(['gosBudgetBillsSummaryCard','gosDebtMonthlyTotalCard']);
+    const h=card.querySelector(':scope > h3');
+    Array.from(card.childNodes).forEach(node=>{
+      if(node===dd || node===h) return;
+      if(node.nodeType===1){
+        if(skipIds.has(node.id)) return;
+        if(node.tagName==='SCRIPT' || node.tagName==='STYLE') return;
+      }
+      body.appendChild(node);
+    });
+    const guide=document.getElementById('gosBillsGuide');
+    if(guide && guide.closest('#budget') && guide.parentElement!==body) body.insertBefore(guide,body.firstChild);
+    const table=document.getElementById('fixedCostsTable');
+    if(table && table.parentElement!==body) body.appendChild(table);
+    Array.from(card.querySelectorAll('button')).filter(b=>/add bill/i.test(b.textContent||'')).forEach(b=>{ if(b.parentElement!==body) body.appendChild(b); });
+  }
+  function forceBillsDropdown(){
+    try{
+      const card=cardForFixedCosts(); if(!card) return;
+      let h=card.querySelector(':scope > h3');
+      if(!h){ h=document.createElement('h3'); card.insertBefore(h,card.firstChild); }
+      h.textContent='Monthly Fixed Costs / Bills';
+      h.style.display='none';
+      let dd=card.querySelector(':scope > details#gosBudgetBillsMainDropdown') || card.querySelector('details#gosBudgetBillsMainDropdown');
+      if(!dd){
+        dd=document.createElement('details');
+        dd.id='gosBudgetBillsMainDropdown';
+        dd.innerHTML='<summary>Monthly Fixed Costs / Bills</summary><div class="gos-dropdown-content"></div>';
+        h.insertAdjacentElement('afterend',dd);
+      }
+      let summary=dd.querySelector(':scope > summary');
+      if(!summary){ summary=document.createElement('summary'); dd.insertBefore(summary,dd.firstChild); }
+      summary.textContent='Monthly Fixed Costs / Bills';
+      rememberOpen(dd);
+      moveIntoBillsDropdown(card,dd);
+    }catch(e){ console.warn(PATCH,'forceBillsDropdown',e); }
+  }
+
+  function stableSpareNow(){
+    if(spareBusy) return;
+    spareBusy=true;
+    try{
+      const card=document.getElementById('v283EstimatedSpareCard');
+      if(card && card.__stableSpareObserver && typeof card.__stableSpareObserver.disconnect==='function'){
+        try{ card.__stableSpareObserver.disconnect(); }catch(e){}
+      }
+      if(spareObserver) try{ spareObserver.disconnect(); }catch(e){}
+      if(window.GrantOSDropdownSpareHolidayStabilityFix && typeof GrantOSDropdownSpareHolidayStabilityFix.renderStableSpare==='function'){
+        GrantOSDropdownSpareHolidayStabilityFix.renderStableSpare();
+      }else if(window.GrantOSDueDateV2835 && typeof GrantOSDueDateV2835.renderSpare==='function'){
+        GrantOSDueDateV2835.renderSpare();
+      }
+    }catch(e){ console.warn(PATCH,'stableSpareNow',e); }
+    finally{
+      spareBusy=false;
+      setTimeout(attachStableSpareObserver,0);
+    }
+  }
+  function scheduleStable(ms){
+    clearTimeout(renderTimer);
+    renderTimer=setTimeout(()=>{ forceBillsDropdown(); stableSpareNow(); }, ms==null?0:ms);
+  }
+  function attachStableSpareObserver(){
+    try{
+      const card=document.getElementById('v283EstimatedSpareCard'); if(!card) return;
+      if(spareObserver) try{ spareObserver.disconnect(); }catch(e){}
+      spareObserver=new MutationObserver(()=>{
+        if(spareBusy) return;
+        stableSpareNow();
+      });
+      spareObserver.observe(card,{childList:true,subtree:true,characterData:true});
+      card.__stableSpareObserver=spareObserver;
+      card.__twoTargetSyncObserver=true;
+    }catch(e){ console.warn(PATCH,'attachStableSpareObserver',e); }
+  }
+  function wrapRenderers(){
+    try{
+      if(window.Budget && Budget.render && !Budget.render.__twoTargetBillsSpare){
+        const old=Budget.render.bind(Budget);
+        Budget.render=function(){ const r=old.apply(this,arguments); forceBillsDropdown(); stableSpareNow(); setTimeout(()=>{forceBillsDropdown(); stableSpareNow();},60); return r; };
+        Budget.render.__twoTargetBillsSpare=true;
+      }
+    }catch(e){}
+    try{
+      if(window.App && App.render && !App.render.__twoTargetBillsSpare){
+        const old=App.render.bind(App);
+        App.render=function(){ const r=old.apply(this,arguments); forceBillsDropdown(); stableSpareNow(); setTimeout(()=>{forceBillsDropdown(); stableSpareNow();},80); return r; };
+        App.render.__twoTargetBillsSpare=true;
+      }
+    }catch(e){}
+  }
+  function run(){ wrapRenderers(); forceBillsDropdown(); stableSpareNow(); attachStableSpareObserver(); }
+  document.addEventListener('input',function(e){
+    if(e.target && e.target.closest && e.target.closest('#accounts,#budget')){ stableSpareNow(); scheduleStable(50); }
+  },true);
+  document.addEventListener('change',function(e){
+    if(e.target && e.target.closest && e.target.closest('#accounts,#budget')){ stableSpareNow(); scheduleStable(70); }
+  },true);
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('#budget')) scheduleStable(90);
+  },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{ run(); [100,350,900,1800,3600].forEach(ms=>setTimeout(run,ms)); });
+  else { run(); [100,350,900,1800,3600].forEach(ms=>setTimeout(run,ms)); }
+  window.addEventListener('load',()=>{ run(); [300,900,1800,3600].forEach(ms=>setTimeout(run,ms)); });
+  window.GrantOSTwoTargetBillsSpareFix={run,forceBillsDropdown,stableSpareNow};
+})();
+</script>
+
 </body>
 </html>
