@@ -9564,5 +9564,250 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
 })();
 </script>
 
+
+<style id="build30DropdownSpareHolidayStabilityFixStyle">
+/* Main Build 3.0 targeted stability fix.
+   Keeps the existing layout/calculations, restores the dropdown wrappers that should remain,
+   and hides mobile mirror editors on desktop so duplicate rows do not appear. */
+@media (min-width:641px){
+  #v274HolidayMobile,
+  #v274HolidaySummaryMobile,
+  #v274FixedCostsMobile,
+  #v274DebtMobile,
+  #v274BudgetAccountsMobile,
+  .v274-mobile-editor{display:none!important;}
+}
+@media (max-width:640px){
+  .v274-mobile-editor{display:block!important;width:100%!important;max-width:100%!important;margin:12px 0 0!important;}
+}
+#gosBudgetBillsMainDropdown,
+#gosDebtTrackerMainDropdown{margin-top:12px;border:1px solid rgba(56,189,248,.30);border-radius:16px;background:rgba(15,23,42,.36);overflow:hidden;}
+#gosBudgetBillsMainDropdown > summary,
+#gosDebtTrackerMainDropdown > summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:900;color:#dbeafe;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;}
+#gosBudgetBillsMainDropdown > summary::-webkit-details-marker,
+#gosDebtTrackerMainDropdown > summary::-webkit-details-marker{display:none;}
+#gosBudgetBillsMainDropdown > summary:after,
+#gosDebtTrackerMainDropdown > summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .18s ease;flex:0 0 auto;}
+#gosBudgetBillsMainDropdown[open] > summary:after,
+#gosDebtTrackerMainDropdown[open] > summary:after{transform:rotate(180deg);}
+#gosBudgetBillsMainDropdown .gos-dropdown-content,
+#gosDebtTrackerMainDropdown .gos-dropdown-content{padding:0 12px 12px;}
+#gosBudgetBillsMainDropdown table,
+#gosDebtTrackerMainDropdown table{margin-top:0;}
+#v283EstimatedSpareCard{overflow-anchor:none!important;min-height:330px!important;}
+#v283SpareStatus{min-height:3.1em!important;}
+#v283SpareValue{font-variant-numeric:tabular-nums!important;min-width:7ch!important;display:inline-block!important;white-space:nowrap!important;}
+#gosSpareCalculationDropdown{margin-top:12px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(15,23,42,.34);overflow:hidden;}
+#gosSpareCalculationDropdown > summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:900;color:#dbeafe;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;}
+#gosSpareCalculationDropdown > summary::-webkit-details-marker{display:none;}
+#gosSpareCalculationDropdown > summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .18s ease;flex:0 0 auto;}
+#gosSpareCalculationDropdown[open] > summary:after{transform:rotate(180deg);}
+#gosSpareCalculationDropdown .gos-spare-dd-body{padding:0 12px 12px;}
+#gosHolidayFundingCard .gos-live-total{font-size:clamp(30px,5vw,44px);font-weight:950;letter-spacing:-.03em;margin:8px 0 4px;color:#f8fafc;}
+</style>
+
+<script id="build30DropdownSpareHolidayStabilityFix">
+(function(){
+  const PATCH='build30DropdownSpareHolidayStabilityFix';
+  let runTimer=null, spareTimer=null, observerBusy=false;
+  const num=v=>{ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(x)?x:0; };
+  const fmt=v=>{ try{ return (typeof money==='function') ? money(num(v)) : '£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2}); }catch(e){ return '£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2}); } };
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const store={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
+  function rows(k){ try{ return (typeof state!=='undefined' && Array.isArray(state[k])) ? state[k] : []; }catch(e){ return []; } }
+  function visibleCardFor(sel){ const el=document.querySelector(sel); return el&&(el.closest('.card')||el.parentElement); }
+  function normaliseHeadingText(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+  function cardByHeading(section, pattern){
+    const root=document.querySelector(section); if(!root) return null;
+    return Array.from(root.querySelectorAll('.card')).find(card=>{ const h=card.querySelector(':scope > h3, h3'); return h && pattern.test(normaliseHeadingText(h.textContent)); }) || null;
+  }
+  function ensureBody(dd){ let body=dd.querySelector(':scope > .gos-dropdown-content'); if(!body){ body=document.createElement('div'); body.className='gos-dropdown-content'; dd.appendChild(body); } return body; }
+  function ensureOpenRemember(dd, defaultOpen){
+    if(!dd) return;
+    const key='gos-open-'+dd.id;
+    const saved=store.get(key);
+    if(saved===null) dd.open=!!defaultOpen; else dd.open=saved==='yes';
+    if(!dd.__gosRememberDropdown){ dd.addEventListener('toggle',()=>store.set(key,dd.open?'yes':'no')); dd.__gosRememberDropdown=true; }
+  }
+  function moveDirectChildren(card, dd, skipIds){
+    const h=card.querySelector(':scope > h3');
+    const body=ensureBody(dd);
+    Array.from(card.childNodes).forEach(node=>{
+      if(node===h || node===dd) return;
+      if(node.nodeType===1){
+        if(skipIds && skipIds.has(node.id)) return;
+        if(node.tagName==='SCRIPT' || node.tagName==='STYLE') return;
+      }
+      body.appendChild(node);
+    });
+    return body;
+  }
+  function restoreBillsDropdown(){
+    try{
+      const card=visibleCardFor('#fixedCostsTable') || cardByHeading('#budget',/^monthly fixed costs( \/ bills)?$/i); if(!card) return;
+      let h=card.querySelector(':scope > h3'); if(!h){ h=document.createElement('h3'); card.insertBefore(h,card.firstChild); }
+      h.textContent='Monthly Fixed Costs / Bills';
+      let dd=card.querySelector(':scope > details#gosBudgetBillsMainDropdown');
+      if(!dd){ dd=document.createElement('details'); dd.id='gosBudgetBillsMainDropdown'; dd.innerHTML='<summary>Open monthly fixed costs / bills</summary><div class="gos-dropdown-content"></div>'; h.insertAdjacentElement('afterend',dd); }
+      ensureOpenRemember(dd,true);
+      const body=moveDirectChildren(card,dd,new Set(['gosBudgetBillsSummaryCard','gosDebtMonthlyTotalCard']));
+      const guide=document.getElementById('gosBillsGuide'); if(guide && guide.parentElement!==body && guide.closest('#budget')) body.insertBefore(guide,body.firstChild);
+      const table=document.getElementById('fixedCostsTable'); if(table && table.parentElement!==body) body.appendChild(table);
+      const addBtn=Array.from(card.querySelectorAll('button')).find(b=>/add bill/i.test(b.textContent||'')); if(addBtn && addBtn.parentElement!==body) body.appendChild(addBtn);
+    }catch(e){ console.warn(PATCH,'restoreBillsDropdown',e); }
+  }
+  function restoreDebtDropdown(){
+    try{
+      const card=visibleCardFor('#debtTable') || cardByHeading('#debts',/^debt tracker$/i); if(!card) return;
+      let h=card.querySelector(':scope > h3'); if(!h){ h=document.createElement('h3'); card.insertBefore(h,card.firstChild); }
+      h.textContent='Debt Tracker';
+      let dd=card.querySelector(':scope > details#gosDebtTrackerMainDropdown');
+      if(!dd){ dd=document.createElement('details'); dd.id='gosDebtTrackerMainDropdown'; dd.innerHTML='<summary>Open debt accounts</summary><div class="gos-dropdown-content"></div>'; h.insertAdjacentElement('afterend',dd); }
+      ensureOpenRemember(dd,true);
+      const body=moveDirectChildren(card,dd,new Set(['gosDebtMonthlyTotalCard']));
+      const guide=document.getElementById('gosDebtGuide'); if(guide && guide.parentElement!==body && guide.closest('#debts')) body.insertBefore(guide,body.firstChild);
+      const table=document.getElementById('debtTable'); if(table && table.parentElement!==body) body.appendChild(table);
+      Array.from(card.querySelectorAll('button')).filter(b=>/save debt figures|add debt/i.test(b.textContent||'')).forEach(b=>{ if(b.parentElement!==body) body.appendChild(b); });
+    }catch(e){ console.warn(PATCH,'restoreDebtDropdown',e); }
+  }
+  function unwrapDetails(details){
+    if(!details||!details.parentNode) return;
+    const body=details.querySelector(':scope > .gos-dropdown-content,:scope > div');
+    let ref=details;
+    if(body) Array.from(body.childNodes).forEach(n=>{ ref.parentNode.insertBefore(n,ref.nextSibling); ref=n; });
+    details.remove();
+  }
+  function debtProgressAsCard(){
+    try{
+      const card=visibleCardFor('#debtProgressList') || cardByHeading('#debts',/^debt progress$/i); if(!card) return;
+      Array.from(card.querySelectorAll(':scope > details')).forEach(unwrapDetails);
+      const h=card.querySelector(':scope > h3'); if(h) h.textContent='Debt Progress';
+      card.style.display='block'; card.classList.add('card');
+    }catch(e){ console.warn(PATCH,'debtProgressAsCard',e); }
+  }
+  function hideDesktopMobileMirrors(){
+    try{
+      ['v274HolidayMobile','v274HolidaySummaryMobile','v274FixedCostsMobile','v274DebtMobile','v274BudgetAccountsMobile'].forEach(id=>{
+        const el=document.getElementById(id); if(el && window.matchMedia){ if(window.matchMedia('(min-width:641px)').matches) el.style.display='none'; else el.style.display=''; }
+      });
+    }catch(e){}
+  }
+  function holidayPct(saved,target){ target=num(target); return target>0?Math.max(0,Math.min(100,(num(saved)/target)*100)):0; }
+  function renderHolidayFunding(){
+    try{
+      const grid=document.querySelector('#holidays .grid') || document.querySelector('#holidays'); if(!grid) return;
+      const summary=visibleCardFor('#holidayControlTable') || cardByHeading('#holidays',/^holiday summary$/i);
+      let card=document.getElementById('gosHolidayFundingCard') || cardByHeading('#holidays',/^holiday funding$/i);
+      if(!card){ card=document.createElement('div'); card.id='gosHolidayFundingCard'; card.className='card full'; if(summary&&summary.parentNode) summary.insertAdjacentElement('afterend',card); else grid.appendChild(card); }
+      card.id='gosHolidayFundingCard'; card.className='card full'; card.style.display='block'; card.style.visibility='visible'; card.style.opacity='1';
+      const list=rows('holidays');
+      const target=list.reduce((s,h)=>s+num(h&&h[2]),0);
+      const saved=list.reduce((s,h)=>s+Math.min(num(h&&h[3]),Math.max(0,num(h&&h[2]))),0);
+      const remaining=Math.max(0,target-saved);
+      const percent=Math.round(holidayPct(saved,target));
+      card.innerHTML='<h3>Holiday Funding</h3><p class="note">Live funding progress across the holiday pots above.</p><div class="gos-live-total">'+percent+'% funded</div><div class="gos-live-sub">Saved / ringfenced: <strong>'+fmt(saved)+'</strong> of <strong>'+fmt(target)+'</strong>. Remaining: <strong>'+fmt(remaining)+'</strong>.</div><div id="holidayFundingGraph" class="gos-holiday-funding-rows">'+(list.length?list.map(h=>{ const p=holidayPct(h&&h[3],h&&h[2]); return '<div class="gos-holiday-row"><strong>'+esc((h&&h[0])||'Holiday')+'</strong><div class="chartbar"><div class="chartfill" style="width:'+p+'%"></div></div><span>'+Math.round(p)+'%</span></div>'; }).join(''):'<p class="note">No holiday pots yet.</p>')+'</div>';
+    }catch(e){ console.warn(PATCH,'renderHolidayFunding',e); }
+  }
+  function readEstimate(){
+    try{ if(window.GrantOSHolidaySync && typeof GrantOSHolidaySync.estimateWithHoliday==='function') return GrantOSHolidaySync.estimateWithHoliday(); }catch(e){}
+    try{ if(window.GrantOSDueDateV2835 && typeof GrantOSDueDateV2835.estimate==='function') return GrantOSDueDateV2835.estimate(); }catch(e){}
+    try{ if(window.GrantOSDateOnlyV283 && typeof GrantOSDateOnlyV283.estimate==='function') return GrantOSDateOnlyV283.estimate(); }catch(e){}
+    try{ if(window.Calc && typeof Calc.trueSpareAfterCommitmentsBreakdown==='function') return Calc.trueSpareAfterCommitmentsBreakdown(); }catch(e){}
+    return {};
+  }
+  function totalFrom(v){ return (v && typeof v==='object') ? num(v.total) : num(v); }
+  function ensureSpareCalculationDropdown(card){
+    let dd=document.getElementById('gosSpareCalculationDropdown');
+    if(!dd){ dd=document.createElement('details'); dd.id='gosSpareCalculationDropdown'; dd.innerHTML='<summary>Show calculation breakdown</summary><div class="gos-spare-dd-body"></div>'; card.appendChild(dd); ensureOpenRemember(dd,false); }
+    let body=dd.querySelector(':scope > .gos-spare-dd-body'); if(!body){ body=document.createElement('div'); body.className='gos-spare-dd-body'; dd.appendChild(body); }
+    const breakdown=card.querySelector(':scope > .v283-spare-breakdown'); if(breakdown && breakdown.parentElement!==body) body.insertBefore(breakdown,body.firstChild);
+    const extra=document.getElementById('v283DateAwareBreakdownNote'); if(extra && extra.parentElement!==body) body.appendChild(extra);
+    return body;
+  }
+  function renderStableSpare(){
+    if(observerBusy) return;
+    try{
+      observerBusy=true;
+      const card=document.getElementById('v283EstimatedSpareCard'); if(!card){ observerBusy=false; return; }
+      const e=readEstimate();
+      const value=num(e.value);
+      const bank=num(e.bank!=null?e.bank:e.cashAvailable);
+      const cash=num(e.cashAvailable!=null?e.cashAvailable:Math.max(0,bank));
+      const bills=totalFrom(e.bills);
+      const debts=totalFrom(e.debts!=null?e.debts:e.debt);
+      const holiday=num(e.holidayDue || (e.holiday&&e.holiday.total));
+      const living=num(e.living);
+      const commitments=num(e.commitmentsDue || (bills+debts+holiday+living));
+      const val=document.getElementById('v283SpareValue');
+      if(val){ val.textContent=fmt(value); val.className='big value-soft '+(value>0?'value-positive':'value-warning'); }
+      const status=document.getElementById('v283SpareStatus');
+      if(status){
+        status.className='v283-spare-status '+(value>0?'v283-good':'v283-warn');
+        if(value>0) status.textContent='True spare until payday: real linked account money left after unpaid bills, debts, holiday pay-by amounts and living spend reserve.';
+        else if(bank<=0) status.textContent='No spare because linked accounts are not positive after overdrafts are cleared.';
+        else status.textContent='No spare because due bills, debts, holiday pay-by amounts and living spend reserve use the available money before payday.';
+      }
+      const setMoney=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
+      const setText=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=String(v); };
+      setMoney('v283SpareAvailableCash',cash); setText('v283SpareDays',Math.max(0,Math.round(num(e.days)))); setMoney('v283SpareBills',bills); setMoney('v283SpareDebt',debts); setMoney('v283SpareLiving',living); setMoney('v283SpareCommitments',commitments); setMoney('v283SpareBank',bank); setMoney('v283SpareOverdraft',e.overdraft); setMoney('v283SpareWage',e.wage);
+      let hrow=document.getElementById('v283SpareHolidayRow'); const debtEl=document.getElementById('v283SpareDebt');
+      if(!hrow && debtEl){ const wrap=debtEl.closest('div'); if(wrap){ hrow=document.createElement('div'); hrow.id='v283SpareHolidayRow'; hrow.innerHTML='<span>Holiday pay-by due before payday</span><strong id="v283SpareHoliday">£0</strong>'; wrap.insertAdjacentElement('afterend',hrow); } }
+      setMoney('v283SpareHoliday',holiday);
+      const note=card.querySelector(':scope > p.note');
+      if(note) note.textContent='True Spare uses real linked account money only. It deducts unpaid bills/debts still due before payday, holiday pay-by items, and living spend reserve.';
+      let extra=document.getElementById('v283DateAwareBreakdownNote');
+      if(!extra){ extra=document.createElement('div'); extra.id='v283DateAwareBreakdownNote'; extra.className='v283-date-extra'; card.appendChild(extra); }
+      const payday=e.payday ? (String(e.payday).includes('GMT') && e.payday.toLocaleDateString ? e.payday.toLocaleDateString('en-GB') : String(e.payday).slice(0,10)) : 'next payday';
+      extra.innerHTML='Payday used: <strong>'+esc(payday)+'</strong>. Bills included: <strong>'+esc((e.bills&&e.bills.dueCount)||0)+'</strong>. Debts included: <strong>'+esc((e.debts&&e.debts.dueCount)||0)+'</strong>. Holiday pay-by included: <strong>'+esc(e.holidayDueCount || (e.holiday&&e.holiday.count) || 0)+'</strong>, <strong>'+fmt(holiday)+'</strong>.';
+      ensureSpareCalculationDropdown(card);
+      try{ window.GrantOSStableTrueSpare=e; }catch(x){}
+    }catch(e){ console.warn(PATCH,'renderStableSpare',e); }
+    finally{ setTimeout(()=>{ observerBusy=false; },0); }
+  }
+  function scheduleStableSpare(ms){ clearTimeout(spareTimer); spareTimer=setTimeout(renderStableSpare,ms||40); }
+  function patchSpareRenderers(){
+    try{ if(window.GrantOSDateAwareV284 && GrantOSDateAwareV284.renderSpareCard!==renderStableSpare){ GrantOSDateAwareV284.renderSpareCard=renderStableSpare; GrantOSDateAwareV284.__stableSpareRender=true; } }catch(e){}
+    try{ if(window.GrantOSDateOnlyV283 && GrantOSDateOnlyV283.renderSpareCard!==renderStableSpare){ GrantOSDateOnlyV283.renderSpareCard=renderStableSpare; GrantOSDateOnlyV283.__stableSpareRender=true; } }catch(e){}
+    try{ if(window.GrantOSDueDateV2835 && GrantOSDueDateV2835.renderSpare!==renderStableSpare){ GrantOSDueDateV2835.renderSpare=renderStableSpare; GrantOSDueDateV2835.renderSpareCard=renderStableSpare; GrantOSDueDateV2835.__stableSpareRender=true; } }catch(e){}
+    try{ if(window.App && App.render && !App.render.__stableSpareAfter){ const old=App.render.bind(App); App.render=function(){ const r=old.apply(this,arguments); scheduleStableSpare(20); setTimeout(renderStableSpare,140); return r; }; App.render.__stableSpareAfter=true; } }catch(e){}
+  }
+  function observeSpare(){
+    try{
+      const card=document.getElementById('v283EstimatedSpareCard'); if(!card || card.__stableSpareObserver) return;
+      const mo=new MutationObserver(()=>{ if(!observerBusy) scheduleStableSpare(10); });
+      mo.observe(card,{childList:true,subtree:true,characterData:true});
+      card.__stableSpareObserver=mo;
+    }catch(e){}
+  }
+  function renderHealth(){
+    try{ if(window.HealthV21 && typeof HealthV21.render==='function') HealthV21.render(); }catch(e){}
+  }
+  function restoreRelocationEditing(){
+    try{
+      if(!window.Relocation || !window.state) return;
+      if(!Relocation.__stableEditRestore){
+        Relocation.update=function(group,i,k,v){ if(!Array.isArray(state[group])||!state[group][i]) return; state[group][i][k]=(k===1||k===2)?num(v):v; try{Data.save();}catch(e){} };
+        Relocation.add=function(group){ if(!Array.isArray(state[group])) state[group]=[]; state[group].push(['New item',0,0]); try{Data.save();}catch(e){} Relocation.render(); try{Dashboard.render();}catch(e){} };
+        Relocation.remove=function(group,i){ if(!Array.isArray(state[group])||!state[group][i]) return; const name=state[group][i][0]||'this item'; if(typeof confirm==='function'&&!confirm('Remove '+name+'?')) return; state[group].splice(i,1); try{Data.save();}catch(e){} Relocation.render(); try{Dashboard.render();}catch(e){} };
+        Relocation.__stableEditRestore=true;
+      }
+    }catch(e){ console.warn(PATCH,'restoreRelocationEditing',e); }
+  }
+  function run(){
+    patchSpareRenderers(); restoreBillsDropdown(); restoreDebtDropdown(); debtProgressAsCard(); hideDesktopMobileMirrors(); renderHolidayFunding(); renderStableSpare(); observeSpare(); restoreRelocationEditing(); renderHealth();
+  }
+  function scheduleRun(ms){ clearTimeout(runTimer); runTimer=setTimeout(run,ms||140); }
+  document.addEventListener('input',function(e){
+    if(e.target && e.target.closest && e.target.closest('#accounts,#budget,#debts,#holidays,#relocation')){ scheduleStableSpare(20); scheduleRun(170); }
+  },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#accounts,#budget,#debts,#holidays,#relocation')){ scheduleStableSpare(20); scheduleRun(180); } },true);
+  document.addEventListener('click',function(){ scheduleRun(180); },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [150,450,1000,2200,4200].forEach(ms=>setTimeout(run,ms));});
+  else { run(); [150,450,1000,2200,4200].forEach(ms=>setTimeout(run,ms)); }
+  window.addEventListener('load',()=>{run(); [300,900,1800,3600].forEach(ms=>setTimeout(run,ms));});
+  window.GrantOSDropdownSpareHolidayStabilityFix={run,renderStableSpare,renderHolidayFunding,restoreBillsDropdown,restoreDebtDropdown};
+})();
+</script>
+
 </body>
 </html>
