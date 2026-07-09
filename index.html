@@ -10272,5 +10272,168 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
 })();
 </script>
 
+
+
+<style id="build30BillInputStabilityFixStyle">
+/* Build 3.0 bill input stability fix: keep Monthly Fixed Costs / Bills fields focused while typing. */
+#budget,#fixedCostsTable,#v274FixedCostsMobile{overflow-anchor:none!important;}
+#fixedCostsTable input,#v274FixedCostsMobile input{font-variant-numeric:tabular-nums!important;}
+</style>
+<script id="build30BillInputStabilityFixScript">
+(function(){
+  const PATCH='build30-bill-input-stability-fix';
+  const FIELD_SELECTOR='input,textarea,select';
+  const BILL_SCOPE='#fixedCostsTable,#v274FixedCostsMobile';
+  let lastInputAt=0,lastScrollX=0,lastScrollY=0,finishTimer=0,bootTimer=0;
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isFinite(x)?x:0; }
+  function isField(el){ return !!(el && el.matches && el.matches(FIELD_SELECTOR)); }
+  function inBills(el){ return !!(el && el.closest && el.closest(BILL_SCOPE)); }
+  function activeBills(){ const a=document.activeElement; return (isField(a)&&inBills(a)) || (Date.now()-lastInputAt<450); }
+  function rememberScroll(){ try{ lastScrollX=window.scrollX||0; lastScrollY=window.scrollY||0; }catch(e){} }
+  function restoreScroll(){ try{ window.scrollTo(lastScrollX,lastScrollY); }catch(e){} }
+  function restoreSoon(){ setTimeout(restoreScroll,0); setTimeout(restoreScroll,50); setTimeout(restoreScroll,140); }
+  function save(){ try{ if(window.Data&&Data.save) Data.save(); else localStorage.setItem('grantOS_v1',JSON.stringify(window.state||{})); }catch(e){} }
+  function rowIndexFromTarget(el){
+    try{
+      const tr=el.closest('#fixedCostsTable tr');
+      if(tr && tr.parentElement) return Math.max(0,Array.prototype.indexOf.call(tr.parentElement.children,tr)-1);
+      const card=el.closest('#v274FixedCostsMobile .v274-mobile-card');
+      if(card && card.parentElement){
+        const cards=Array.from(card.parentElement.querySelectorAll(':scope > .v274-mobile-card'));
+        return cards.indexOf(card);
+      }
+    }catch(e){}
+    return -1;
+  }
+  function keyFromTarget(el){
+    try{
+      const td=el.closest('#fixedCostsTable td');
+      if(td && td.parentElement) return Array.prototype.indexOf.call(td.parentElement.children,td);
+      const label=el.closest('label');
+      const txt=(label&&label.querySelector('span')&&label.querySelector('span').textContent||label&&label.textContent||'').toLowerCase();
+      if(txt.includes('amount')) return 1;
+      if(txt.includes('due')) return 2;
+      return 0;
+    }catch(e){ return 0; }
+  }
+  function normaliseFixed(){
+    try{
+      if(!window.state) return;
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      state.fixed=state.fixed.map(r=>{ const row=Array.isArray(r)?r:[]; return [row[0]??'New bill', n(row[1]), row[2]??'', row[3]==='yes'?'yes':'no']; });
+    }catch(e){}
+  }
+  function writeBillFromField(el){
+    try{
+      if(!window.state) return false;
+      normaliseFixed();
+      const i=rowIndexFromTarget(el), k=keyFromTarget(el);
+      if(i<0 || !state.fixed[i]) return false;
+      state.fixed[i][k]=(k===1)?n(el.value):el.value;
+      if(k===0 || k===1 || k===2) state.fixed[i][3]='no';
+      save();
+      return true;
+    }catch(e){ console.warn(PATCH,'write bill field',e); return false; }
+  }
+  function lightRefresh(){
+    try{ if(window.GrantOSDateOnlyV283&&GrantOSDateOnlyV283.renderSpareCard) GrantOSDateOnlyV283.renderSpareCard(); }catch(e){}
+    try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.renderSpare) GrantOSDueDateV2835.renderSpare(); }catch(e){}
+    try{ if(window.GrantOSCodeArchaeologistStabilityPass&&GrantOSCodeArchaeologistStabilityPass.renderTotals) GrantOSCodeArchaeologistStabilityPass.renderTotals(); }catch(e){}
+    try{ if(window.GrantOSSafeSpendV284&&GrantOSSafeSpendV284.refresh) GrantOSSafeSpendV284.refresh(); }catch(e){}
+    try{ if(window.GrantOSHolidaySync&&GrantOSHolidaySync.refreshLive) GrantOSHolidaySync.refreshLive(); }catch(e){}
+    try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){}
+    restoreSoon();
+  }
+  function fullRefreshWhenSafe(){
+    clearTimeout(finishTimer);
+    finishTimer=setTimeout(function(){
+      if(activeBills()) return;
+      save();
+      try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.finalRefresh) GrantOSDueDateV2835.finalRefresh(); }
+      catch(e){ try{ if(window.Budget&&Budget.render) Budget.render(); }catch(x){} }
+      try{ if(window.GrantOSCodeArchaeologistStabilityPass&&GrantOSCodeArchaeologistStabilityPass.run) GrantOSCodeArchaeologistStabilityPass.run(); }catch(e){}
+      restoreSoon();
+    },160);
+  }
+  function guardMethod(obj,name,lightOnly){
+    try{
+      if(!obj || typeof obj[name] !== 'function' || obj[name].__billInputStabilityFix) return;
+      const old=obj[name].bind(obj);
+      obj[name]=function(){
+        if(activeBills()){
+          save();
+          if(lightOnly!==false) lightRefresh();
+          return undefined;
+        }
+        return old.apply(obj,arguments);
+      };
+      obj[name].__billInputStabilityFix=true;
+    }catch(e){ console.warn(PATCH,'guard '+name,e); }
+  }
+  function patchBillApis(){
+    try{
+      if(window.GrantOSDueDateV2835){
+        if(typeof GrantOSDueDateV2835.updateBill==='function' && !GrantOSDueDateV2835.updateBill.__billInputStabilityFix){
+          const old=GrantOSDueDateV2835.updateBill.bind(GrantOSDueDateV2835);
+          GrantOSDueDateV2835.updateBill=function(i,k,v){
+            if(activeBills()){
+              try{ normaliseFixed(); if(state.fixed[i]){ state.fixed[i][k]=(k===1)?n(v):v; if(k===0||k===1||k===2) state.fixed[i][3]='no'; save(); lightRefresh(); } }catch(e){}
+              return true;
+            }
+            return old(i,k,v);
+          };
+          GrantOSDueDateV2835.updateBill.__billInputStabilityFix=true;
+        }
+        ['renderBills','renderBillsMobile','finalRefresh'].forEach(k=>guardMethod(GrantOSDueDateV2835,k,true));
+      }
+    }catch(e){}
+    try{
+      if(window.GrantOSDateOnlyV283){
+        if(typeof GrantOSDateOnlyV283.updateBill==='function' && !GrantOSDateOnlyV283.updateBill.__billInputStabilityFix){
+          const old=GrantOSDateOnlyV283.updateBill.bind(GrantOSDateOnlyV283);
+          GrantOSDateOnlyV283.updateBill=function(i,k,v){
+            if(activeBills()){
+              try{ normaliseFixed(); if(state.fixed[i]){ state.fixed[i][k]=(k===1)?n(v):v; if(k===0||k===1||k===2) state.fixed[i][3]='no'; save(); lightRefresh(); } }catch(e){}
+              return true;
+            }
+            return old(i,k,v);
+          };
+          GrantOSDateOnlyV283.updateBill.__billInputStabilityFix=true;
+        }
+        ['renderBillsTable','renderBillsMobile','boot','commit'].forEach(k=>guardMethod(GrantOSDateOnlyV283,k,true));
+      }
+    }catch(e){}
+    try{ guardMethod(window.Budget,'render',true); }catch(e){}
+    try{ guardMethod(window.App,'render',true); guardMethod(window.App,'saveAndRender',true); }catch(e){}
+    try{ guardMethod(window.MobileV274,'renderAll',true); }catch(e){}
+  }
+  function captureBillInput(e){
+    const t=e.target;
+    if(!isField(t) || !inBills(t)) return;
+    lastInputAt=Date.now();
+    rememberScroll();
+    patchBillApis();
+    writeBillFromField(t);
+    // Let the active field keep focus; older bubbling listeners are what caused table rebuilds while typing.
+    try{ e.stopImmediatePropagation(); }catch(x){}
+    lightRefresh();
+  }
+  document.addEventListener('input',captureBillInput,true);
+  document.addEventListener('change',function(e){
+    const t=e.target;
+    if(!isField(t) || !inBills(t)) return;
+    lastInputAt=Date.now(); rememberScroll(); patchBillApis(); writeBillFromField(t);
+    try{ e.stopImmediatePropagation(); }catch(x){}
+    lightRefresh(); fullRefreshWhenSafe();
+  },true);
+  document.addEventListener('focusin',function(e){ if(isField(e.target)&&inBills(e.target)){ lastInputAt=Date.now(); rememberScroll(); patchBillApis(); restoreSoon(); } },true);
+  document.addEventListener('focusout',function(e){ if(isField(e.target)&&inBills(e.target)){ writeBillFromField(e.target); lastInputAt=0; fullRefreshWhenSafe(); } },true);
+  function boot(){ patchBillApis(); clearTimeout(bootTimer); bootTimer=setTimeout(patchBillApis,250); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',function(){ boot(); [400,1200,2600].forEach(ms=>setTimeout(boot,ms)); });
+  window.GrantOSBillInputStabilityFix={version:PATCH,patch:patchBillApis};
+})();
+</script>
+
 </body>
 </html>
