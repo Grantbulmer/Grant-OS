@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grant-os-main-build-3-0-totals-graphs-health-fix';
+const CACHE_NAME = 'grant-os-main-build-3-0-live-totals-health-holiday-relocation-fix';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './favicon-32.png', './apple-touch-icon.png'];
 self.addEventListener('install', event => {
   self.skipWaiting();
