@@ -8609,6 +8609,7 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   let observerAttached=false;
   let repairingPriority=false;
   let helperTipIndex=0;
+  let helperExpanded=false;
   function n(v){ const x=Number(v||0); return isFinite(x)?x:0; }
   function esc(v){ return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function fmt(v){ try{return money(n(v));}catch(e){ return '£'+n(v).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:2}); } }
@@ -8737,7 +8738,9 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
     try{ return buildActions(); }catch(e){ return []; }
   }
   function fixedTotal(){
-    try{ const cc=c(); if(cc&&cc.totalFixed) return n(cc.totalFixed()); }catch(e){}
+    // Bills-only total for helper tips. Calc.totalFixed intentionally includes debt repayments in some app forecasts,
+    // so do not use it for wording that says Monthly Bill Total.
+    try{ const cc=c(); if(cc&&cc.normalBillTotal) return n(cc.normalBillTotal()); }catch(e){}
     const s=st()||{}; return (Array.isArray(s.fixed)?s.fixed:[]).reduce((sum,x)=>sum+n(x&&x[1]),0);
   }
   function debtTotal(){
@@ -8832,6 +8835,48 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
     if(a.kind==='emergency') return 'Your emergency fund is below target, so building a real cash buffer would help.';
     return 'Your dashboard is using the latest saved figures. Tap the cards for breakdowns.';
   }
+  function helperDetail(tip){
+    const kind=String((tip&&tip.kind)||'');
+    const s=st()||{};
+    const ss=safeSpend()||{};
+    const fixed=fixedTotal();
+    const debt=debtTotal();
+    const od=totalOverdraft();
+    const bank=bankPositionNow();
+    const spare=estimatedSpareValue();
+    const holidaysDue=holidayRemainingTotal();
+    const emerSaved=n(s.emergencyFund), emerTarget=n(s.emergencyTarget||1000);
+    const rel=relocationTotal();
+    const explanations={
+      'tip-accounts-balance':'This matters because the app can only judge spare cash from the balance you save. Your current bank position is '+fmt(bank)+', after overdraft pressure is considered.',
+      'tip-overdraft-used':'This matters because overdraft is borrowed money. Recording '+fmt(od)+' separately helps Finance Health and Safe Spend avoid treating borrowed money as healthy spare cash.',
+      'tip-payday-date':'This matters because due bills and debts are checked against payday. If payday moves, the app needs the real date so Estimated Spare does not miss a payment.',
+      'tip-wage-input':'This matters because wage is the starting point for payday-to-payday affordability. If it is wrong, forecasts and spare cash will be wrong too.',
+      'tip-weekly-budget':'This matters because Safe Spend starts from your planned weekly living limit. Your saved target is '+fmt(n(s.weeklyBudget||ss.target||0))+' and the current safe weekly figure is '+fmt(n(ss.safeWeekly))+'.',
+      'tip-fixed-costs':'This matters because bills reduce spare cash before spending money is safe. The helper is using the bills-only total of '+fmt(fixed)+', not debt repayments.',
+      'tip-bills-total':'This matters because the total card should be the result of bill rows. Update the row itself so the monthly bill total stays synced at '+fmt(fixed)+'.',
+      'tip-estimated-spare':'This matters because '+fmt(spare)+' is the money left after known commitments, not just the cash in your bank. Check the breakdown before spending it.',
+      'tip-safe-spend':'This matters because Safe Spend is your daily guardrail. It protects bills, debts and goals first, then shows what is safer to spend.',
+      'tip-debt-balances':'This matters because debt balances feed Debt Remaining, Finance Health and the debt forecast. The current active debt balance total is '+fmt(debt)+'.',
+      'tip-debt-types':'This matters because short-term debts like BNPL are more urgent than normal loans. The type tells the app how strongly to prioritise the debt.',
+      'tip-debt-dates':'This matters because a debt due before payday affects this pay cycle. A later due date should not reduce today\'s safe spend too early.',
+      'tip-completed-debts':'This matters because old zero-balance rows can make the tracker noisy. Removing or archiving them keeps totals and alerts easier to trust.',
+      'tip-holiday-payby':'This matters because the Pay by date is when the money is needed, even if the holiday is later. Current outstanding holiday funding is '+fmt(holidaysDue)+'.',
+      'tip-holiday-saved':'This matters because saved/ringfenced money reduces what is still outstanding. Only enter money here when it has actually been protected or funded.',
+      'tip-holiday-count':'This matters because holiday pots can change after bookings. Checking them after payday keeps the remaining target and wage cover accurate.',
+      'tip-emergency-fund':'This matters because emergency savings reduce future pressure from overdraft or debt. Current saved amount is '+fmt(emerSaved)+' against '+fmt(emerTarget)+'.',
+      'tip-relocation':'This matters because relocation plans are long-term goals. Your current relocation saved total is '+fmt(rel)+', so keeping rows updated makes the progress useful.',
+      'tip-graphs':'This matters because graphs only reflect the figures saved in the app. Updated accounts, debts and emergency fund values make the lines meaningful.',
+      'tip-payday-routine':'This matters because payday is when the whole plan resets. Updating the key figures once keeps Safe Spend, Estimated Spare and alerts aligned.',
+      'tip-midmonth-routine':'This matters because unexpected spending can make Safe Spend too generous. A quick mid-month balance check keeps the plan realistic.',
+      'tip-finance-health':'This matters because Finance Health combines several pressure points. It is useful for direction, while Safe Spend is better for daily decisions.'
+    };
+    if(kind.indexOf('live-')===0 && tip && tip.action){
+      return 'This live alert is based on your current saved figures. '+helperText(tip.action)+' '+String(tip.action.reason||'');
+    }
+    return explanations[kind] || String((tip&&tip.meta)||'This tip is based on the figures currently saved in the app.');
+  }
+
   function ensureHelper(){
     try{
       let root=document.getElementById('grantOSHelper');
@@ -8860,13 +8905,15 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   function showHelper(manual){
     try{
       const tips=getHelperTips();
-      if(manual){ helperTipIndex=0; sessionStorage.removeItem(DISMISSED_KEY); }
+      if(manual){ helperTipIndex=0; helperExpanded=false; sessionStorage.removeItem(DISMISSED_KEY); }
       if(helperTipIndex<0) helperTipIndex=tips.length-1;
       if(helperTipIndex>=tips.length) helperTipIndex=0;
       const tip=currentHelperTip();
       const msg=document.getElementById('grantOSHelperMsg'), reason=document.getElementById('grantOSHelperReason'), bubble=document.getElementById('grantOSHelperBubble'), count=document.getElementById('grantOSHelperCount'), prev=document.getElementById('grantOSHelperPrev'), next=document.getElementById('grantOSHelperNext');
       if(msg) msg.textContent=tip.message;
-      if(reason) reason.textContent=tip.meta;
+      if(reason) reason.textContent=helperExpanded ? helperDetail(tip) : tip.meta;
+      const understand=document.getElementById('grantOSHelperUnderstand');
+      if(understand) understand.textContent=helperExpanded ? 'Show shorter tip' : 'Help me understand this';
       if(count) count.textContent='Tip '+(helperTipIndex+1)+' of '+Math.max(1,tips.length);
       if(prev) prev.disabled=tips.length<=1;
       if(next) next.disabled=tips.length<=1;
@@ -8875,16 +8922,15 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   }
   function hideHelper(){ const b=document.getElementById('grantOSHelperBubble'); if(b) b.classList.remove('open'); }
   function explainTopAction(){
-    const tip=currentHelperTip(); const id=tip.targetId||'nextPriority';
-    const el=document.getElementById(id); try{ if(el) (el.closest('.card')||el).scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+    helperExpanded=!helperExpanded;
     showHelper(false);
   }
   function attachHelperButtons(){
     try{
       const btn=document.getElementById('grantOSHelperBtn');
       if(btn&&!btn.__v301Click){ btn.addEventListener('click',function(){ stableAction=topAction(); showHelper(true); },true); btn.__v301Click=true; }
-      const prev=document.getElementById('grantOSHelperPrev'); if(prev&&!prev.__v301){ prev.addEventListener('click',()=>{ helperTipIndex-=1; showHelper(false); }); prev.__v301=true; }
-      const next=document.getElementById('grantOSHelperNext'); if(next&&!next.__v301){ next.addEventListener('click',()=>{ helperTipIndex+=1; showHelper(false); }); next.__v301=true; }
+      const prev=document.getElementById('grantOSHelperPrev'); if(prev&&!prev.__v301){ prev.addEventListener('click',()=>{ helperExpanded=false; helperTipIndex-=1; showHelper(false); }); prev.__v301=true; }
+      const next=document.getElementById('grantOSHelperNext'); if(next&&!next.__v301){ next.addEventListener('click',()=>{ helperExpanded=false; helperTipIndex+=1; showHelper(false); }); next.__v301=true; }
       const dismiss=document.getElementById('grantOSHelperDismiss'); if(dismiss&&!dismiss.__v301){ dismiss.addEventListener('click',()=>{ sessionStorage.setItem(DISMISSED_KEY,'yes'); hideHelper(); }); dismiss.__v301=true; }
       const off=document.getElementById('grantOSHelperOff'); if(off&&!off.__v301){ off.addEventListener('click',()=>{ localStorage.setItem(AUTO_KEY,'yes'); hideHelper(); }); off.__v301=true; }
       const understand=document.getElementById('grantOSHelperUnderstand'); if(understand&&!understand.__v301){ understand.addEventListener('click',explainTopAction); understand.__v301=true; }
@@ -8907,7 +8953,7 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),180); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',()=>{boot();setTimeout(()=>renderAll(true),700);});
-  window.GrantOSBuild301={VERSION,buildActions,topAction,renderAll,getHelperTips,staticHelperTips};
+  window.GrantOSBuild301={VERSION,buildActions,topAction,renderAll,getHelperTips,staticHelperTips,helperDetail};
 })();
 </script>
 

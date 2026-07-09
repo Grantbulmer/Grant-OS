@@ -1,6 +1,9 @@
-Grant OS Main Build 3.0 - Helper Hints & Tips Update
+# Grant OS Main Build 3.0 - Helper Understand Sync Fix
 
-Targeted helper-only patch:
-1. Expands Grant OS Helper to 20 regular hints/instructions plus up to 2 live priority prompts.
-2. Prioritises guidance, tips and input reminders before alerts/warnings inside the helper.
-3. Helper wording reads live saved values where relevant without changing calculations, layout or other app functions.
+Patch focus only:
+- Makes the Grant OS Helper "Help me understand this" button show a short plain-English explanation for the current tip/alert.
+- Corrects helper bill wording to use the true bills-only Monthly Bill Total via Calc.normalBillTotal, not Calc.totalFixed which includes debt repayments for forecast calculations.
+- Keeps the helper values synced from the current saved app state without changing app layout, calculations, dropdowns or other functions.
+
+Chrome test link:
+https://grantbulmer.github.io/Grant-OS/?v=main-build-3-0-helper-understand-sync-fix
