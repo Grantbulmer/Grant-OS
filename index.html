@@ -8785,7 +8785,7 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
     const holidayCount=Array.isArray(s.holidays)?s.holidays.filter(x=>String((x&&x[0])||'').trim()).length:0;
     return [
       {kind:'tip-accounts-balance',title:'Accounts',message:'Accounts: update your account balances whenever the real bank balance changes.',meta:'Current live bank position: '+fmt(bank)+'. This feeds Safe Spend, Cashflow, Estimated Spare and Finance Health.',targetId:'v25527TotalBalance'},
-      {kind:'tip-overdraft-used',title:'Overdraft used',message:'Accounts: enter overdraft used separately from the normal account balance.',meta:'Current overdraft used: '+fmt(od)+'. Finance Health treats overdraft as pressure, not healthy spare cash.',targetId:'totalOverdraft'},
+      {kind:'tip-overdraft-used',title:'Overdraft buffer',message:'Budget Setup: you can include selected overdraft as a short-term buffer towards Safe Weekly Spend.',meta:'Current overdraft used: '+fmt(od)+'. It can help cashflow short term, but Finance Health still treats overdraft use as pressure.',targetId:'totalOverdraft'},
       {kind:'tip-payday-date',title:'Next payday',message:'Budget Setup: keep the next payday date correct, especially if payday moves for weekends or bank holidays.',meta:'Current next payday used by the app: '+nextPaydayText()+'. Date-aware bills, debts and spare until payday depend on this.',targetId:'nextPaydayDate'},
       {kind:'tip-wage-input',title:'Monthly wage',message:'Budget Setup: enter your normal monthly wage after tax as the wage figure.',meta:'Saved wage: '+fmt(n(s.wage))+'. This is used for payday-to-payday affordability and future forecasts.',targetId:'wage'},
       {kind:'tip-weekly-budget',title:'Weekly living budget',message:'Budget Setup: keep weekly living budget as your planned food, fuel and normal weekly spending target.',meta:'Current target: '+fmt(n(s.weeklyBudget||ss.target||0))+' per week. Safe Weekly Spend currently shows '+fmt(n(ss.safeWeekly))+'.',targetId:'weeklyBudget'},
@@ -8849,7 +8849,7 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
     const rel=relocationTotal();
     const explanations={
       'tip-accounts-balance':'This matters because the app can only judge spare cash from the balance you save. Your current bank position is '+fmt(bank)+', after overdraft pressure is considered.',
-      'tip-overdraft-used':'This matters because overdraft is borrowed money. Recording '+fmt(od)+' separately helps Finance Health and Safe Spend avoid treating borrowed money as healthy spare cash.',
+      'tip-overdraft-used':'This matters because overdraft is borrowed money. Including it can help cover Safe Weekly Spend in the short term, but it is not the same as spare cash. Finance Health still treats '+fmt(od)+' overdraft use as pressure, so reduce it when possible.',
       'tip-payday-date':'This matters because due bills and debts are checked against payday. If payday moves, the app needs the real date so Estimated Spare does not miss a payment.',
       'tip-wage-input':'This matters because wage is the starting point for payday-to-payday affordability. If it is wrong, forecasts and spare cash will be wrong too.',
       'tip-weekly-budget':'This matters because Safe Spend starts from your planned weekly living limit. Your saved target is '+fmt(n(s.weeklyBudget||ss.target||0))+' and the current safe weekly figure is '+fmt(n(ss.safeWeekly))+'.',
