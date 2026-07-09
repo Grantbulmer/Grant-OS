@@ -5170,9 +5170,8 @@ StableInputV254.patch();
       const rows=debtMonthlyRows(); const total=debtRepaymentTotal();
       card.innerHTML=`
         <h3>Debt Repayments from Debt Tracker</h3>
-        <p class="note">Read-only summary. Add, remove or edit debt repayments in the Debt Tracker tab.</p>
+        <p class="note">Read-only total. Add, remove or edit debt repayments in the Debt Tracker tab.</p>
         <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${moneySafe(total)}</strong></div>
-        ${rows.length?`<div class="v276-debt-list">${rows.map(r=>`<div class="v276-debt-line"><span>${esc(r.name)} <em>${esc(r.type)}</em></span><strong>${moneySafe(r.monthly)}</strong></div>`).join('')}</div>`:`<div class="v274-mobile-empty">No monthly debt repayments currently active.</div>`}
       `;
     }catch(e){ console.warn('v276 debt summary render',e); }
   }
@@ -9383,10 +9382,9 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
       const rows=normalBillRows();
       const total=rows.reduce((s,r)=>s+num(r.amount),0);
       card.innerHTML=`
-        <h3>Monthly Bills from Budget Setup</h3>
+        <h3>Monthly Bill Total</h3>
         <p class="note">Normal bills only. Debt repayments are shown in the Debt Tracker tab and still feed the wider calculations automatically.</p>
-        <div class="gos-summary-total"><span>Monthly bills total</span><strong>${money(total)}</strong></div>
-        ${rows.length?`<div class="gos-summary-list">${rows.map(r=>`<div class="gos-summary-line"><span>${esc(r.name)}${r.due?`<em>Due ${esc(r.due)}</em>`:''}</span><strong>${money(r.amount)}</strong></div>`).join('')}</div>`:`<div class="v274-mobile-empty">No monthly bills currently entered.</div>`}
+        <div class="gos-summary-total"><span>Monthly bill total</span><strong>${money(total)}</strong></div>
       `;
     }catch(e){ console.warn(PATCH,'bills summary',e); }
   }
@@ -9419,9 +9417,8 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
       const total=rows.reduce((s,r)=>s+num(r.monthly),0);
       card.innerHTML=`
         <h3>Debt Repayments</h3>
-        <p class="note">Read-only summary. Add, remove or edit debt repayments above in Debt Tracker.</p>
+        <p class="note">Read-only total. Add, remove or edit debt repayments above in Debt Tracker.</p>
         <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${money(total)}</strong></div>
-        ${rows.length?`<div class="v276-debt-list">${rows.map(r=>`<div class="v276-debt-line"><span>${esc(r.name)} <em>${esc(r.type)}</em></span><strong>${money(r.monthly)}</strong></div>`).join('')}</div>`:`<div class="v274-mobile-empty">No monthly debt repayments currently active.</div>`}
       `;
     }catch(e){ console.warn(PATCH,'debt repayment move',e); }
   }
@@ -9434,11 +9431,9 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
   function wrapDebtSections(){
     const tracker=cardByHeading('#debts','Debt Tracker'); ensureDropdown(tracker,'debt-tracker','Open debt accounts', tracker&&tracker.querySelector('h3'));
     const progress=cardByHeading('#debts','Debt Progress'); ensureDropdown(progress,'debt-progress','Open debt progress', progress&&progress.querySelector('h3'));
-    const repay=document.getElementById('v276DebtRepaymentsCard'); ensureDropdown(repay,'debt-repayments','Open debt repayments', repay&&repay.querySelector('h3'));
   }
   function wrapHolidaySections(){
     const pots=cardByHeading('#holidays','Holiday Pots'); ensureDropdown(pots,'holiday-pots','Open holiday pots', pots&&pots.querySelector('h3'));
-    const summary=cardByHeading('#holidays','Holiday Summary'); ensureDropdown(summary,'holiday-summary','Open holiday summary', summary&&summary.querySelector('h3'));
   }
   function run(){
     try{
@@ -9571,6 +9566,85 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
   document.addEventListener('input',()=>schedule(180),true);
   document.addEventListener('change',()=>schedule(180),true);
   window.GrantOSBuild30RequestedCleanup={run,schedule};
+})();
+</script>
+
+<style id="build30StandardSummaryCardsStyle">
+/* Build 3.0 standard summary cards: Holiday Summary and Debt Repayments are normal cards; bill/debt summary cards show totals only. */
+#v276DebtRepaymentsCard .v276-debt-list,
+#gosBudgetBillsSummaryCard .gos-summary-list{display:none!important;}
+#v276DebtRepaymentsCard,
+#gosBudgetBillsSummaryCard{overflow-anchor:none!important;}
+</style>
+<script id="build30StandardSummaryCards">
+(function(){
+  const PATCH='build30StandardSummaryCards';
+  let timer=null;
+  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
+  const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
+  function text(el){return String((el&&el.textContent)||'').trim().toLowerCase().replace(/\s+/g,' ');} 
+  function cardByHeading(sectionSel, heading){
+    const sec=document.querySelector(sectionSel); if(!sec) return null;
+    const h=String(heading||'').trim().toLowerCase();
+    return Array.from(sec.querySelectorAll('.card')).find(card=>text(card.querySelector('h3'))===h) || null;
+  }
+  function unwrapDropdown(card, ddClass){
+    if(!card) return;
+    Array.from(card.querySelectorAll('details.'+ddClass)).forEach(details=>{
+      const body=details.querySelector('.gos-dropdown-content') || details.querySelector(':scope > div');
+      const moved=[];
+      if(body) Array.from(body.childNodes).forEach(node=>moved.push(node));
+      let ref=details;
+      moved.forEach(node=>{ ref.parentNode.insertBefore(node, ref.nextSibling); ref=node; });
+      details.remove();
+    });
+  }
+  function debtTotal(){
+    try{ if(window.Calc && typeof Calc.debtMonthlyRows==='function'){ const rows=Calc.debtMonthlyRows(); if(Array.isArray(rows)) return rows.reduce((s,r)=>s+num(r.monthly),0); } }catch(e){}
+    try{ return ((window.state&&Array.isArray(state.debts))?state.debts:[]).filter(d=>num(d&&d[1])>0&&num(d&&d[2])>0).reduce((s,d)=>s+num(d&&d[2]),0); }catch(e){ return 0; }
+  }
+  function normalBillTotal(){
+    try{ if(window.Calc && typeof Calc.normalBillTotal==='function') return num(Calc.normalBillTotal()); }catch(e){}
+    try{ return ((window.state&&Array.isArray(state.fixed))?state.fixed:[]).reduce((s,r)=>s+num(r&&r[1]),0); }catch(e){ return 0; }
+  }
+  function renderDebtRepaymentsTotalOnly(){
+    const card=document.getElementById('v276DebtRepaymentsCard') || cardByHeading('#debts','Debt Repayments') || cardByHeading('#debts','Debt Repayments from Debt Tracker');
+    if(!card) return;
+    unwrapDropdown(card,'gos-dd-debt-repayments');
+    card.id='v276DebtRepaymentsCard';
+    card.classList.add('v276-debt-summary-card');
+    card.innerHTML=`
+      <h3>Debt Repayments</h3>
+      <p class="note">Read-only total. Add, remove or edit debt repayments above in Debt Tracker.</p>
+      <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${money(debtTotal())}</strong></div>
+    `;
+  }
+  function renderBillsTotalOnly(){
+    const card=document.getElementById('gosBudgetBillsSummaryCard') || cardByHeading('#budget','Monthly Bills from Budget Setup') || cardByHeading('#budget','Monthly Bill Total');
+    if(!card) return;
+    card.id='gosBudgetBillsSummaryCard';
+    card.classList.add('gos-budget-bills-summary-card');
+    card.innerHTML=`
+      <h3>Monthly Bill Total</h3>
+      <p class="note">Normal bills only. Debt repayments are shown in the Debt Tracker tab and still feed the wider calculations automatically.</p>
+      <div class="gos-summary-total"><span>Monthly bill total</span><strong>${money(normalBillTotal())}</strong></div>
+    `;
+  }
+  function restoreHolidaySummaryAsCard(){
+    const card=cardByHeading('#holidays','Holiday Summary');
+    if(!card) return;
+    unwrapDropdown(card,'gos-dd-holiday-summary');
+  }
+  function run(){
+    try{ renderDebtRepaymentsTotalOnly(); renderBillsTotalOnly(); restoreHolidaySummaryAsCard(); }catch(e){ console.warn(PATCH,e); }
+  }
+  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||260); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [300,900,1800,3200].forEach(ms=>setTimeout(run,ms));}); else {run(); [300,900,1800,3200].forEach(ms=>setTimeout(run,ms));}
+  window.addEventListener('load',()=>{run(); [400,1200,2600,4200].forEach(ms=>setTimeout(run,ms));});
+  document.addEventListener('click',()=>schedule(280),true);
+  document.addEventListener('input',()=>schedule(300),true);
+  document.addEventListener('change',()=>schedule(300),true);
+  window.GrantOSBuild30StandardSummaryCards={run,schedule};
 })();
 </script>
 
