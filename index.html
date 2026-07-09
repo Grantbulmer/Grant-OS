@@ -1376,7 +1376,6 @@ header .pill{vertical-align:middle;}
         <table id="debtTable"></table>
         <button class="primary" onclick="App.saveAndRender()">Save debt figures</button> <button onclick="Debt.add()">Add debt</button>
       </div>
-      <div class="card wide"><h3>Priority Queue</h3><div id="priorityQueue"></div></div>
       <div class="card wide"><h3>Debt Progress</h3><div id="debtProgressList"></div></div>
       <div class="card full">
         <h3>Smarter Overpayment Simulator</h3>
@@ -1400,6 +1399,7 @@ header .pill{vertical-align:middle;}
         <button class="primary" onclick="App.saveAndRender()">Save holiday pots</button> <button onclick="Holidays.add()">Add holiday</button>
       </div>
       <div class="card full"><h3>Holiday Summary</h3><table id="holidayControlTable"></table></div>
+      <div class="card full" id="gosHolidayFundingCard"><h3>Holiday Funding</h3><div id="holidayFundingGraph"></div></div>
     </div>
   </section>
 
@@ -1410,10 +1410,6 @@ header .pill{vertical-align:middle;}
       <div class="card full">
         <h3>Insights & Graphs</h3>
         <p class="note">Simple visuals to show whether you are improving. These are estimates based on the figures currently entered in Grant OS.</p>
-      </div>
-      <div class="card full">
-        <h3>Financial Snapshot</h3>
-        <div id="financeHealthBreakdown" class="snapshot-grid"></div>
       </div>
       <div class="card wide">
         <h3>Debt Balance Forecast</h3>
@@ -1426,10 +1422,6 @@ header .pill{vertical-align:middle;}
       <div class="card wide">
         <h3>Emergency Fund Progress</h3>
         <div id="emergencyGraph"></div>
-      </div>
-      <div class="card wide">
-        <h3>Holiday Funding</h3>
-        <div id="holidayFundingGraph"></div>
       </div>
     </div>
   </section>
@@ -9461,6 +9453,124 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
   document.addEventListener('input',()=>schedule(180),true);
   document.addEventListener('change',()=>schedule(180),true);
   window.GrantOSBuild30DropdownSummaryCleanup={run, schedule};
+})();
+</script>
+
+
+
+<style id="build30RequestedCleanupStyle">
+/* Build 3.0 requested cleanup: restore Estimated Spare dropdowns, remove old queue/snapshot cards, and move Holiday Funding to Holiday Pots. */
+#debts .card:has(> h3:first-child), #graphs .card:has(> h3:first-child){overflow-anchor:none;}
+#gosHolidayFundingCard{overflow-anchor:none!important;}
+#gosHolidayFundingCard #holidayFundingGraph{min-height:82px;}
+#v283EstimatedSpareCard .gos-spare-dd{margin-top:12px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(15,23,42,.34);overflow:hidden;}
+#v283EstimatedSpareCard .gos-spare-dd summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:900;color:#dbeafe;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;}
+#v283EstimatedSpareCard .gos-spare-dd summary::-webkit-details-marker{display:none;}
+#v283EstimatedSpareCard .gos-spare-dd summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .18s ease;flex:0 0 auto;}
+#v283EstimatedSpareCard .gos-spare-dd[open] summary:after{transform:rotate(180deg);}
+#v283EstimatedSpareCard .gos-spare-dd-body{padding:0 12px 12px;}
+#v283EstimatedSpareCard .gos-spare-dd-body .note{margin-top:0;}
+#v283EstimatedSpareCard .gos-spare-dd-body .v283-spare-breakdown{margin-top:0;}
+#v283EstimatedSpareCard .gos-spare-dd-body #v283SpareValue{margin-top:4px;}
+@media(max-width:760px){#v283EstimatedSpareCard .gos-spare-dd summary{padding:11px 12px;font-size:.95rem;}#v283EstimatedSpareCard .gos-spare-dd-body{padding:0 10px 10px;}}
+</style>
+<script id="build30RequestedCleanup">
+(function(){
+  const PATCH='build30RequestedCleanup';
+  let timer=null;
+  function text(el){return String((el&&el.textContent)||'').trim().toLowerCase().replace(/\s+/g,' ');}
+  function section(id){return document.querySelector(id+' .grid') || document.querySelector(id);}
+  function cardByHeading(sectionSel, heading){
+    const sec=document.querySelector(sectionSel); if(!sec) return null;
+    const h=String(heading||'').trim().toLowerCase();
+    return Array.from(sec.querySelectorAll('.card')).find(card=>{
+      const head=card.querySelector('h3'); return text(head)===h;
+    }) || null;
+  }
+  function removeCard(sectionSel, heading){
+    const card=cardByHeading(sectionSel, heading); if(card) card.remove();
+  }
+  function ensureHolidayFundingCard(){
+    const grid=section('#holidays'); if(!grid) return null;
+    let card=document.getElementById('gosHolidayFundingCard');
+    if(!card){
+      // Reuse the old graph card if it exists, otherwise create a clean Holiday Pots card.
+      card=cardByHeading('#graphs','Holiday Funding');
+      if(card){ card.id='gosHolidayFundingCard'; }
+      else{
+        card=document.createElement('div');
+        card.id='gosHolidayFundingCard';
+        card.className='card full';
+        card.innerHTML='<h3>Holiday Funding</h3><div id="holidayFundingGraph"></div>';
+      }
+    }
+    card.className='card full';
+    if(!card.querySelector('#holidayFundingGraph')){
+      let body=document.createElement('div'); body.id='holidayFundingGraph'; card.appendChild(body);
+    }
+    const summary=cardByHeading('#holidays','Holiday Summary');
+    if(card.parentElement!==grid){
+      if(summary) summary.insertAdjacentElement('afterend', card);
+      else grid.appendChild(card);
+    }else if(summary && summary.nextElementSibling!==card){
+      summary.insertAdjacentElement('afterend', card);
+    }
+    return card;
+  }
+  function restoreSpareDropdowns(){
+    const card=document.getElementById('v283EstimatedSpareCard'); if(!card) return;
+    const h=card.querySelector('h3'); if(!h) return;
+
+    let fig=card.querySelector('#gosSpareFiguresDropdown');
+    if(!fig){
+      fig=document.createElement('details'); fig.id='gosSpareFiguresDropdown'; fig.className='gos-spare-dd'; fig.open=true;
+      fig.innerHTML='<summary>Open figures</summary><div class="gos-spare-dd-body" id="gosSpareFiguresBody"></div>';
+      h.insertAdjacentElement('afterend', fig);
+    }
+    let calc=card.querySelector('#gosSpareCalculationDropdown');
+    if(!calc){
+      calc=document.createElement('details'); calc.id='gosSpareCalculationDropdown'; calc.className='gos-spare-dd';
+      calc.innerHTML='<summary>Open calculation</summary><div class="gos-spare-dd-body" id="gosSpareCalculationBody"></div>';
+      fig.insertAdjacentElement('afterend', calc);
+    }
+    const figBody=card.querySelector('#gosSpareFiguresBody');
+    const calcBody=card.querySelector('#gosSpareCalculationBody');
+    const moveTo=(el,body)=>{ if(el&&body&&el.parentElement!==body) body.appendChild(el); };
+
+    // Figures dropdown: note, main value and status.
+    moveTo(Array.from(card.children).find(el=>el.tagName==='P' && el.classList.contains('note')), figBody);
+    moveTo(document.getElementById('v283SpareValue'), figBody);
+    moveTo(document.getElementById('v283SpareStatus'), figBody);
+
+    // Calculation dropdown: all current row-by-row calculation details.
+    moveTo(card.querySelector('.v283-spare-breakdown'), calcBody);
+    moveTo(document.getElementById('v283DateAwareBreakdownNote'), calcBody);
+  }
+  function renderHolidayFunding(){
+    try{ if(window.GraphsV21&&typeof GraphsV21.holidayFunding==='function') GraphsV21.holidayFunding(); }catch(e){}
+    try{ if(window.GraphsV24&&typeof GraphsV24.holidayFunding==='function') GraphsV24.holidayFunding(); }catch(e){}
+    try{ if(window.EnhancedGraphsV242&&typeof EnhancedGraphsV242.holidayFunding==='function') EnhancedGraphsV242.holidayFunding(); }catch(e){}
+  }
+  function run(){
+    try{
+      // Requested removals.
+      removeCard('#debts','Priority Queue');
+      removeCard('#graphs','Financial Snapshot');
+      // Holiday Funding no longer lives in Graphs; it is its own Holiday Pots card.
+      const holidayCard=ensureHolidayFundingCard();
+      removeCard('#graphs','Holiday Funding');
+      if(holidayCard && !holidayCard.parentElement) ensureHolidayFundingCard();
+      restoreSpareDropdowns();
+      renderHolidayFunding();
+    }catch(e){ console.warn(PATCH,e); }
+  }
+  function schedule(ms){clearTimeout(timer); timer=setTimeout(run,ms||100);}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  window.addEventListener('load',()=>{run(); [120,350,900,1800,3200].forEach(ms=>setTimeout(run,ms));});
+  document.addEventListener('click',()=>schedule(120),true);
+  document.addEventListener('input',()=>schedule(180),true);
+  document.addEventListener('change',()=>schedule(180),true);
+  window.GrantOSBuild30RequestedCleanup={run,schedule};
 })();
 </script>
 
