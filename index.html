@@ -8731,19 +8731,88 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
     if(kind==='funding') return 'holidaySummary';
     return 'nextPriority';
   }
+  function helperActions(){
+    try{ if(window.GrantOSHolidaySync&&typeof GrantOSHolidaySync.buildActions==='function') return GrantOSHolidaySync.buildActions(); }catch(e){}
+    try{ if(window.GrantOSBuild301&&typeof GrantOSBuild301.buildActions==='function'&&GrantOSBuild301.buildActions!==helperActions) return GrantOSBuild301.buildActions(); }catch(e){}
+    try{ return buildActions(); }catch(e){ return []; }
+  }
+  function fixedTotal(){
+    try{ const cc=c(); if(cc&&cc.totalFixed) return n(cc.totalFixed()); }catch(e){}
+    const s=st()||{}; return (Array.isArray(s.fixed)?s.fixed:[]).reduce((sum,x)=>sum+n(x&&x[1]),0);
+  }
+  function debtTotal(){
+    try{ const cc=c(); if(cc&&cc.totalDebt) return n(cc.totalDebt()); }catch(e){}
+    return activeDebts().reduce((sum,d)=>sum+n(d&&d[1]),0);
+  }
+  function bankPositionNow(){
+    try{ const cc=c(); if(cc&&cc.bankPosition) return n(cc.bankPosition()); }catch(e){}
+    const s=st()||{}; return n(s.firstDirectBalance)+n(s.monzoBalance)-totalOverdraft();
+  }
+  function holidayRemainingTotal(){
+    const s=st()||{};
+    return (Array.isArray(s.holidays)?s.holidays:[]).reduce((sum,h)=>sum+Math.max(0,n(h&&h[2])-n(h&&h[3])),0);
+  }
+  function relocationTotal(){
+    try{ const cc=c(); if(cc&&cc.totalRelocation) return n(cc.totalRelocation()); }catch(e){}
+    const s=st()||{}; return [].concat(Array.isArray(s.thai)?s.thai:[],Array.isArray(s.nz)?s.nz:[]).reduce((sum,x)=>sum+n(x&&x[2]),0);
+  }
+  function nextPaydayText(){
+    try{ const s=st()||{}; if(s.nextPaydayDate) return String(s.nextPaydayDate); const cc=c(); if(cc&&cc.nextPayday){ const d=cc.nextPayday(); if(d&&d.toLocaleDateString) return d.toLocaleDateString('en-GB'); } }catch(e){}
+    return 'your saved payday';
+  }
+  function estimatedSpareValue(){
+    try{ if(window.GrantOSHolidaySync&&GrantOSHolidaySync.estimateWithHoliday) return n(GrantOSHolidaySync.estimateWithHoliday().value); }catch(e){}
+    try{ const cc=c(); if(cc&&cc.trueSpareAfterCommitments) return n(cc.trueSpareAfterCommitments()); }catch(e){}
+    try{ const cc=c(); if(cc&&cc.estimatedSpareAfterWage) return n(cc.estimatedSpareAfterWage()); }catch(e){}
+    return 0;
+  }
   function staticHelperTips(){
+    const s=st()||{};
+    const ss=safeSpend()||{};
+    const fixed=fixedTotal();
+    const debt=debtTotal();
+    const od=totalOverdraft();
+    const bank=bankPositionNow();
+    const holidaysDue=holidayRemainingTotal();
+    const emerSaved=n(s.emergencyFund), emerTarget=n(s.emergencyTarget||1000);
+    const rel=relocationTotal();
+    const activeDebtCount=activeDebts().length;
+    const completedDebtCount=completedDebts().length;
+    const fixedCount=Array.isArray(s.fixed)?s.fixed.filter(x=>String((x&&x[0])||'').trim()).length:0;
+    const holidayCount=Array.isArray(s.holidays)?s.holidays.filter(x=>String((x&&x[0])||'').trim()).length:0;
     return [
-      {kind:'safe-spend-info',title:'Safe Spend',message:'Safe Daily Spend now follows Safe Weekly Spend, so the two figures stay connected.',meta:'Safe weekly spend uses your weekly target if it is affordable. If it is not affordable, the app reduces it and daily spend is weekly ÷ 7.',targetId:'safeWeek'},
-      {kind:'cashflow-info',title:'Cashflow Until Payday',message:'Cashflow protects bills and debts that are still due before payday before showing what is left for living spend.',meta:'This is why the app may reduce safe weekly spend even when there is money in the account.',targetId:'v283CashflowCard'},
-      {kind:'balance-info',title:'Update Balances',message:'The main regular update is your account balance and overdraft used.',meta:'Bills, debts and due dates can run in the background, but Safe Spend and Cashflow need your latest balance to stay accurate.',targetId:'totalBalance'},
-      {kind:'debt-type-info',title:'Debt Types',message:'Use BNPL for buy-now-pay-later debts so the app can prioritise them correctly.',meta:'Next Priority now looks at BNPL first, then one-off debts, then reduced weekly spend, then longer-running debts.',targetId:'debtRemaining'},
-      {kind:'financial-health-info',title:'Financial Health',message:'Financial Health separates real cash from overdraft so the score does not treat borrowed money as healthy spare cash.',meta:'Overdraft can help cashflow, but it still counts as pressure in the health score.',targetId:'financialScore'}
+      {kind:'tip-accounts-balance',title:'Accounts',message:'Accounts: update your account balances whenever the real bank balance changes.',meta:'Current live bank position: '+fmt(bank)+'. This feeds Safe Spend, Cashflow, Estimated Spare and Finance Health.',targetId:'v25527TotalBalance'},
+      {kind:'tip-overdraft-used',title:'Overdraft used',message:'Accounts: enter overdraft used separately from the normal account balance.',meta:'Current overdraft used: '+fmt(od)+'. Finance Health treats overdraft as pressure, not healthy spare cash.',targetId:'totalOverdraft'},
+      {kind:'tip-payday-date',title:'Next payday',message:'Budget Setup: keep the next payday date correct, especially if payday moves for weekends or bank holidays.',meta:'Current next payday used by the app: '+nextPaydayText()+'. Date-aware bills, debts and spare until payday depend on this.',targetId:'nextPaydayDate'},
+      {kind:'tip-wage-input',title:'Monthly wage',message:'Budget Setup: enter your normal monthly wage after tax as the wage figure.',meta:'Saved wage: '+fmt(n(s.wage))+'. This is used for payday-to-payday affordability and future forecasts.',targetId:'wage'},
+      {kind:'tip-weekly-budget',title:'Weekly living budget',message:'Budget Setup: keep weekly living budget as your planned food, fuel and normal weekly spending target.',meta:'Current target: '+fmt(n(s.weeklyBudget||ss.target||0))+' per week. Safe Weekly Spend currently shows '+fmt(n(ss.safeWeekly))+'.',targetId:'weeklyBudget'},
+      {kind:'tip-fixed-costs',title:'Monthly Fixed Costs / Bills',message:'Bills: enter each regular monthly bill with the amount and due date/day so the payday forecast knows what is still due.',meta:'Saved bills: '+fixedCount+'. Current monthly bill total: '+fmt(fixed)+'.',targetId:'fixedCostsTable'},
+      {kind:'tip-bills-total',title:'Monthly bill total',message:'Bills: if a bill changes, update the bill line rather than adjusting the total card manually.',meta:'The Monthly Bill Total is calculated from saved bill rows and should currently read '+fmt(fixed)+'.',targetId:'fixedCostsTable'},
+      {kind:'tip-estimated-spare',title:'Estimated Spare Until Payday',message:'Estimated Spare Until Payday shows what should remain after due bills, due debts, holiday pay-by amounts and planned living spend.',meta:'Current estimated spare: '+fmt(estimatedSpareValue())+'. Use the breakdown before deciding whether money is truly spare.',targetId:'v283EstimatedSpareCard'},
+      {kind:'tip-safe-spend',title:'Safe Spend',message:'Safe Spend is your day-to-day spending guardrail, not the same as spare cash.',meta:'Safe Weekly Spend: '+fmt(n(ss.safeWeekly))+'. Safe Daily Spend is based from the weekly allowance divided across the week.',targetId:'safeWeek'},
+      {kind:'tip-debt-balances',title:'Debt balances',message:'Debt Tracker: update each debt balance after payments clear so Debt Remaining and Finance Health stay useful.',meta:'Active debts: '+activeDebtCount+'. Current debt remaining: '+fmt(debt)+'.',targetId:'debtRemaining'},
+      {kind:'tip-debt-types',title:'Debt types',message:'Debt Tracker: use the right debt type. BNPL and one-off debts are treated as higher short-term pressure than regular longer-term debts.',meta:'This helps Next Priority and helper actions rank debts in the right order.',targetId:'debtTable'},
+      {kind:'tip-debt-dates',title:'Debt due dates',message:'Debt Tracker: keep due dates accurate. Regular debts use the monthly day; one-off or BNPL debts use the exact due date.',meta:'Due dates decide whether a payment affects this payday cycle or a later one.',targetId:'debtTable'},
+      {kind:'tip-completed-debts',title:'Completed debts',message:'Debt Tracker: when a debt reaches zero, review it and remove/archive it so old rows do not confuse totals or alerts.',meta:'Completed debt rows currently detected: '+completedDebtCount+'.',targetId:'debtTable'},
+      {kind:'tip-holiday-payby',title:'Holiday pay-by date',message:'Holiday Pots: enter the Pay by date separately from the holiday date when the money needs paying earlier.',meta:'Open holiday funding still needed: '+fmt(holidaysDue)+'. Pay-by dates feed Safe Spend and Estimated Spare.',targetId:'holidayTable'},
+      {kind:'tip-holiday-saved',title:'Holiday saved/ringfenced',message:'Holiday Pots: update Saved/Ringfenced when you physically move money aside or someone else has funded it.',meta:'Saved/Ringfenced reduces the holiday amount still outstanding in the Holiday Summary.',targetId:'holidayTable'},
+      {kind:'tip-holiday-count',title:'Holiday pots routine',message:'Holiday Pots: check every active holiday pot after payday and after booking flights, hotels or spending money.',meta:'Active holiday pots saved: '+holidayCount+'. The summary checks target minus saved/ringfenced.',targetId:'holidayTable'},
+      {kind:'tip-emergency-fund',title:'Emergency fund',message:'Emergency Fund: update the saved amount when you move real money into or out of the buffer.',meta:'Emergency fund: '+fmt(emerSaved)+' / '+fmt(emerTarget)+'. This feeds Finance Health and the emergency graph.',targetId:'emergencyProgress'},
+      {kind:'tip-relocation',title:'Relocation funds',message:'Relocation: update Thailand and New Zealand fund rows when you add savings, costs or notes.',meta:'Current relocation total: '+fmt(rel)+' / £10,000. This feeds the relocation progress card.',targetId:'relocationProgress'},
+      {kind:'tip-graphs',title:'Graphs',message:'Graphs: the line graphs are only useful when the account, debt and emergency fund figures are kept up to date.',meta:'Debt Balance Forecast uses debts, Bank Position Forecast uses accounts/overdraft, and Emergency Fund Progress uses the saved fund amount.',targetId:'graphs'},
+      {kind:'tip-payday-routine',title:'Payday routine',message:'Payday routine: update wage, account balances, debts paid, bills due, holiday ringfencing and emergency savings before relying on Safe Spend.',meta:'Doing this once each payday keeps the whole app synced from the same saved figures.',targetId:'budget'},
+      {kind:'tip-midmonth-routine',title:'Mid-month routine',message:'Mid-month routine: update account balances and any unexpected spending so Safe Spend does not become too generous.',meta:'The fastest check is Accounts first, then Estimated Spare Until Payday, then Immediate Action Alerts.',targetId:'accounts'},
+      {kind:'tip-finance-health',title:'Finance Health',message:'Finance Health is a guide score, not a bank balance. It improves when overdraft use, debt pressure and savings risk improve.',meta:'Use it to spot pressure points, but use Safe Spend and Estimated Spare for day-to-day spending decisions.',targetId:'financeHealth'}
     ];
   }
   function getHelperTips(){
     const seen=new Set();
-    const active=buildActions().slice(0,8).map(a=>({kind:a.kind,title:a.title,message:helperText(a),meta:a.meta+' — '+a.reason,targetId:targetForAction(a),action:a}));
-    return active.concat(staticHelperTips()).filter(t=>{ const key=(t.kind||'')+'|'+(t.title||''); if(seen.has(key)) return false; seen.add(key); return true; });
+    const instructions=staticHelperTips();
+    const live=(helperActions()||[])
+      .filter(a=>a&&a.kind&&a.kind!=='clear')
+      .slice(0,2)
+      .map(a=>({kind:'live-'+a.kind,title:a.title,message:'Live priority: '+helperText(a),meta:a.meta+' — '+a.reason,targetId:targetForAction(a),action:a}));
+    return instructions.concat(live).filter(t=>{ const key=(t.kind||'')+'|'+(t.title||''); if(seen.has(key)) return false; seen.add(key); return true; }).slice(0,22);
   }
   function currentHelperTip(){
     const tips=getHelperTips();
@@ -8838,7 +8907,7 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),180); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',()=>{boot();setTimeout(()=>renderAll(true),700);});
-  window.GrantOSBuild301={VERSION,buildActions,topAction,renderAll,getHelperTips};
+  window.GrantOSBuild301={VERSION,buildActions,topAction,renderAll,getHelperTips,staticHelperTips};
 })();
 </script>
 
