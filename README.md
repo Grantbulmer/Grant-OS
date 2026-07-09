@@ -8,3 +8,9 @@ Patch focus only:
 
 Chrome test link:
 https://grantbulmer.github.io/Grant-OS/?v=main-build-3-0-helper-overdraft-hint-fix
+
+## Build update: Input Stability Fix
+
+This main build keeps the existing layout, calculations and functions intact. It only adds an input stability guard so Accounts and Debt Tracker rows save while typing without rebuilding the row/table and jumping the page. The full refresh still runs after the field is left.
+
+Chrome test URL: https://grantbulmer.github.io/Grant-OS/?v=main-build-3-0-input-stability-fix

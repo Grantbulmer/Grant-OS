@@ -10084,5 +10084,193 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
 })();
 </script>
 
+
+<style id="build30InputStabilityFixStyle">
+/* Build 3.0 input stability fix: prevents scroll anchoring/rebuild jumps while typing in Accounts and Debt Tracker rows. */
+#accounts,#debts,#accountsList,#debtTable,#v274DebtMobile{overflow-anchor:none!important;}
+#accounts input,#accounts select,#debts input,#debts select{font-variant-numeric:tabular-nums!important;}
+</style>
+<script id="build30InputStabilityFixScript">
+(function(){
+  const PATCH='build30-input-stability-fix';
+  const FIELD_SELECTOR='input,textarea,select';
+  const SCOPE_SELECTOR='#accounts,#debts,#debtTable,#v274DebtMobile';
+  let lastScrollX=0,lastScrollY=0,endTimer=0,patchTimer=0;
+
+  function isField(el){ return !!(el && el.matches && el.matches(FIELD_SELECTOR)); }
+  function inScope(el){ return !!(el && el.closest && el.closest(SCOPE_SELECTOR)); }
+  function activeField(){ const el=document.activeElement; return isField(el) && inScope(el) ? el : null; }
+  function activeAccounts(){ const el=activeField(); return !!(el && el.closest('#accounts')); }
+  function activeDebts(){ const el=activeField(); return !!(el && (el.closest('#debts') || el.closest('#debtTable') || el.closest('#v274DebtMobile'))); }
+  function save(){ try{ if(window.Data && Data.save) Data.save(); }catch(e){} }
+  function num(v){ const n=Number(v||0); return isFinite(n)?n:0; }
+  function rememberScroll(){ try{ lastScrollX=window.scrollX||0; lastScrollY=window.scrollY||0; }catch(e){} }
+  function restoreScroll(){ try{ window.scrollTo(lastScrollX,lastScrollY); }catch(e){} }
+  function restoreSoon(){ setTimeout(restoreScroll,0); setTimeout(restoreScroll,60); }
+
+  function updateAccountSummary(accounts){
+    try{
+      const api=window.AccountsUIV25527; if(!api || !Array.isArray(accounts)) return;
+      const moneyFn=window.money || (v=>'£'+Math.round(Number(v||0)).toLocaleString('en-GB'));
+      const totalValue=api.totalBalance?api.totalBalance(accounts):accounts.reduce((s,a)=>s+Number(a&&a.balance||0),0);
+      const total=document.getElementById('v25527TotalBalance') || document.getElementById('v2554TotalBalance');
+      if(total){ total.textContent=moneyFn(totalValue); total.className='big value-soft '+(totalValue>=0?'value-positive':'value-negative'); }
+      const bufferValue=api.selectedOverdraftBuffer?api.selectedOverdraftBuffer(accounts):0;
+      const buffer=document.getElementById('v25528OverdraftBuffer') || document.getElementById('v25527AvailableSpend') || document.getElementById('v2554AvailableSpend');
+      if(buffer){ buffer.textContent=moneyFn(bufferValue); buffer.className='big value-soft '+(bufferValue>0?'value-positive':bufferValue<0?'value-negative':'value-warning'); }
+      const count=document.getElementById('v25527AccountCount') || document.getElementById('v2554AccountCount');
+      if(count){ count.textContent=String(accounts.length); count.className='big value-soft value-info'; }
+    }catch(e){ console.warn(PATCH,'account summary',e); }
+  }
+
+  function patchAccounts(){
+    try{
+      const api=window.AccountsUIV25527; if(!api || api.__inputStabilityFix) return;
+      api.__inputStabilityFix=true;
+      const originalUpdate=api.update?api.update.bind(api):null;
+      const originalRender=api.render?api.render.bind(api):null;
+
+      api.update=function(i,k,v){
+        try{
+          if(activeAccounts()){
+            rememberScroll();
+            const accounts=this.accounts?this.accounts():[];
+            if(!Array.isArray(accounts) || !accounts[i]) return originalUpdate?originalUpdate(i,k,v):undefined;
+            if(k==='balance' || k==='limit') v=num(v);
+            accounts[i][k]=v;
+            if(this.write) this.write(accounts); else save();
+            updateAccountSummary(accounts);
+            restoreSoon();
+            return true;
+          }
+        }catch(e){ console.warn(PATCH,'accounts update guarded',e); }
+        return originalUpdate?originalUpdate(i,k,v):undefined;
+      };
+
+      api.render=function(){
+        if(activeAccounts()){
+          try{ const accounts=this.accounts?this.accounts():[]; updateAccountSummary(accounts); save(); restoreSoon(); }catch(e){}
+          return true;
+        }
+        return originalRender?originalRender():undefined;
+      };
+    }catch(e){ console.warn(PATCH,'patchAccounts',e); }
+  }
+
+  function patchDebtApi(name){
+    try{
+      const api=window[name]; if(!api || api.__inputStabilityFix) return;
+      api.__inputStabilityFix=true;
+      const originalUpdate=api.updateDebt?api.updateDebt.bind(api):null;
+      if(originalUpdate){
+        api.updateDebt=function(i,k,v){
+          try{
+            if(activeDebts()){
+              rememberScroll();
+              if(!window.state || !Array.isArray(state.debts) || !state.debts[i]) return;
+              const key=Number(k);
+              state.debts[i][key]=([1,2,6].includes(key))?num(v):v;
+              if(key===5){ state.debts[i][7]=''; state.debts[i][8]='no'; }
+              if(key===8){ state.debts[i][8]=String(v)==='yes'?'yes':'no'; }
+              save();
+              restoreSoon();
+              return true;
+            }
+          }catch(e){ console.warn(PATCH,name+'.updateDebt guarded',e); }
+          return originalUpdate(i,k,v);
+        };
+      }
+      ['renderDebts','renderDebtsMobile','renderDebtTable','renderDebtMobile','finalRefresh','commit'].forEach(method=>{
+        if(typeof api[method] !== 'function' || api[method].__inputStabilityFix) return;
+        const old=api[method].bind(api);
+        api[method]=function(){
+          if(activeDebts()){
+            save();
+            restoreSoon();
+            return undefined;
+          }
+          return old.apply(api,arguments);
+        };
+        api[method].__inputStabilityFix=true;
+      });
+    }catch(e){ console.warn(PATCH,'patchDebtApi '+name,e); }
+  }
+
+  function wrap(obj,method,guardFn){
+    try{
+      if(!obj || typeof obj[method] !== 'function' || obj[method].__inputStabilityFix) return;
+      const old=obj[method].bind(obj);
+      obj[method]=function(){
+        if(guardFn()){
+          save();
+          restoreSoon();
+          return undefined;
+        }
+        return old.apply(obj,arguments);
+      };
+      obj[method].__inputStabilityFix=true;
+    }catch(e){ console.warn(PATCH,'wrap '+method,e); }
+  }
+
+  function patchCoreRenderers(){
+    patchAccounts();
+    patchDebtApi('GrantOSDueDateV2835');
+    patchDebtApi('GrantOSDateOnlyV283');
+    patchDebtApi('GrantOSDateAwareV284');
+    patchDebtApi('MobileV274');
+    try{ wrap(window.App,'render',()=>activeAccounts()||activeDebts()); }catch(e){}
+    try{ wrap(window.App,'saveAndRender',()=>activeAccounts()||activeDebts()); }catch(e){}
+    try{ wrap(window.Debt,'render',()=>activeDebts()); }catch(e){}
+    try{ wrap(window.MobileV274,'renderAll',()=>activeAccounts()||activeDebts()); }catch(e){}
+  }
+
+  function finishAfterInput(scope){
+    clearTimeout(endTimer);
+    endTimer=setTimeout(()=>{
+      patchCoreRenderers();
+      if(activeField()) return;
+      save();
+      try{
+        if(scope==='accounts' && window.AccountsUIV25527 && AccountsUIV25527.render) AccountsUIV25527.render();
+        if(scope==='debts'){
+          if(window.GrantOSDueDateV2835 && GrantOSDueDateV2835.finalRefresh) GrantOSDueDateV2835.finalRefresh();
+          else if(window.Debt && Debt.render) Debt.render();
+        }
+      }catch(e){ console.warn(PATCH,'finish render',e); }
+      try{ if(window.Dashboard && Dashboard.render) Dashboard.render(); }catch(e){}
+      try{ if(window.HealthV21 && HealthV21.render) HealthV21.render(); }catch(e){}
+      try{ if(window.GraphsV21 && GraphsV21.render) GraphsV21.render(); }catch(e){}
+      restoreSoon();
+    },130);
+  }
+
+  function handleFieldEvent(e){
+    const t=e.target;
+    if(!isField(t) || !inScope(t)) return;
+    rememberScroll();
+    patchCoreRenderers();
+    restoreSoon();
+  }
+
+  document.addEventListener('focusin',handleFieldEvent,true);
+  document.addEventListener('input',handleFieldEvent,true);
+  document.addEventListener('change',function(e){
+    const t=e.target; if(!isField(t) || !inScope(t)) return;
+    rememberScroll();
+    finishAfterInput(t.closest('#accounts')?'accounts':'debts');
+  },true);
+  document.addEventListener('focusout',function(e){
+    const t=e.target; if(!isField(t) || !inScope(t)) return;
+    rememberScroll();
+    finishAfterInput(t.closest('#accounts')?'accounts':'debts');
+  },true);
+
+  function boot(){ patchCoreRenderers(); clearTimeout(patchTimer); patchTimer=setTimeout(patchCoreRenderers,250); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',()=>{ boot(); [400,1200,2600].forEach(ms=>setTimeout(boot,ms)); });
+  window.GrantOSInputStabilityFix={version:PATCH,patch:patchCoreRenderers};
+})();
+</script>
+
 </body>
 </html>
