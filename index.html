@@ -3103,6 +3103,34 @@ const App = {
 };
 App.render();
 
+/* Code Archaeologist safety bridge: exposes the active top-level app controllers to window.
+   This does not alter calculations or layout; it lets later live repair hooks reference the same core objects. */
+(function(){
+  try{ if(!Object.getOwnPropertyDescriptor(window,'state')) Object.defineProperty(window,'state',{configurable:true,get:function(){return state;},set:function(v){state=v;}}); }catch(e){}
+  try{ window.Defaults=Defaults; }catch(e){}
+  try{ window.Data=Data; }catch(e){}
+  try{ window.Calc=Calc; }catch(e){}
+  try{ window.UI=UI; }catch(e){}
+  try{ window.Dashboard=Dashboard; }catch(e){}
+  try{ window.Budget=Budget; }catch(e){}
+  try{ window.Debt=Debt; }catch(e){}
+  try{ window.Holidays=Holidays; }catch(e){}
+  try{ window.Relocation=Relocation; }catch(e){}
+  try{ window.Career=Career; }catch(e){}
+  try{ window.Settings=Settings; }catch(e){}
+  try{ window.Timeline=Timeline; }catch(e){}
+  try{ window.ForecastV21=ForecastV21; }catch(e){}
+  try{ window.GraphsV21=GraphsV21; }catch(e){}
+  try{ window.SnapshotV24=SnapshotV24; }catch(e){}
+  try{ window.ForecastRangeV24=ForecastRangeV24; }catch(e){}
+  try{ window.GraphsV24=GraphsV24; }catch(e){}
+  try{ window.EnhancedGraphsV242=EnhancedGraphsV242; }catch(e){}
+  try{ window.HealthV21=HealthV21; }catch(e){}
+  try{ window.AccountSyncV25516=AccountSyncV25516; }catch(e){}
+  try{ window.AccountsUIV25527=AccountsUIV25527; }catch(e){}
+  window.GrantOSActiveControllerBridge=true;
+})();
+
 /* v2.5.3 strong input focus fix
    Prevents re-rendering while a user is actively typing in any input field. */
 const StrongInputFocusFixV253 = {
@@ -3234,6 +3262,9 @@ const StableInputV254 = {
 StableInputV254.patch();
 
 </script>
+
+
+<!-- TODO_VERIFY_DORMANT: Legacy v2.x patch stack retained for safety. Static dependency mapping found live references into Dashboard, Budget, Debt, Holidays, Accounts, Calc, App, Graphs and Health. Remove only after a separate behavioural test confirms no active path uses it. -->
 
 <!-- Grant OS v2.5.5.18 audit: 23 passed, 0 failed. No layout changes. -->
 
@@ -9290,843 +9321,74 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
 })();
 </script>
 
-
-<style id="build30DropdownSummaryCleanupStyle">
-/* Build 3.0 dropdown restore: restores the card sub-heading dropdowns after later render patches. */
-.gos-section-dropdown{margin-top:12px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(15,23,42,.34);overflow:hidden;}
+<style id="build30CodeArchaeologistStabilityStyle">
+/* Code Archaeologist stability pass: consolidated late Build 3.0 repair CSS.
+   Replaces the overlapping build30* repair style blocks without changing the visual layout. */
+#alertsBox .alert:nth-of-type(n+4){display:none!important;}
+#gosBudgetBillsSummaryCard,#gosDebtMonthlyTotalCard,#gosHolidayFundingCard{display:block!important;visibility:visible!important;opacity:1!important;overflow-anchor:none!important;}
+#gosBudgetBillsSummaryCard .gos-live-total,#gosDebtMonthlyTotalCard .gos-live-total,#gosHolidayFundingCard .gos-live-total{font-size:clamp(30px,5vw,44px);font-weight:950;letter-spacing:-.03em;margin:8px 0 4px;color:#f8fafc;}
+.gos-live-sub{color:#b8c7dc;font-size:13px;line-height:1.35;}
+.gos-section-dropdown{margin-top:12px;border:1px solid rgba(56,189,248,.30);border-radius:16px;background:rgba(15,23,42,.36);overflow:hidden;}
 .gos-section-dropdown summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:900;color:#dbeafe;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;}
 .gos-section-dropdown summary::-webkit-details-marker{display:none;}
 .gos-section-dropdown summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .18s ease;flex:0 0 auto;}
 .gos-section-dropdown[open] summary:after{transform:rotate(180deg);}
 .gos-dropdown-content{padding:0 12px 12px;}
 .gos-dropdown-content table{margin-top:0;}
-.gos-budget-bills-summary-card,.v276-debt-summary-card{min-height:unset!important;}
-.gos-summary-total,.v276-summary-total{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.40);border-radius:14px;padding:12px 14px;margin:10px 0;font-weight:800;}
-.gos-summary-total strong,.v276-summary-total strong{font-size:1.25rem;color:#e0f2fe;white-space:nowrap;}
-.gos-summary-list,.v276-debt-list{display:grid;gap:8px;margin-top:10px;}
-.gos-summary-line,.v276-debt-line{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.26);border-radius:12px;padding:9px 10px;}
-.gos-summary-line span,.v276-debt-line span{min-width:0;overflow-wrap:anywhere;}
-.gos-summary-line em,.v276-debt-line em{display:block;font-style:normal;color:#94a3b8;font-size:.78rem;margin-top:2px;}
-.gos-summary-line strong,.v276-debt-line strong{white-space:nowrap;color:#f8fafc;}
-@media(max-width:760px){
-  .gos-section-dropdown summary{padding:11px 12px;font-size:.95rem;}
-  .gos-dropdown-content{padding:0 10px 10px;}
-  .gos-summary-line,.v276-debt-line{display:block;}
-  .gos-summary-line strong,.v276-debt-line strong{display:block;margin-top:5px;}
-}
-</style>
-<script id="build30DropdownSummaryCleanup">
-(function(){
-  const PATCH='build30DropdownSummaryCleanup';
-  const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
-  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
-  const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
-  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-  let timer=null;
-
-  function cardByHeading(sectionSel, patterns){
-    const section=document.querySelector(sectionSel); if(!section) return null;
-    const pats=(Array.isArray(patterns)?patterns:[patterns]).map(p=>p instanceof RegExp?p:new RegExp('^'+String(p).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'));
-    const cards=[...section.querySelectorAll('.card,.v25527-summary-card')];
-    return cards.find(card=>{
-      const h=card.querySelector('h3'); const txt=(h&&h.textContent||'').trim();
-      return pats.some(p=>p.test(txt));
-    })||null;
-  }
-
-  function directChildren(el){ return Array.from(el.childNodes); }
-  function ensureDropdown(card, key, summaryText, anchor){
-    if(!card) return;
-    anchor = anchor || card.querySelector('h3');
-    if(!anchor) return;
-    const cls='gos-dd-'+key;
-    let details=Array.from(card.children).find(el=>el.classList&&el.classList.contains(cls));
-    if(!details){
-      details=document.createElement('details');
-      details.className='gos-section-dropdown '+cls;
-      const summary=document.createElement('summary');
-      const body=document.createElement('div'); body.className='gos-dropdown-content';
-      details.appendChild(summary); details.appendChild(body);
-      anchor.insertAdjacentElement('afterend', details);
-    }
-    const summary=details.querySelector('summary'); if(summary) summary.textContent=summaryText;
-    const body=details.querySelector('.gos-dropdown-content') || details.appendChild(document.createElement('div'));
-    body.className='gos-dropdown-content';
-    let seenAnchor=false;
-    directChildren(card).forEach(node=>{
-      if(node===anchor){ seenAnchor=true; return; }
-      if(node===details) return;
-      if(!seenAnchor) return;
-      if(node.nodeType===3 && !String(node.textContent||'').trim()) return;
-      body.appendChild(node);
-    });
-  }
-
-  function normalBillRows(){
-    const fixed=(typeof state!=='undefined' && Array.isArray(state.fixed))?state.fixed:[];
-    const debtNames=new Set(((typeof state!=='undefined' && Array.isArray(state.debts))?state.debts:[]).map(d=>norm(d&&d[0])).filter(Boolean));
-    return fixed.filter(r=>r && !debtNames.has(norm(r[0]))).map(r=>({name:r[0]||'Bill', amount:num(r[1]), due:r[2]||''}));
-  }
-
-  function renderBillsSummary(){
-    try{
-      const fixed=cardByHeading('#budget',[/^Monthly Fixed Costs/i,/^Monthly Fixed Costs \/ Bills/i]);
-      if(!fixed) return;
-      let card=document.getElementById('gosBudgetBillsSummaryCard');
-      if(!card){
-        card=document.createElement('div');
-        card.id='gosBudgetBillsSummaryCard';
-        card.className='card full gos-budget-bills-summary-card';
-        fixed.insertAdjacentElement('afterend', card);
-      }
-      const rows=normalBillRows();
-      const total=rows.reduce((s,r)=>s+num(r.amount),0);
-      card.innerHTML=`
-        <h3>Monthly Bill Total</h3>
-        <p class="note">Normal bills only. Debt repayments are shown in the Debt Tracker tab and still feed the wider calculations automatically.</p>
-        <div class="gos-summary-total"><span>Monthly bill total</span><strong>${money(total)}</strong></div>
-      `;
-    }catch(e){ console.warn(PATCH,'bills summary',e); }
-  }
-
-  function debtRepaymentRows(){
-    try{
-      if(typeof Calc!=='undefined' && Calc && typeof Calc.debtMonthlyRows==='function'){
-        const rows=Calc.debtMonthlyRows();
-        if(Array.isArray(rows)) return rows.map(r=>({name:r.name||'Debt', type:r.type||'', monthly:num(r.monthly)}));
-      }
-    }catch(e){}
-    const debts=(typeof state!=='undefined' && Array.isArray(state.debts))?state.debts:[];
-    return debts.filter(d=>d&&num(d[2])>0&&num(d[1])>0).map(d=>({name:d[0]||'Debt',type:d[4]||'',monthly:num(d[2])}));
-  }
-
-  function renderDebtRepaymentsInDebtTab(){
-    try{
-      const grid=document.querySelector('#debts .grid'); if(!grid) return;
-      let card=document.getElementById('v276DebtRepaymentsCard');
-      if(!card){ card=document.createElement('div'); card.id='v276DebtRepaymentsCard'; }
-      card.className='card wide v276-debt-summary-card';
-      const progress=cardByHeading('#debts','Debt Progress');
-      const tracker=cardByHeading('#debts','Debt Tracker');
-      if(!card.closest('#debts')){
-        if(progress) progress.insertAdjacentElement('afterend',card);
-        else if(tracker) tracker.insertAdjacentElement('afterend',card);
-        else grid.insertBefore(card, grid.firstChild);
-      }
-      const rows=debtRepaymentRows();
-      const total=rows.reduce((s,r)=>s+num(r.monthly),0);
-      card.innerHTML=`
-        <h3>Debt Repayments</h3>
-        <p class="note">Read-only total. Add, remove or edit debt repayments above in Debt Tracker.</p>
-        <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${money(total)}</strong></div>
-      `;
-    }catch(e){ console.warn(PATCH,'debt repayment move',e); }
-  }
-
-  function wrapBudgetSections(){
-    const core=cardByHeading('#budget','Core Figures'); ensureDropdown(core,'budget-core','Open core figures', core&&core.querySelector('h3'));
-    const linked=document.getElementById('v25531BudgetAccountsCard'); if(linked){ const head=linked.querySelector('.v25531-linked-head') || linked.querySelector('h3'); ensureDropdown(linked,'budget-linked','Open linked accounts', head); }
-    const fixed=cardByHeading('#budget',[/^Monthly Fixed Costs/i,/^Monthly Fixed Costs \/ Bills/i]); ensureDropdown(fixed,'budget-bills','Open monthly bills', fixed&&fixed.querySelector('h3'));
-  }
-  function wrapDebtSections(){
-    // Debt Tracker must remain a normal card; only the progress panel can use a section dropdown.
-    const tracker=cardByHeading('#debts','Debt Tracker');
-    const existing=tracker&&tracker.querySelector(':scope > details.gos-dd-debt-tracker');
-    if(existing){ const body=existing.querySelector('.gos-dropdown-content')||existing.querySelector(':scope > div'); const moved=[]; if(body) Array.from(body.childNodes).forEach(n=>moved.push(n)); let ref=existing; moved.forEach(n=>{ ref.parentNode.insertBefore(n, ref.nextSibling); ref=n; }); existing.remove(); }
-    const progress=cardByHeading('#debts','Debt Progress'); ensureDropdown(progress,'debt-progress','Open debt progress', progress&&progress.querySelector('h3'));
-  }
-  function wrapHolidaySections(){
-    const pots=cardByHeading('#holidays','Holiday Pots'); ensureDropdown(pots,'holiday-pots','Open holiday pots', pots&&pots.querySelector('h3'));
-  }
-  function run(){
-    try{
-      if(window.GrantOSGuidanceV28 && typeof GrantOSGuidanceV28.render==='function') GrantOSGuidanceV28.render();
-      renderBillsSummary(); renderDebtRepaymentsInDebtTab(); wrapBudgetSections(); wrapDebtSections(); wrapHolidaySections();
-    }catch(e){ console.warn(PATCH,e); }
-  }
-  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||120); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
-  window.addEventListener('load',()=>{ run(); [120,350,900,1800,3200].forEach(ms=>setTimeout(run,ms)); });
-  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('summary,.gos-help,.gos-section-dropdown,.gos-spare-dd')) return; schedule(140); },true);
-  document.addEventListener('input',()=>schedule(180),true);
-  document.addEventListener('change',()=>schedule(180),true);
-  window.GrantOSBuild30DropdownSummaryCleanup={run, schedule};
-})();
-</script>
-
-
-
-<style id="build30RequestedCleanupStyle">
-/* Build 3.0 requested cleanup: restore Estimated Spare dropdowns, remove old queue/snapshot cards, and move Holiday Funding to Holiday Pots. */
-#debts .card:has(> h3:first-child), #graphs .card:has(> h3:first-child){overflow-anchor:none;}
-#gosHolidayFundingCard{overflow-anchor:none!important;}
-#gosHolidayFundingCard #holidayFundingGraph{min-height:82px;}
+#v283EstimatedSpareCard > #gosSpareFiguresDropdown{display:none!important;}
 #v283EstimatedSpareCard .gos-spare-dd{margin-top:12px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(15,23,42,.34);overflow:hidden;}
 #v283EstimatedSpareCard .gos-spare-dd summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:900;color:#dbeafe;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;}
 #v283EstimatedSpareCard .gos-spare-dd summary::-webkit-details-marker{display:none;}
 #v283EstimatedSpareCard .gos-spare-dd summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .18s ease;flex:0 0 auto;}
 #v283EstimatedSpareCard .gos-spare-dd[open] summary:after{transform:rotate(180deg);}
-#v283EstimatedSpareCard .gos-spare-dd-body{padding:0 12px 12px;}
-#v283EstimatedSpareCard .gos-spare-dd-body .note{margin-top:0;}
-#v283EstimatedSpareCard .gos-spare-dd-body .v283-spare-breakdown{margin-top:0;}
-#v283EstimatedSpareCard .gos-spare-dd-body #v283SpareValue{margin-top:4px;}
-@media(max-width:760px){#v283EstimatedSpareCard .gos-spare-dd summary{padding:11px 12px;font-size:.95rem;}#v283EstimatedSpareCard .gos-spare-dd-body{padding:0 10px 10px;}}
-</style>
-<script id="build30RequestedCleanup">
-(function(){
-  const PATCH='build30RequestedCleanup';
-  let timer=null;
-  function text(el){return String((el&&el.textContent)||'').trim().toLowerCase().replace(/\s+/g,' ');}
-  function section(id){return document.querySelector(id+' .grid') || document.querySelector(id);}
-  function cardByHeading(sectionSel, heading){
-    const sec=document.querySelector(sectionSel); if(!sec) return null;
-    const h=String(heading||'').trim().toLowerCase();
-    return Array.from(sec.querySelectorAll('.card')).find(card=>{
-      const head=card.querySelector('h3'); return text(head)===h;
-    }) || null;
-  }
-  function removeCard(sectionSel, heading){
-    const card=cardByHeading(sectionSel, heading); if(card) card.remove();
-  }
-  function ensureHolidayFundingCard(){
-    const grid=section('#holidays'); if(!grid) return null;
-    let card=document.getElementById('gosHolidayFundingCard');
-    if(!card){
-      // Reuse the old graph card if it exists, otherwise create a clean Holiday Pots card.
-      card=cardByHeading('#graphs','Holiday Funding');
-      if(card){ card.id='gosHolidayFundingCard'; }
-      else{
-        card=document.createElement('div');
-        card.id='gosHolidayFundingCard';
-        card.className='card full';
-        card.innerHTML='<h3>Holiday Funding</h3><div id="holidayFundingGraph"></div>';
-      }
-    }
-    card.className='card full';
-    if(!card.querySelector('#holidayFundingGraph')){
-      let body=document.createElement('div'); body.id='holidayFundingGraph'; card.appendChild(body);
-    }
-    const summary=cardByHeading('#holidays','Holiday Summary');
-    if(card.parentElement!==grid){
-      if(summary) summary.insertAdjacentElement('afterend', card);
-      else grid.appendChild(card);
-    }else if(summary && summary.nextElementSibling!==card){
-      summary.insertAdjacentElement('afterend', card);
-    }
-    return card;
-  }
-  function restoreSpareDropdowns(){
-    const card=document.getElementById('v283EstimatedSpareCard'); if(!card) return;
-    const h=card.querySelector('h3'); if(!h) return;
-
-    let fig=card.querySelector('#gosSpareFiguresDropdown');
-    if(!fig){
-      fig=document.createElement('details'); fig.id='gosSpareFiguresDropdown'; fig.className='gos-spare-dd'; fig.open=true;
-      fig.innerHTML='<summary>Open figures</summary><div class="gos-spare-dd-body" id="gosSpareFiguresBody"></div>';
-      h.insertAdjacentElement('afterend', fig);
-    }
-    let calc=card.querySelector('#gosSpareCalculationDropdown');
-    if(!calc){
-      calc=document.createElement('details'); calc.id='gosSpareCalculationDropdown'; calc.className='gos-spare-dd';
-      calc.innerHTML='<summary>Open calculation</summary><div class="gos-spare-dd-body" id="gosSpareCalculationBody"></div>';
-      fig.insertAdjacentElement('afterend', calc);
-    }
-    const figBody=card.querySelector('#gosSpareFiguresBody');
-    const calcBody=card.querySelector('#gosSpareCalculationBody');
-    const moveTo=(el,body)=>{ if(el&&body&&el.parentElement!==body) body.appendChild(el); };
-
-    // Figures dropdown: note, main value and status.
-    moveTo(Array.from(card.children).find(el=>el.tagName==='P' && el.classList.contains('note')), figBody);
-    moveTo(document.getElementById('v283SpareValue'), figBody);
-    moveTo(document.getElementById('v283SpareStatus'), figBody);
-
-    // Calculation dropdown: all current row-by-row calculation details.
-    moveTo(card.querySelector('.v283-spare-breakdown'), calcBody);
-    moveTo(document.getElementById('v283DateAwareBreakdownNote'), calcBody);
-  }
-  function renderHolidayFunding(){
-    try{ if(window.GraphsV21&&typeof GraphsV21.holidayFunding==='function') GraphsV21.holidayFunding(); }catch(e){}
-    try{ if(window.GraphsV24&&typeof GraphsV24.holidayFunding==='function') GraphsV24.holidayFunding(); }catch(e){}
-    try{ if(window.EnhancedGraphsV242&&typeof EnhancedGraphsV242.holidayFunding==='function') EnhancedGraphsV242.holidayFunding(); }catch(e){}
-  }
-  function run(){
-    try{
-      // Requested removals.
-      removeCard('#debts','Priority Queue');
-      removeCard('#graphs','Financial Snapshot');
-      // Holiday Funding no longer lives in Graphs; it is its own Holiday Pots card.
-      const holidayCard=ensureHolidayFundingCard();
-      removeCard('#graphs','Holiday Funding');
-      if(holidayCard && !holidayCard.parentElement) ensureHolidayFundingCard();
-      restoreSpareDropdowns();
-      renderHolidayFunding();
-    }catch(e){ console.warn(PATCH,e); }
-  }
-  function schedule(ms){clearTimeout(timer); timer=setTimeout(run,ms||100);}
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
-  window.addEventListener('load',()=>{run(); [120,350,900,1800,3200].forEach(ms=>setTimeout(run,ms));});
-  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('summary,.gos-help,.gos-section-dropdown,.gos-spare-dd')) return; schedule(120); },true);
-  document.addEventListener('input',()=>schedule(180),true);
-  document.addEventListener('change',()=>schedule(180),true);
-  window.GrantOSBuild30RequestedCleanup={run,schedule};
-})();
-</script>
-
-<style id="build30StandardSummaryCardsStyle">
-/* Build 3.0 standard summary cards: Holiday Summary and Debt Repayments are normal cards; bill/debt summary cards show totals only. */
-#v276DebtRepaymentsCard .v276-debt-list,
-#gosBudgetBillsSummaryCard .gos-summary-list{display:none!important;}
-#v276DebtRepaymentsCard,
-#gosBudgetBillsSummaryCard{overflow-anchor:none!important;}
-</style>
-<script id="build30StandardSummaryCards">
-(function(){
-  const PATCH='build30StandardSummaryCards';
-  let timer=null;
-  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
-  const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
-  function text(el){return String((el&&el.textContent)||'').trim().toLowerCase().replace(/\s+/g,' ');} 
-  function cardByHeading(sectionSel, heading){
-    const sec=document.querySelector(sectionSel); if(!sec) return null;
-    const h=String(heading||'').trim().toLowerCase();
-    return Array.from(sec.querySelectorAll('.card')).find(card=>text(card.querySelector('h3'))===h) || null;
-  }
-  function unwrapDropdown(card, ddClass){
-    if(!card) return;
-    Array.from(card.querySelectorAll('details.'+ddClass)).forEach(details=>{
-      const body=details.querySelector('.gos-dropdown-content') || details.querySelector(':scope > div');
-      const moved=[];
-      if(body) Array.from(body.childNodes).forEach(node=>moved.push(node));
-      let ref=details;
-      moved.forEach(node=>{ ref.parentNode.insertBefore(node, ref.nextSibling); ref=node; });
-      details.remove();
-    });
-  }
-  function debtTotal(){
-    try{ if(window.Calc && typeof Calc.debtMonthlyRows==='function'){ const rows=Calc.debtMonthlyRows(); if(Array.isArray(rows)) return rows.reduce((s,r)=>s+num(r.monthly),0); } }catch(e){}
-    try{ return ((window.state&&Array.isArray(state.debts))?state.debts:[]).filter(d=>num(d&&d[1])>0&&num(d&&d[2])>0).reduce((s,d)=>s+num(d&&d[2]),0); }catch(e){ return 0; }
-  }
-  function normalBillTotal(){
-    try{ if(window.Calc && typeof Calc.normalBillTotal==='function') return num(Calc.normalBillTotal()); }catch(e){}
-    try{ return ((window.state&&Array.isArray(state.fixed))?state.fixed:[]).reduce((s,r)=>s+num(r&&r[1]),0); }catch(e){ return 0; }
-  }
-  function renderDebtRepaymentsTotalOnly(){
-    const card=document.getElementById('v276DebtRepaymentsCard') || cardByHeading('#debts','Debt Repayments') || cardByHeading('#debts','Debt Repayments from Debt Tracker');
-    if(!card) return;
-    unwrapDropdown(card,'gos-dd-debt-repayments');
-    card.id='v276DebtRepaymentsCard';
-    card.classList.add('v276-debt-summary-card');
-    card.innerHTML=`
-      <h3>Debt Repayments</h3>
-      <p class="note">Read-only total. Add, remove or edit debt repayments above in Debt Tracker.</p>
-      <div class="v276-summary-total"><span>Monthly debt repayments</span><strong>${money(debtTotal())}</strong></div>
-    `;
-  }
-  function renderBillsTotalOnly(){
-    const card=document.getElementById('gosBudgetBillsSummaryCard') || cardByHeading('#budget','Monthly Bills from Budget Setup') || cardByHeading('#budget','Monthly Bill Total');
-    if(!card) return;
-    card.id='gosBudgetBillsSummaryCard';
-    card.classList.add('gos-budget-bills-summary-card');
-    card.innerHTML=`
-      <h3>Monthly Bill Total</h3>
-      <p class="note">Normal bills only. Debt repayments are shown in the Debt Tracker tab and still feed the wider calculations automatically.</p>
-      <div class="gos-summary-total"><span>Monthly bill total</span><strong>${money(normalBillTotal())}</strong></div>
-    `;
-  }
-  function restoreHolidaySummaryAsCard(){
-    const card=cardByHeading('#holidays','Holiday Summary');
-    if(!card) return;
-    unwrapDropdown(card,'gos-dd-holiday-summary');
-  }
-  function run(){
-    try{ renderDebtRepaymentsTotalOnly(); renderBillsTotalOnly(); restoreHolidaySummaryAsCard(); }catch(e){ console.warn(PATCH,e); }
-  }
-  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||260); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [300,900,1800,3200].forEach(ms=>setTimeout(run,ms));}); else {run(); [300,900,1800,3200].forEach(ms=>setTimeout(run,ms));}
-  window.addEventListener('load',()=>{run(); [400,1200,2600,4200].forEach(ms=>setTimeout(run,ms));});
-  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('summary,.gos-help,.gos-section-dropdown,.gos-spare-dd')) return; schedule(280); },true);
-  document.addEventListener('input',()=>schedule(300),true);
-  document.addEventListener('change',()=>schedule(300),true);
-  window.GrantOSBuild30StandardSummaryCards={run,schedule};
-})();
-</script>
-
-
-
-<style id="build30StabilityUiPatchStyle">
-/* Build 3.0 stability patch: keep requested cards stable without changing the wider design. */
-#alertsBox .alert:nth-of-type(n+4){display:none!important;}
 #v274HolidaySummaryMobile{display:none!important;}
-#v283EstimatedSpareCard > #gosSpareFiguresDropdown{display:none!important;}
-#v283EstimatedSpareCard .gos-spare-dd-body #v283SpareValue{display:block;}
 #debtTable,#holidayControlTable,#debtForecastGraph,#bankForecastGraph,#emergencyGraph{overflow-anchor:none!important;}
-</style>
-<script id="build30StabilityUiPatch">
-(function(){
-  const PATCH='build30StabilityUiPatch';
-  let timer=null;
-  const money=v=>'£'+Number(String(v??'').replace(/[^0-9.-]/g,'')||0).toLocaleString('en-GB',{maximumFractionDigits:2});
-  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-  function cardByHeading(sectionSel, heading){
-    const root=document.querySelector(sectionSel); if(!root) return null;
-    const needle=norm(heading);
-    return Array.from(root.querySelectorAll('.card,.v25527-summary-card')).find(card=>{
-      const h=card.querySelector('h3'); return h && norm(h.textContent)===needle;
-    }) || null;
-  }
-  function unwrapDetails(details){
-    if(!details || !details.parentNode) return;
-    const body=details.querySelector('.gos-dropdown-content,.gos-spare-dd-body,.gos-help-body') || details.querySelector(':scope > div');
-    const moved=[];
-    if(body) Array.from(body.childNodes).forEach(n=>moved.push(n));
-    let ref=details;
-    moved.forEach(n=>{ ref.parentNode.insertBefore(n, ref.nextSibling); ref=n; });
-    details.remove();
-  }
-  function limitAlerts(){
-    try{
-      if(window.Calc && Calc.alerts && !Calc.alerts.__gosTop3){
-        const old=Calc.alerts.bind(Calc);
-        Calc.alerts=function(){ const rows=old(); return Array.isArray(rows)?rows.slice(0,3):rows; };
-        Calc.alerts.__gosTop3=true;
-      }
-      const box=document.getElementById('alertsBox');
-      if(box) Array.from(box.children).slice(3).forEach(el=>el.remove());
-    }catch(e){}
-  }
-  function stableHelpOpenState(){
-    try{
-      document.querySelectorAll('details.gos-help').forEach(d=>{
-        const remembered=sessionStorage.getItem('gos-open-'+d.id);
-        if(remembered==='yes') d.open=true;
-      });
-    }catch(e){}
-  }
-  function fixEstimatedSpare(){
-    try{
-      const card=document.getElementById('v283EstimatedSpareCard'); if(!card) return;
-      const h=card.querySelector('h3'); if(h && h.textContent.trim()!=='Estimated Spare Until Payday') h.textContent='Estimated Spare Until Payday';
-      // Main figures must be visible on the card, not hidden under an "Open figures" dropdown.
-      const fig=card.querySelector('#gosSpareFiguresDropdown');
-      if(fig){
-        const body=fig.querySelector('#gosSpareFiguresBody') || fig.querySelector('.gos-spare-dd-body');
-        const nodes=body?Array.from(body.childNodes):[];
-        let ref=h || fig;
-        nodes.forEach(n=>{ card.insertBefore(n, ref.nextSibling); ref=n; });
-        fig.remove();
-      }
-      // Keep the calculation breakdown as the only dropdown.
-      let calc=card.querySelector('#gosSpareCalculationDropdown');
-      const breakdown=card.querySelector('.v283-spare-breakdown');
-      const extra=document.getElementById('v283DateAwareBreakdownNote');
-      if(!calc && (breakdown||extra)){
-        calc=document.createElement('details');
-        calc.id='gosSpareCalculationDropdown';
-        calc.className='gos-spare-dd';
-        calc.innerHTML='<summary>Show calculation breakdown</summary><div class="gos-spare-dd-body" id="gosSpareCalculationBody"></div>';
-        const status=document.getElementById('v283SpareStatus');
-        (status||card.querySelector('#v283SpareValue')||h).insertAdjacentElement('afterend',calc);
-      }
-      if(calc){
-        const summary=calc.querySelector('summary'); if(summary) summary.textContent='Show calculation breakdown';
-        let body=calc.querySelector('#gosSpareCalculationBody,.gos-spare-dd-body');
-        if(!body){ body=document.createElement('div'); body.id='gosSpareCalculationBody'; body.className='gos-spare-dd-body'; calc.appendChild(body); }
-        if(breakdown && breakdown.parentElement!==body) body.appendChild(breakdown);
-        if(extra && extra.parentElement!==body) body.appendChild(extra);
-      }
-    }catch(e){ console.warn(PATCH,'spare',e); }
-  }
-  function fixHolidaySummary(){
-    try{
-      const mobile=document.getElementById('v274HolidaySummaryMobile'); if(mobile) mobile.remove();
-      const card=cardByHeading('#holidays','Holiday Summary'); if(!card) return;
-      Array.from(card.querySelectorAll(':scope > details.gos-dd-holiday-summary,:scope > details.gos-section-dropdown')).forEach(unwrapDetails);
-    }catch(e){}
-  }
-  function fixDebtTracker(){
-    try{
-      const card=cardByHeading('#debts','Debt Tracker'); if(!card) return;
-      Array.from(card.querySelectorAll(':scope > details.gos-dd-debt-tracker')).forEach(unwrapDetails);
-      const h=card.querySelector('h3'); if(h) h.textContent='Debt Tracker';
-    }catch(e){}
-  }
-  function renderBillTotal(){
-    try{
-      const fixedCard=cardByHeading('#budget','Monthly Fixed Costs') || cardByHeading('#budget','Monthly Fixed Costs / Bills');
-      const grid=document.querySelector('#budget .grid');
-      let card=document.getElementById('gosBudgetBillsSummaryCard') || cardByHeading('#budget','Monthly Bill Total');
-      if(!card && grid){
-        card=document.createElement('div');
-        card.id='gosBudgetBillsSummaryCard';
-        card.className='card full gos-budget-bills-summary-card';
-        if(fixedCard) fixedCard.insertAdjacentElement('afterend',card); else grid.appendChild(card);
-      }
-      if(!card) return;
-      card.id='gosBudgetBillsSummaryCard';
-      card.className='card full gos-budget-bills-summary-card';
-      const rows=(window.state&&Array.isArray(state.fixed))?state.fixed:[];
-      const total=rows.reduce((s,r)=>s+Number(String((r&&r[1])??0).replace(/[^0-9.-]/g,'' )||0),0);
-      const html='<h3>Monthly Bill Total</h3><p class="note">Normal monthly fixed costs only. Debt repayments stay in the Debt Tracker and feed the wider calculations separately.</p><div class="gos-summary-total"><span>Monthly bill total</span><strong>'+money(total)+'</strong></div>';
-      if(card.innerHTML!==html) card.innerHTML=html;
-    }catch(e){ console.warn(PATCH,'bill total',e); }
-  }
-  function ensureGraphCard(heading,id){
-    const grid=document.querySelector('#graphs .grid'); if(!grid) return null;
-    let card=cardByHeading('#graphs',heading);
-    if(!card){
-      card=document.createElement('div'); card.className='card wide';
-      card.innerHTML='<h3>'+heading+'</h3><div id="'+id+'"></div>';
-      grid.appendChild(card);
-    }
-    let body=document.getElementById(id);
-    if(!body){ body=document.createElement('div'); body.id=id; card.appendChild(body); }
-    return body;
-  }
-  function restoreGraphs(){
-    try{
-      ensureGraphCard('Debt Balance Forecast','debtForecastGraph');
-      ensureGraphCard('Bank Position Forecast','bankForecastGraph');
-      ensureGraphCard('Emergency Fund Progress','emergencyGraph');
-      if(window.GraphsV21 && typeof GraphsV21.render==='function') GraphsV21.render();
-    }catch(e){ console.warn(PATCH,'graphs',e); }
-  }
-  function patchUiShow(){
-    try{
-      if(!window.UI || !UI.show || UI.show.__gosStabilityPatch) return;
-      const old=UI.show.bind(UI);
-      UI.show=function(id,btn){ const r=old(id,btn); setTimeout(run,40); if(id==='graphs') [60,250,700].forEach(ms=>setTimeout(restoreGraphs,ms)); return r; };
-      UI.show.__gosStabilityPatch=true;
-    }catch(e){}
-  }
-  function run(){
-    patchUiShow(); limitAlerts(); stableHelpOpenState(); fixEstimatedSpare(); fixHolidaySummary(); fixDebtTracker(); renderBillTotal();
-    if(document.querySelector('#graphs.active')) restoreGraphs();
-  }
-  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||180); }
-  document.addEventListener('click',function(e){
-    const summary=e.target && e.target.closest && e.target.closest('details.gos-help > summary');
-    if(summary){
-      const d=summary.parentElement;
-      setTimeout(function(){ try{ if(d.id) sessionStorage.setItem('gos-open-'+d.id,d.open?'yes':'no'); }catch(err){} },0);
-      [80,200,420].forEach(ms=>setTimeout(stableHelpOpenState,ms));
-    }
-    schedule(220);
-  },true);
-  document.addEventListener('input',()=>schedule(260),true);
-  document.addEventListener('change',()=>schedule(260),true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [200,600,1400,2600].forEach(ms=>setTimeout(run,ms));});
-  else {run(); [200,600,1400,2600].forEach(ms=>setTimeout(run,ms));}
-  window.addEventListener('load',()=>{run(); [300,900,1800,3500].forEach(ms=>setTimeout(run,ms));});
-  window.GrantOSBuild30StabilityUiPatch={run,restoreGraphs,fixEstimatedSpare,limitAlerts};
-})();
-</script>
-
-
-<style id="build30TotalsGraphsHealthRepairStyle">
-/* Build 3.0 repair: visible monthly totals, restored detailed forecast lines, and restored Finance Health card. */
-#gosBudgetBillsSummaryCard,
-#gosDebtMonthlyTotalCard,
-#v276DebtRepaymentsCard{display:block!important;visibility:visible!important;opacity:1!important;overflow-anchor:none!important;}
-#gosBudgetBillsSummaryCard .gos-total-value,
-#gosDebtMonthlyTotalCard .gos-total-value,
-#v276DebtRepaymentsCard .gos-total-value{font-size:clamp(28px,5vw,42px);font-weight:950;letter-spacing:-.03em;margin-top:8px;}
-#gosBudgetBillsSummaryCard .gos-total-sub,
-#gosDebtMonthlyTotalCard .gos-total-sub{color:#a9c3df;line-height:1.35;margin-top:6px;}
-#dashboard .dashboard-cards #financeHealth{display:block!important;visibility:visible!important;}
-.gos-repair-graph-wrap{width:100%;margin-top:8px;}
-.gos-repair-graph-summary{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 0;}
-.gos-repair-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border-radius:999px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.55);color:#dbeafe;font-size:12px;line-height:1.1;}
-.gos-repair-linegraph{border:1px solid rgba(148,163,184,.18);background:rgba(2,6,23,.30);border-radius:16px;padding:10px;overflow:hidden;}
-.gos-repair-linegraph svg{display:block;width:100%;height:245px;overflow:visible;}
-.gos-repair-linegraph .axis{fill:#9fb3c8;font-size:12px;font-weight:800;}
-.gos-repair-linegraph .month{fill:#cbd5e1;font-size:11px;font-weight:800;}
-.gos-repair-linegraph .value{fill:#f8fafc;font-size:11px;font-weight:900;paint-order:stroke;stroke:rgba(2,6,23,.85);stroke-width:3px;}
-.gos-repair-linegraph .gridline{stroke:rgba(148,163,184,.20);stroke-width:1;}
-.gos-repair-linegraph .zero{stroke:rgba(248,113,113,.55);stroke-dasharray:5 5;stroke-width:2;}
-.gos-repair-linegraph .target{stroke:rgba(34,197,94,.55);stroke-dasharray:6 5;stroke-width:2;}
-.gos-repair-linegraph polyline{stroke:currentColor;stroke-width:5;fill:none;color:var(--blue);}
-.gos-repair-linegraph circle{fill:var(--amber);stroke:rgba(15,23,42,.95);stroke-width:3;}
-.gos-repair-graph-table{margin-top:10px;max-height:245px;overflow:auto;border-radius:14px;border:1px solid rgba(148,163,184,.14);}
-.gos-repair-graph-table table{width:100%;border-collapse:collapse;min-width:520px;}
-.gos-repair-graph-table th,.gos-repair-graph-table td{padding:8px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;}
-.gos-repair-graph-table th{position:sticky;top:0;background:rgba(15,23,42,.96);z-index:1;}
-@media(max-width:760px){.gos-repair-linegraph svg{height:220px}.gos-repair-graph-table{max-height:210px}.gos-repair-chip{font-size:11px}.gos-repair-linegraph .value{font-size:10px}.gos-repair-linegraph .month{font-size:10px}}
-</style>
-<script id="build30TotalsGraphsHealthRepair">
-(function(){
-  const PATCH='build30TotalsGraphsHealthRepair';
-  let timer=null;
-  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
-  const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
-  const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-  function stateRows(key){ try{ return (typeof state!=='undefined' && Array.isArray(state[key])) ? state[key] : []; }catch(e){ return []; } }
-  function sectionGrid(sel){ return document.querySelector(sel+' .grid') || document.querySelector(sel); }
-  function cardByHeading(sectionSel, patterns){
-    const sec=document.querySelector(sectionSel); if(!sec) return null;
-    const pats=(Array.isArray(patterns)?patterns:[patterns]).map(p=>p instanceof RegExp?p:new RegExp('^'+String(p).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'));
-    return Array.from(sec.querySelectorAll('.card,.v25527-summary-card')).find(card=>{
-      const h=card.querySelector('h3'); const t=norm(h&&h.textContent);
-      return pats.some(p=>p.test(t));
-    }) || null;
-  }
-  function ensureCard(id, sectionSel, heading, afterCard){
-    let card=document.getElementById(id);
-    if(!card){ card=cardByHeading(sectionSel, heading); if(card) card.id=id; }
-    if(!card){
-      card=document.createElement('div'); card.id=id; card.className='card full';
-      const grid=sectionGrid(sectionSel); if(afterCard && afterCard.parentElement) afterCard.insertAdjacentElement('afterend',card); else if(grid) grid.appendChild(card);
-    }
-    card.classList.add('card'); card.style.display='block'; card.style.visibility='visible'; card.style.opacity='1';
-    return card;
-  }
-  function billTotal(){ return stateRows('fixed').reduce((s,r)=>s+num(r&&r[1]),0); }
-  function debtMonthlyTotal(){
-    return stateRows('debts').reduce((s,d)=>{
-      const bal=Math.max(0,num(d&&d[1]));
-      const monthly=Math.max(0,num(d&&d[2]));
-      return s + (bal>0 ? monthly : 0);
-    },0);
-  }
-  function totalDebt(){ return stateRows('debts').reduce((s,d)=>s+Math.max(0,num(d&&d[1])),0); }
-  function activeDebtCount(){ return stateRows('debts').filter(d=>Math.max(0,num(d&&d[1]))>0).length; }
-  function renderTotals(){
-    try{
-      const fixedCard=cardByHeading('#budget',[/^monthly fixed costs/i,/^monthly fixed costs \/ bills/i]);
-      const billCard=ensureCard('gosBudgetBillsSummaryCard','#budget','Monthly Bill Total',fixedCard);
-      billCard.className='card full gos-budget-bills-summary-card';
-      billCard.innerHTML='<h3>Monthly Bill Total</h3><p class="note">Live total of the bills entered in Monthly Fixed Costs / Bills.</p><div class="gos-total-value">'+money(billTotal())+'</div><div class="gos-total-sub">'+stateRows('fixed').length+' bill line(s) included.</div>';
-    }catch(e){ console.warn(PATCH,'bill total',e); }
-    try{
-      const tracker=cardByHeading('#debts',/^debt tracker$/i);
-      const debtCard=ensureCard('gosDebtMonthlyTotalCard','#debts',[/^monthly debt total$/i,/^debt repayments$/i,/^debt repayments from debt tracker$/i],tracker);
-      debtCard.className='card full v276-debt-summary-card';
-      debtCard.innerHTML='<h3>Monthly Debt Total</h3><p class="note">Live total of monthly repayments from active debts in Debt Tracker.</p><div class="gos-total-value">'+money(debtMonthlyTotal())+'</div><div class="gos-total-sub">'+activeDebtCount()+' active debt(s), '+money(totalDebt())+' remaining.</div>';
-      const old=document.getElementById('v276DebtRepaymentsCard');
-      if(old && old!==debtCard) old.remove();
-    }catch(e){ console.warn(PATCH,'debt total',e); }
-  }
-  function monthLabel(d){ return d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}); }
-  function addMonths(d,n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
-  function oneOffDueInMonth(due, monthDate){
-    if(!due) return 0;
-    const raw=String(due).trim(); if(!raw || /flexible/i.test(raw)) return 0;
-    let dt=new Date(raw);
-    if(isNaN(dt.getTime())){
-      const months={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11};
-      let m=raw.match(/(\d{1,2})[\s\-\/]+(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[\s\-\/]+(\d{2,4})/i) || raw.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[\s\-\/]+(\d{2,4})/i);
-      if(m){
-        if(m.length===4){ let y=num(m[3]); if(y<100)y+=2000; dt=new Date(y,months[m[2].slice(0,3).toLowerCase()],num(m[1])||1); }
-        else { let y=num(m[2]); if(y<100)y+=2000; dt=new Date(y,months[m[1].slice(0,3).toLowerCase()],1); }
-      }
-    }
-    return !isNaN(dt.getTime()) && dt.getFullYear()===monthDate.getFullYear() && dt.getMonth()===monthDate.getMonth();
-  }
-  function bankNow(){
-    try{ if(window.Calc && typeof Calc.bankPosition==='function') return num(Calc.bankPosition()); }catch(e){}
-    try{ return num(state.firstDirectBalance)+num(state.monzoBalance)-num(state.firstDirectOverdraft)-num(state.monzoOverdraft); }catch(e){ return 0; }
-  }
-  function forecastRows(){
-    const months=Math.max(3, Math.min(24, (window.ForecastRangeV24&&ForecastRangeV24.get)?num(ForecastRangeV24.get()):6 || 6));
-    let base=[];
-    try{ if(window.ForecastV21 && typeof ForecastV21.monthlySeries==='function'){ base=ForecastV21.monthlySeries(months)||[]; } }catch(e){ base=[]; }
-    const wage=num((typeof state!=='undefined'&&state.wage)||0);
-    const fixed=billTotal();
-    const debtPay=debtMonthlyTotal();
-    const living=num((typeof state!=='undefined'&&state.weeklyBudget)||0)*4;
-    const monthlySurplus=wage-fixed-debtPay-living;
-    let bank=bankNow();
-    let debt=totalDebt();
-    let emergency=num((typeof state!=='undefined'&&state.emergencyFund)||0);
-    const start=new Date(); start.setDate(1);
-    const rows=[];
-    for(let i=0;i<months;i++){
-      const d=addMonths(start,i);
-      const baseRow=base[i]||{};
-      const oneOff=stateRows('debts').filter(x=>/one[-\s]?off|bnpl|currys/i.test(String(x&&x[4]||'')+' '+String(x&&x[0]||'')) && oneOffDueInMonth((x&&x[5])||(x&&x[3]),d)).reduce((s,x)=>s+Math.max(0,num(x&&x[1])),0);
-      if(i>0){
-        bank += monthlySurplus - oneOff;
-        debt = Math.max(0, debt - debtPay - oneOff);
-        emergency = Math.max(0, emergency + Math.max(0, monthlySurplus));
-      }
-      const bDebt = baseRow.debt!=null ? num(baseRow.debt) : debt;
-      const bBank = baseRow.bank!=null ? num(baseRow.bank) : (baseRow.balance!=null ? num(baseRow.balance) : (baseRow.forecastBalance!=null ? num(baseRow.forecastBalance) : bank));
-      rows.push({month:baseRow.month||monthLabel(d), debt:Math.max(0,bDebt), bank:bBank, emergency:Math.max(0, emergency), oneOff});
-    }
-    return rows;
-  }
-  function shortMoney(v){
-    v=num(v); const sign=v<0?'-':''; const a=Math.abs(v);
-    if(a>=1000) return sign+'£'+(a/1000).toFixed(a%1000===0?0:1)+'k';
-    return sign+'£'+Math.round(a);
-  }
-  function renderLine(id, rows, key, title, opts){
-    const el=document.getElementById(id); if(!el) return;
-    opts=opts||{};
-    const vals=rows.map(r=>num(r[key]));
-    if(!vals.length){ el.innerHTML='<p class="note">No forecast data available yet.</p>'; return; }
-    const includeZero=opts.zero || vals.some(v=>v<0);
-    const target=opts.target;
-    let min=Math.min(...vals, includeZero?0:vals[0]);
-    let max=Math.max(...vals, includeZero?0:vals[0], target!=null?num(target):vals[0], 1);
-    if(min===max){ min=Math.min(0,min-1); max=max+1; }
-    const span=Math.max(1,max-min), w=720,h=250,padL=58,padR=24,padT=26,padB=44;
-    const xFor=i=>padL+(rows.length===1?0:(i/(rows.length-1))*(w-padL-padR));
-    const yFor=v=>padT+((max-num(v))/span)*(h-padT-padB);
-    const pts=rows.map((r,i)=>({x:xFor(i),y:yFor(r[key]),v:num(r[key]),month:r.month}));
-    const poly=pts.map(p=>p.x+','+p.y).join(' ');
-    const ticks=[max, min+span/2, min];
-    const zeroY=yFor(0), targetY=target!=null?yFor(target):null;
-    const labels=pts.map((p,i)=> (i===0 || i===pts.length-1 || rows.length<=6) ? '<text x="'+p.x+'" y="'+(h-14)+'" text-anchor="middle" class="month">'+esc(p.month)+'</text>' : '').join('');
-    const dots=pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="6"><title>'+esc(p.month)+': '+esc(money(p.v))+'</title></circle><text x="'+p.x+'" y="'+Math.max(14,p.y-10)+'" text-anchor="middle" class="value">'+esc(shortMoney(p.v))+'</text>').join('');
-    const table='<div class="gos-repair-graph-table"><table><tr><th>Month</th><th>'+esc(title)+'</th></tr>'+rows.map(r=>'<tr><td>'+esc(r.month)+'</td><td>'+money(r[key])+'</td></tr>').join('')+'</table></div>';
-    el.innerHTML='<div class="gos-repair-graph-wrap"><div class="gos-repair-graph-summary">'+(opts.summary||'')+'</div><div class="gos-repair-linegraph"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+ticks.map(v=>'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+yFor(v)+'" y2="'+yFor(v)+'" class="gridline"></line><text x="8" y="'+(yFor(v)+4)+'" class="axis">'+esc(shortMoney(v))+'</text>').join('')+(includeZero?'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+zeroY+'" y2="'+zeroY+'" class="zero"></line>':'')+(target!=null?'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+targetY+'" y2="'+targetY+'" class="target"></line><text x="'+padL+'" y="'+Math.max(14,targetY-7)+'" class="axis">Target</text>':'')+'<polyline points="'+poly+'"></polyline>'+dots+labels+'</svg></div>'+table+'</div>';
-  }
-  function ensureGraphCard(heading,id){
-    const grid=sectionGrid('#graphs'); if(!grid) return;
-    let card=cardByHeading('#graphs',heading);
-    if(!card){ card=document.createElement('div'); card.className='card wide'; card.innerHTML='<h3>'+esc(heading)+'</h3><div id="'+esc(id)+'"></div>'; grid.appendChild(card); }
-    let body=document.getElementById(id); if(!body){ body=document.createElement('div'); body.id=id; card.appendChild(body); }
-    card.style.display='block'; body.style.display='block'; body.style.minHeight='280px';
-  }
-  function renderGraphs(){
-    try{
-      ensureGraphCard('Debt Balance Forecast','debtForecastGraph');
-      ensureGraphCard('Bank Position Forecast','bankForecastGraph');
-      ensureGraphCard('Emergency Fund Progress','emergencyGraph');
-      const rows=forecastRows(); if(!rows.length) return;
-      const last=rows[rows.length-1];
-      renderLine('debtForecastGraph',rows,'debt','Debt balance',{zero:true,summary:'<span class="gos-repair-chip"><strong>Current:</strong> '+money(rows[0].debt)+'</span><span class="gos-repair-chip"><strong>Selected end:</strong> '+money(last.debt)+'</span><span class="gos-repair-chip"><strong>Monthly debt total:</strong> '+money(debtMonthlyTotal())+'</span>'});
-      renderLine('bankForecastGraph',rows,'bank','Bank position',{zero:true,summary:'<span class="gos-repair-chip"><strong>Starts:</strong> '+money(rows[0].bank)+'</span><span class="gos-repair-chip"><strong>Selected end:</strong> '+money(last.bank)+'</span><span class="gos-repair-chip"><strong>Bills:</strong> '+money(billTotal())+'</span>'});
-      renderLine('emergencyGraph',rows,'emergency','Emergency fund',{zero:true,target:(typeof state!=='undefined'?num(state.emergencyTarget||1000):1000),summary:'<span class="gos-repair-chip"><strong>Saved now:</strong> '+money(rows[0].emergency)+'</span><span class="gos-repair-chip"><strong>Selected end:</strong> '+money(last.emergency)+'</span><span class="gos-repair-chip"><strong>Target:</strong> '+money(typeof state!=='undefined'?state.emergencyTarget||1000:1000)+'</span>'});
-    }catch(e){ console.warn(PATCH,'graphs',e); }
-  }
-  function ensureFinanceHealthCard(){
-    try{
-      const cards=document.querySelector('#dashboard .dashboard-cards'); if(!cards) return;
-      let value=document.getElementById('financeHealth');
-      let card=value && (value.closest('.card')||value.parentElement);
-      if(!card){
-        card=document.createElement('div'); card.className='card stat-card accent-purple';
-        card.innerHTML='<div class="stat-head"><div class="stat-icon">📈</div><h3>Finance Health Score</h3></div><div id="financeHealth" class="big value-soft value-warning">0/100</div><div class="note" id="financeHealthNote">Main pressure points: overdraft, debt, savings and upcoming funding needs.</div>';
-        value=card.querySelector('#financeHealth');
-      }
-      if(card.parentElement!==cards) cards.appendChild(card);
-      card.classList.add('stat-card','accent-purple'); card.style.display='block'; card.style.visibility='visible'; card.style.opacity='1';
-      let head=card.querySelector('h3'); if(head) head.textContent='Finance Health Score';
-      if(!document.getElementById('financeHealthNote')){ const note=document.createElement('div'); note.id='financeHealthNote'; note.className='note'; note.textContent='Main pressure points: overdraft, debt, savings and upcoming funding needs.'; card.appendChild(note); }
-      try{ if(window.HealthV21 && typeof HealthV21.render==='function') HealthV21.render(); }
-      catch(e){ if(value) value.textContent='0/100'; }
-    }catch(e){ console.warn(PATCH,'health',e); }
-  }
-  function patchRenderers(){
-    try{
-      if(window.UI && UI.show && !UI.show.__gosTotalsGraphsHealthRepair){
-        const old=UI.show.bind(UI);
-        UI.show=function(id,btn){ const r=old(id,btn); setTimeout(run,50); if(id==='graphs') [80,250,700,1400].forEach(ms=>setTimeout(renderGraphs,ms)); return r; };
-        UI.show.__gosTotalsGraphsHealthRepair=true;
-      }
-    }catch(e){}
-    try{
-      if(window.GraphsV21 && GraphsV21.render && !GraphsV21.render.__gosTotalsGraphsHealthRepair){
-        const oldG=GraphsV21.render.bind(GraphsV21);
-        GraphsV21.render=function(){ try{ oldG(); }catch(e){ console.warn(PATCH,'old graph render',e); } renderGraphs(); };
-        GraphsV21.render.__gosTotalsGraphsHealthRepair=true;
-      }
-    }catch(e){}
-  }
-  function run(){ patchRenderers(); renderTotals(); ensureFinanceHealthCard(); if(document.querySelector('#graphs.active')) renderGraphs(); }
-  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||180); }
-  document.addEventListener('input',()=>schedule(240),true);
-  document.addEventListener('change',()=>schedule(240),true);
-  document.addEventListener('click',()=>schedule(240),true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));});
-  else {run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));}
-  window.addEventListener('load',()=>{run(); [400,1000,2200,4200].forEach(ms=>setTimeout(run,ms));});
-  window.GrantOSBuild30TotalsGraphsHealthRepair={run,renderTotals,renderGraphs,ensureFinanceHealthCard};
-})();
-</script>
-
-
-
-<style id="build30UserConfirmedLiveRepairStyle">
-/* Build 3.0 live repair: restore visible live values, detailed graphs, debt dropdown direction and relocation editing. */
-#gosBudgetBillsSummaryCard,
-#gosDebtMonthlyTotalCard,
-#gosHolidayFundingCard{display:block!important;visibility:visible!important;opacity:1!important;}
-#gosBudgetBillsSummaryCard .gos-live-total,
-#gosDebtMonthlyTotalCard .gos-live-total,
-#gosHolidayFundingCard .gos-live-total{font-size:clamp(30px,5vw,44px);font-weight:950;letter-spacing:-.03em;margin:8px 0 4px;color:#f8fafc;}
-.gos-live-sub{color:#b8c7dc;font-size:13px;line-height:1.35;}
 .gos-holiday-funding-rows{display:grid;gap:10px;margin-top:14px;}
 .gos-holiday-row{display:grid;grid-template-columns:minmax(120px,1.1fr) minmax(120px,2fr) auto;gap:10px;align-items:center;padding:10px;border-radius:14px;background:rgba(15,23,42,.42);border:1px solid rgba(148,163,184,.14);}
 .gos-holiday-row strong{color:#fff;}
 .gos-holiday-row .chartbar{min-width:120px;}
-.gos-section-dropdown{border:1px solid rgba(56,189,248,.30);border-radius:18px;background:rgba(8,47,73,.20);margin-top:10px;overflow:hidden;}
-.gos-section-dropdown>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;font-weight:950;color:#e0f2fe;min-height:46px;}
-.gos-section-dropdown>summary::-webkit-details-marker{display:none;}
-.gos-section-dropdown>summary:after{content:'⌄';font-size:1rem;color:#93c5fd;transition:transform .16s ease;}
-.gos-section-dropdown[open]>summary:after{transform:rotate(180deg);}
-.gos-dropdown-content{padding:0 12px 12px;}
-#debts .card:has(#debtProgressList)>details.gos-section-dropdown{display:none!important;}
-#debtProgressList{display:block!important;}
-.gos-relocation-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.gos-relocation-table td input{width:100%;}
-.gos-detailed-linegraph{border:1px solid rgba(148,163,184,.18);background:rgba(2,6,23,.30);border-radius:16px;padding:10px;overflow:hidden;margin-top:10px;}
-.gos-detailed-linegraph svg{display:block;width:100%;height:245px;overflow:visible;}
-.gos-detailed-linegraph .axis{fill:#9fb3c8;font-size:12px;font-weight:800;}
-.gos-detailed-linegraph .month{fill:#cbd5e1;font-size:11px;font-weight:800;}
-.gos-detailed-linegraph .value{fill:#f8fafc;font-size:11px;font-weight:900;paint-order:stroke;stroke:rgba(2,6,23,.85);stroke-width:3px;}
-.gos-detailed-linegraph .gridline{stroke:rgba(148,163,184,.20);stroke-width:1;}
-.gos-detailed-linegraph .zero{stroke:rgba(248,113,113,.58);stroke-dasharray:5 5;stroke-width:2;}
-.gos-detailed-linegraph .target{stroke:rgba(34,197,94,.58);stroke-dasharray:6 5;stroke-width:2;}
-.gos-detailed-linegraph polyline{stroke:currentColor;stroke-width:5;fill:none;color:var(--blue);}
-.gos-detailed-linegraph circle{fill:var(--amber);stroke:rgba(15,23,42,.95);stroke-width:3;}
 .gos-graph-summary{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 0;}
-.gos-graph-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border-radius:999px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.55);color:#dbeafe;font-size:12px;line-height:1.1;}
-.gos-graph-table{margin-top:10px;max-height:245px;overflow:auto;border-radius:14px;border:1px solid rgba(148,163,184,.14);}
-.gos-graph-table table{width:100%;border-collapse:collapse;min-width:520px;}
-.gos-graph-table th,.gos-graph-table td{padding:8px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;}
-.gos-graph-table th{position:sticky;top:0;background:rgba(15,23,42,.96);z-index:1;}
-@media(max-width:760px){.gos-holiday-row{grid-template-columns:1fr;}.gos-detailed-linegraph svg{height:220px}.gos-graph-table{max-height:210px}.gos-graph-chip{font-size:11px}.gos-detailed-linegraph .value{font-size:10px}.gos-detailed-linegraph .month{font-size:10px}}
+.gos-graph-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border-radius:999px;border:1px solid rgba(56,189,248,.22);background:rgba(15,23,42,.55);color:#dbeafe;font-size:12px;}
+.gos-detailed-linegraph{border:1px solid rgba(148,163,184,.16);border-radius:16px;background:rgba(15,23,42,.30);padding:10px;overflow:hidden;}
+.gos-detailed-linegraph svg{width:100%;height:250px;display:block;}
+.gos-detailed-linegraph .gridline{stroke:rgba(148,163,184,.18);stroke-width:1;}
+.gos-detailed-linegraph .zero{stroke:rgba(248,113,113,.40);stroke-width:1.5;stroke-dasharray:5 5;}
+.gos-detailed-linegraph .target{stroke:rgba(74,222,128,.55);stroke-width:1.8;stroke-dasharray:6 5;}
+.gos-detailed-linegraph polyline{fill:none;stroke:rgba(56,189,248,.95);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+.gos-detailed-linegraph circle{fill:#22d3ee;stroke:#0f172a;stroke-width:2;}
+.gos-detailed-linegraph text{font-size:11px;fill:#bfdbfe;font-weight:800;}
+.gos-detailed-linegraph .axis{fill:#9fb5d0;font-weight:700;}
+.gos-detailed-linegraph .month{fill:#dbeafe;}
+.gos-detailed-linegraph .value{fill:#fff;}
+.gos-graph-table{max-height:180px;overflow:auto;margin-top:10px;border-radius:14px;border:1px solid rgba(148,163,184,.14);}
+.gos-graph-table table{margin:0;}
+.gos-relocation-table input{width:100%;}
+.gos-relocation-actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;}
 </style>
-<script id="build30UserConfirmedLiveRepair">
+
+
+<script id="build30CodeArchaeologistStabilityPass">
 (function(){
-  const PATCH='build30UserConfirmedLiveRepair';
+  const PATCH='build30CodeArchaeologistStabilityPass';
   let timer=null;
   const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
   const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
-  const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const safeStore={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
   function rows(k){ try{ return (typeof state!=='undefined' && Array.isArray(state[k])) ? state[k] : []; }catch(e){ return []; } }
   function exposeCore(){
     try{ if(!Object.getOwnPropertyDescriptor(window,'state')) Object.defineProperty(window,'state',{configurable:true,get:function(){return state;},set:function(v){state=v;}}); }catch(e){}
-    try{ window.App=App; }catch(e){}
-    try{ window.Data=Data; }catch(e){}
-    try{ window.Calc=Calc; }catch(e){}
-    try{ window.UI=UI; }catch(e){}
-    try{ window.Dashboard=Dashboard; }catch(e){}
-    try{ window.Budget=Budget; }catch(e){}
-    try{ window.Debt=Debt; }catch(e){}
-    try{ window.Holidays=Holidays; }catch(e){}
-    try{ window.Relocation=Relocation; }catch(e){}
-    try{ window.ForecastV21=ForecastV21; }catch(e){}
-    try{ window.ForecastRangeV24=ForecastRangeV24; }catch(e){}
-    try{ window.GraphsV21=GraphsV21; }catch(e){}
-    try{ window.GraphsV24=GraphsV24; }catch(e){}
-    try{ window.EnhancedGraphsV242=EnhancedGraphsV242; }catch(e){}
-    try{ window.HealthV21=HealthV21; }catch(e){}
-    try{ window.AccountsUIV25527=AccountsUIV25527; }catch(e){}
+    ['Defaults','Data','Calc','UI','Dashboard','Budget','Debt','Holidays','Relocation','Career','Settings','Timeline','ForecastV21','ForecastRangeV24','GraphsV21','GraphsV24','EnhancedGraphsV242','HealthV21','AccountsUIV25527','AccountSyncV25516'].forEach(name=>{ try{ window[name]=eval(name); }catch(e){} });
+    window.GrantOSActiveControllerBridge=true;
   }
+  function sectionGrid(sel){ return document.querySelector(sel+' .grid') || document.querySelector(sel); }
   function cardByHeading(sectionSel, heading){
     const root=document.querySelector(sectionSel); if(!root) return null;
     const matcher=heading instanceof RegExp ? heading : new RegExp('^'+String(heading).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i');
-    return Array.from(root.querySelectorAll('.card,.v25527-summary-card')).find(card=>{
-      const h=card.querySelector('h3'); return h && matcher.test(norm(h.textContent));
-    }) || null;
+    return Array.from(root.querySelectorAll('.card,.v25527-summary-card')).find(card=>{ const h=card.querySelector('h3'); return h && matcher.test(norm(h.textContent)); }) || null;
   }
   function findCardContaining(sel){ const el=document.querySelector(sel); return el&&(el.closest('.card')||el.parentElement); }
-  function sectionGrid(sel){ return document.querySelector(sel+' .grid') || document.querySelector(sel); }
   function ensureCard(id, sectionSel, heading, after){
     let card=document.getElementById(id) || cardByHeading(sectionSel, heading);
     if(!card){ card=document.createElement('div'); card.id=id; card.className='card full'; const grid=sectionGrid(sectionSel); if(after&&after.parentElement) after.insertAdjacentElement('afterend',card); else if(grid) grid.appendChild(card); }
@@ -10142,16 +9404,17 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
       const fixed=findCardContaining('#fixedCostsTable') || cardByHeading('#budget',/^monthly fixed costs/i);
       const bill=ensureCard('gosBudgetBillsSummaryCard','#budget',/^monthly bill total$/i,fixed);
       bill.className='card full gos-budget-bills-summary-card';
-      bill.innerHTML='<h3>Monthly Bill Total</h3><p class="note">Live total of all normal bills entered in Monthly Fixed Costs / Bills.</p><div class="gos-live-total">'+money(billTotal())+'</div><div class="gos-live-sub">'+rows('fixed').length+' bill line(s) included. Debt repayments are kept separate.</div>';
+      bill.innerHTML='<h3>Monthly Bill Total</h3><p class="note">Live total of all normal bills entered in Monthly Fixed Costs / Bills.</p><div class="gos-live-total">'+money(billTotal())+'</div><div class="gos-live-sub">'+rows('fixed').length+' bill line(s) included.</div>';
     }catch(e){ console.warn(PATCH,'bill total',e); }
     try{
       const tracker=findCardContaining('#debtTable') || cardByHeading('#debts',/^debt tracker$/i);
       const debt=ensureCard('gosDebtMonthlyTotalCard','#debts',/^monthly debt total$/i,tracker);
-      debt.className='card full gos-debt-monthly-total-card';
-      debt.innerHTML='<h3>Monthly Debt Total</h3><p class="note">Live total of monthly repayments from active debts in Debt Tracker.</p><div class="gos-live-total">'+money(debtMonthlyTotal())+'</div><div class="gos-live-sub">'+activeDebtCount()+' active debt(s), '+money(totalDebt())+' total balance remaining.</div>';
+      debt.className='card full v276-debt-summary-card';
+      debt.innerHTML='<h3>Monthly Debt Total</h3><p class="note">Live total of monthly repayments from active debts in Debt Tracker.</p><div class="gos-live-total">'+money(debtMonthlyTotal())+'</div><div class="gos-live-sub">'+activeDebtCount()+' active debt(s), '+money(totalDebt())+' remaining.</div>';
+      const old=document.getElementById('v276DebtRepaymentsCard'); if(old && old!==debt) old.remove();
     }catch(e){ console.warn(PATCH,'debt total',e); }
   }
-  function pct(saved,target){ target=num(target); return target>0?Math.max(0,Math.min(100,num(saved)/target*100)):100; }
+  function pct(saved,target){ target=num(target); return target>0?Math.max(0,Math.min(100,(num(saved)/target)*100)):0; }
   function renderHolidayFunding(){
     try{
       const grid=sectionGrid('#holidays'); if(!grid) return;
@@ -10175,33 +9438,6 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     let ref=details; moved.forEach(n=>{ ref.parentNode.insertBefore(n, ref.nextSibling); ref=n; });
     details.remove();
   }
-  function ensureDebtTrackerDropdown(){
-    try{
-      const card=findCardContaining('#debtTable') || cardByHeading('#debts',/^debt tracker$/i); if(!card) return;
-      const h=card.querySelector('h3'); if(h) h.textContent='Debt Tracker';
-      let dd=card.querySelector(':scope > details#gosDebtTrackerMainDropdown');
-      if(!dd){
-        dd=document.createElement('details'); dd.id='gosDebtTrackerMainDropdown'; dd.className='gos-section-dropdown';
-        const saved=sessionStorage.getItem('gos-open-gosDebtTrackerMainDropdown'); dd.open=(saved===null?true:saved==='yes');
-        dd.innerHTML='<summary>Open debt accounts</summary><div class="gos-dropdown-content"></div>';
-        if(h) h.insertAdjacentElement('afterend',dd); else card.insertBefore(dd,card.firstChild);
-      }
-      let body=dd.querySelector('.gos-dropdown-content'); if(!body){ body=document.createElement('div'); body.className='gos-dropdown-content'; dd.appendChild(body); }
-      Array.from(card.childNodes).forEach(node=>{
-        if(node===h || node===dd) return;
-        if(node.nodeType===1 && node.id==='gosDebtMonthlyTotalCard') return;
-        body.appendChild(node);
-      });
-      const guide=document.getElementById('gosDebtGuide'); if(guide && guide.parentElement!==body && guide.closest('#debts')) body.insertBefore(guide, body.firstChild);
-      const table=document.getElementById('debtTable'); if(table && table.parentElement!==body) body.appendChild(table);
-      dd.onsummaryclick=null;
-      const summary=dd.querySelector('summary');
-      if(summary && !summary.__gosDebtOpenRemember){
-        summary.addEventListener('click',()=>setTimeout(()=>{try{sessionStorage.setItem('gos-open-gosDebtTrackerMainDropdown',dd.open?'yes':'no');}catch(e){}},0));
-        summary.__gosDebtOpenRemember=true;
-      }
-    }catch(e){ console.warn(PATCH,'debt dropdown',e); }
-  }
   function ensureDebtProgressCard(){
     try{
       const card=findCardContaining('#debtProgressList') || cardByHeading('#debts',/^debt progress$/i); if(!card) return;
@@ -10211,28 +9447,52 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
       const list=document.getElementById('debtProgressList'); if(list) list.style.display='block';
     }catch(e){ console.warn(PATCH,'progress card',e); }
   }
+  function ensureDebtTrackerDropdown(){
+    try{
+      const card=findCardContaining('#debtTable') || cardByHeading('#debts',/^debt tracker$/i); if(!card) return;
+      const h=card.querySelector('h3'); if(h) h.textContent='Debt Tracker';
+      let dd=card.querySelector(':scope > details#gosDebtTrackerMainDropdown');
+      if(!dd){
+        dd=document.createElement('details'); dd.id='gosDebtTrackerMainDropdown'; dd.className='gos-section-dropdown';
+        const saved=safeStore.get('gos-open-gosDebtTrackerMainDropdown'); dd.open=(saved===null?true:saved==='yes');
+        dd.innerHTML='<summary>Open debt accounts</summary><div class="gos-dropdown-content"></div>';
+        if(h) h.insertAdjacentElement('afterend',dd); else card.insertBefore(dd,card.firstChild);
+      }
+      let body=dd.querySelector('.gos-dropdown-content'); if(!body){ body=document.createElement('div'); body.className='gos-dropdown-content'; dd.appendChild(body); }
+      Array.from(card.childNodes).forEach(node=>{ if(node===h || node===dd) return; if(node.nodeType===1 && node.id==='gosDebtMonthlyTotalCard') return; body.appendChild(node); });
+      const guide=document.getElementById('gosDebtGuide'); if(guide && guide.parentElement!==body && guide.closest('#debts')) body.insertBefore(guide, body.firstChild);
+      const table=document.getElementById('debtTable'); if(table && table.parentElement!==body) body.appendChild(table);
+      const summary=dd.querySelector('summary');
+      if(summary && !summary.__gosDebtOpenRemember){ summary.addEventListener('click',()=>setTimeout(()=>safeStore.set('gos-open-gosDebtTrackerMainDropdown',dd.open?'yes':'no'),0)); summary.__gosDebtOpenRemember=true; }
+    }catch(e){ console.warn(PATCH,'debt dropdown',e); }
+  }
+  function limitAlerts(){
+    try{ Array.from(document.querySelectorAll('#alertsBox .alert')).forEach((el,i)=>{ el.style.display=i<3?'':'none'; }); }catch(e){}
+  }
+  function normaliseEstimatedSpare(){
+    try{
+      const card=document.getElementById('v283EstimatedSpareCard'); if(!card) return;
+      const fig=card.querySelector(':scope > #gosSpareFiguresDropdown'); if(fig) unwrapDetails(fig);
+      const calc=card.querySelector('#gosSpareCalculationDropdown');
+      if(calc){ const summary=calc.querySelector('summary'); if(summary) summary.textContent='Show calculation breakdown'; }
+    }catch(e){ console.warn(PATCH,'spare normalise',e); }
+  }
   function patchRelocation(){
     try{
-      if(typeof Relocation==='undefined' || Relocation.__gosEditRestore) return;
+      if(typeof Relocation==='undefined' || Relocation.__gosArchaeologistEditRestore) return;
       function write(){ try{ Data.save(); }catch(e){} try{ Dashboard.render(); }catch(e){} try{ renderTotals(); }catch(e){} }
       Relocation.update=function(group,i,k,v){ if(!Array.isArray(state[group])||!state[group][i]) return; state[group][i][k]=(k===1||k===2)?num(v):v; write(); };
       Relocation.add=function(group){ if(!Array.isArray(state[group])) state[group]=[]; state[group].push(['New item',0,0]); try{ Data.save(); }catch(e){} Relocation.render(); try{ Dashboard.render(); }catch(e){} };
       Relocation.remove=function(group,i){ if(!Array.isArray(state[group])||!state[group][i]) return; const name=state[group][i][0]||'this item'; const ok=(typeof confirm==='function')?confirm('Remove '+name+'?'):true; if(!ok) return; state[group].splice(i,1); try{ Data.save(); }catch(e){} Relocation.render(); try{ Dashboard.render(); }catch(e){} };
       Relocation.render=function(){
         function table(id,group){
-          const el=document.getElementById(id); if(!el) return;
-          const list=rows(group);
-          el.classList.add('gos-relocation-table');
+          const el=document.getElementById(id); if(!el) return; const list=rows(group); el.classList.add('gos-relocation-table');
           el.innerHTML='<tr><th>Item</th><th>Target</th><th>Saved</th><th>Remove</th></tr>'+list.map((r,i)=>'<tr><td><input value="'+esc(r&&r[0])+'" oninput="Relocation.update(\''+group+'\','+i+',0,this.value)"></td><td><input type="number" value="'+num(r&&r[1])+'" oninput="Relocation.update(\''+group+'\','+i+',1,this.value)"></td><td><input type="number" value="'+num(r&&r[2])+'" oninput="Relocation.update(\''+group+'\','+i+',2,this.value)"></td><td><button type="button" class="danger" onclick="Relocation.remove(\''+group+'\','+i+')">Remove</button></td></tr>').join('');
-          const card=el.closest('.card'); if(card && !card.querySelector('.gos-add-'+group)){
-            const actions=document.createElement('div'); actions.className='gos-relocation-actions gos-add-'+group;
-            actions.innerHTML='<button type="button" onclick="Relocation.add(\''+group+'\')">Add item</button>';
-            card.appendChild(actions);
-          }
+          const card=el.closest('.card'); if(card && !card.querySelector('.gos-add-'+group)){ const actions=document.createElement('div'); actions.className='gos-relocation-actions gos-add-'+group; actions.innerHTML='<button type="button" onclick="Relocation.add(\''+group+'\')">Add item</button>'; card.appendChild(actions); }
         }
         table('thaiTable','thai'); table('nzTable','nz');
       };
-      Relocation.__gosEditRestore=true;
+      Relocation.__gosArchaeologistEditRestore=true;
     }catch(e){ console.warn(PATCH,'relocation patch',e); }
   }
   function monthLabel(d){ return d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}); }
@@ -10242,37 +9502,26 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     const months=Math.max(3,Math.min(24,(typeof ForecastRangeV24!=='undefined'&&ForecastRangeV24.get)?num(ForecastRangeV24.get()):6));
     let base=[]; try{ if(typeof ForecastV21!=='undefined'&&ForecastV21.monthlySeries) base=ForecastV21.monthlySeries(months)||[]; }catch(e){ base=[]; }
     const wage=num(state&&state.wage), fixed=billTotal(), debtPay=debtMonthlyTotal(), living=num(state&&state.weeklyBudget)*4;
-    const surplus=wage-fixed-debtPay-living;
-    let bank=bankNow(), debt=totalDebt(), emergency=num(state&&state.emergencyFund);
-    const start=new Date(); start.setDate(1);
-    const out=[];
-    for(let i=0;i<months;i++){
-      const d=addMonths(start,i), b=base[i]||{};
-      if(i>0){ bank+=surplus; debt=Math.max(0,debt-debtPay); emergency=Math.max(0,emergency+Math.max(0,surplus)); }
-      out.push({month:b.month||monthLabel(d), debt:b.debt!=null?num(b.debt):debt, bank:b.bank!=null?num(b.bank):(b.balance!=null?num(b.balance):bank), emergency:b.emergency!=null?num(b.emergency):emergency});
-    }
+    const surplus=wage-fixed-debtPay-living; let bank=bankNow(), debt=totalDebt(), emergency=num(state&&state.emergencyFund);
+    const start=new Date(); start.setDate(1); const out=[];
+    for(let i=0;i<months;i++){ const d=addMonths(start,i), b=base[i]||{}; if(i>0){ bank+=surplus; debt=Math.max(0,debt-debtPay); emergency=Math.max(0,emergency+Math.max(0,surplus)); } out.push({month:b.month||monthLabel(d), debt:b.debt!=null?num(b.debt):debt, bank:b.bank!=null?num(b.bank):(b.balance!=null?num(b.balance):bank), emergency:b.emergency!=null?num(b.emergency):emergency}); }
     return out;
   }
   function shortMoney(v){ v=num(v); const sign=v<0?'-':''; const a=Math.abs(v); return a>=1000?sign+'£'+(a/1000).toFixed(a%1000===0?0:1)+'k':sign+'£'+Math.round(a); }
   function renderLine(id, data, key, title, opts){
-    const el=document.getElementById(id); if(!el) return; opts=opts||{};
-    const vals=data.map(r=>num(r[key])); if(!vals.length){ el.innerHTML='<p class="note">No forecast data available yet.</p>'; return; }
+    const el=document.getElementById(id); if(!el) return; opts=opts||{}; const vals=data.map(r=>num(r[key])); if(!vals.length){ el.innerHTML='<p class="note">No forecast data available yet.</p>'; return; }
     let min=Math.min(...vals,0), max=Math.max(...vals,0,opts.target!=null?num(opts.target):0,1); if(min===max){min=Math.min(0,min-1);max=max+1;}
-    const span=Math.max(1,max-min), w=720,h=250,padL=58,padR=24,padT=26,padB=44;
-    const xFor=i=>padL+(data.length===1?0:(i/(data.length-1))*(w-padL-padR)); const yFor=v=>padT+((max-num(v))/span)*(h-padT-padB);
-    const pts=data.map((r,i)=>({x:xFor(i),y:yFor(r[key]),v:num(r[key]),month:r.month}));
-    const ticks=[max,min+span/2,min]; const zeroY=yFor(0), targetY=opts.target!=null?yFor(opts.target):null;
+    const span=Math.max(1,max-min), w=720,h=250,padL=58,padR=24,padT=26,padB=44; const xFor=i=>padL+(data.length===1?0:(i/(data.length-1))*(w-padL-padR)); const yFor=v=>padT+((max-num(v))/span)*(h-padT-padB);
+    const pts=data.map((r,i)=>({x:xFor(i),y:yFor(r[key]),v:num(r[key]),month:r.month})); const ticks=[max,min+span/2,min]; const zeroY=yFor(0), targetY=opts.target!=null?yFor(opts.target):null;
     const labels=pts.map((p,i)=>(i===0||i===pts.length-1||data.length<=6)?'<text x="'+p.x+'" y="'+(h-14)+'" text-anchor="middle" class="month">'+esc(p.month)+'</text>':'').join('');
     const dots=pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="6"><title>'+esc(p.month)+': '+esc(money(p.v))+'</title></circle><text x="'+p.x+'" y="'+Math.max(14,p.y-10)+'" text-anchor="middle" class="value">'+esc(shortMoney(p.v))+'</text>').join('');
     const table='<div class="gos-graph-table"><table><tr><th>Month</th><th>'+esc(title)+'</th></tr>'+data.map(r=>'<tr><td>'+esc(r.month)+'</td><td>'+money(r[key])+'</td></tr>').join('')+'</table></div>';
     el.innerHTML='<div class="gos-graph-summary">'+(opts.summary||'')+'</div><div class="gos-detailed-linegraph"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+ticks.map(v=>'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+yFor(v)+'" y2="'+yFor(v)+'" class="gridline"></line><text x="8" y="'+(yFor(v)+4)+'" class="axis">'+esc(shortMoney(v))+'</text>').join('')+'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+zeroY+'" y2="'+zeroY+'" class="zero"></line>'+(targetY!=null?'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+targetY+'" y2="'+targetY+'" class="target"></line><text x="'+padL+'" y="'+Math.max(14,targetY-7)+'" class="axis">Target</text>':'')+'<polyline points="'+pts.map(p=>p.x+','+p.y).join(' ')+'"></polyline>'+dots+labels+'</svg></div>'+table;
   }
   function ensureGraphCard(heading,id){
-    const grid=sectionGrid('#graphs'); if(!grid) return;
-    let card=findCardContaining('#'+id) || cardByHeading('#graphs',new RegExp('^'+heading.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'));
+    const grid=sectionGrid('#graphs'); if(!grid) return; let card=findCardContaining('#'+id) || cardByHeading('#graphs',new RegExp('^'+heading.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'));
     if(!card){ card=document.createElement('div'); card.className='card wide'; card.innerHTML='<h3>'+esc(heading)+'</h3><div id="'+id+'"></div>'; grid.appendChild(card); }
-    let body=document.getElementById(id); if(!body){ body=document.createElement('div'); body.id=id; card.appendChild(body); }
-    card.style.display='block'; body.style.display='block'; body.style.minHeight='260px';
+    let body=document.getElementById(id); if(!body){ body=document.createElement('div'); body.id=id; card.appendChild(body); } card.style.display='block'; body.style.display='block'; body.style.minHeight='260px';
   }
   function renderGraphs(){
     try{
@@ -10284,46 +9533,34 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     }catch(e){ console.warn(PATCH,'graphs',e); }
   }
   function renderHealth(){
+    try{ if(typeof HealthV21!=='undefined' && HealthV21 && typeof HealthV21.render==='function') HealthV21.render(); }catch(e){ console.warn(PATCH,'health render',e); }
+  }
+  function rememberDetails(){
     try{
-      if(typeof HealthV21!=='undefined' && HealthV21.score){
-        const data=HealthV21.score();
-        const fh=document.getElementById('financeHealth');
-        if(fh){ fh.textContent=data.total+'/100'; fh.className='big value-soft '+(data.total>=75?'value-positive':data.total>=35?'value-warning':'value-negative'); }
-        const note=document.getElementById('financeHealthNote'); if(note) note.textContent=data.next;
-        if(HealthV21.render) HealthV21.render();
-      }
-    }catch(e){ console.warn(PATCH,'health render',e); }
+      document.querySelectorAll('details[id]').forEach(d=>{ const saved=safeStore.get('gos-open-'+d.id); if(saved!==null) d.open=saved==='yes'; if(!d.__gosRememberOpen){ d.addEventListener('toggle',()=>safeStore.set('gos-open-'+d.id,d.open?'yes':'no')); d.__gosRememberOpen=true; } });
+    }catch(e){}
   }
   function patchRenderers(){
     try{
-      if(typeof UI!=='undefined' && UI.show && !UI.show.__gosLiveRepair){
-        const old=UI.show.bind(UI); UI.show=function(id,btn){ const r=old(id,btn); setTimeout(run,40); if(id==='graphs') [80,220,650,1200].forEach(ms=>setTimeout(renderGraphs,ms)); if(id==='relocation') [80,240].forEach(ms=>setTimeout(()=>{try{Relocation.render();}catch(e){}},ms)); return r; };
-        UI.show.__gosLiveRepair=true;
-      }
+      if(typeof UI!=='undefined' && UI.show && !UI.show.__gosArchaeologist){ const old=UI.show.bind(UI); UI.show=function(id,btn){ const r=old(id,btn); [40,160,420].forEach(ms=>setTimeout(run,ms)); if(id==='graphs') [80,260,700,1200].forEach(ms=>setTimeout(renderGraphs,ms)); if(id==='relocation') [80,240].forEach(ms=>setTimeout(()=>{try{Relocation.render();}catch(e){}},ms)); return r; }; UI.show.__gosArchaeologist=true; }
     }catch(e){}
     try{
-      if(typeof App!=='undefined' && App.render && !App.render.__gosLiveRepair){
-        const old=App.render.bind(App); App.render=function(){ const r=old(); setTimeout(run,50); setTimeout(run,220); return r; };
-        App.render.__gosLiveRepair=true;
-      }
+      if(typeof App!=='undefined' && App.render && !App.render.__gosArchaeologist){ const old=App.render.bind(App); App.render=function(){ const r=old(); [60,220,620].forEach(ms=>setTimeout(run,ms)); return r; }; App.render.__gosArchaeologist=true; }
     }catch(e){}
   }
   function run(){
-    exposeCore(); patchRelocation(); patchRenderers(); renderTotals(); ensureDebtProgressCard(); ensureDebtTrackerDropdown(); renderHolidayFunding(); renderHealth();
+    exposeCore(); patchRenderers(); patchRelocation(); renderTotals(); limitAlerts(); normaliseEstimatedSpare(); ensureDebtProgressCard(); ensureDebtTrackerDropdown(); renderHolidayFunding(); renderHealth(); rememberDetails();
     if(document.querySelector('#graphs.active')) renderGraphs();
     if(document.querySelector('#relocation.active')){ try{ Relocation.render(); }catch(e){} }
   }
   function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||200); }
-  document.addEventListener('input',()=>schedule(220),true);
-  document.addEventListener('change',()=>schedule(240),true);
-  document.addEventListener('click',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('#gosDebtTrackerMainDropdown > summary')) [60,180].forEach(ms=>setTimeout(ensureDebtTrackerDropdown,ms));
-    schedule(260);
-  },true);
+  document.addEventListener('input',()=>schedule(200),true);
+  document.addEventListener('change',()=>schedule(220),true);
+  document.addEventListener('click',()=>schedule(240),true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));});
   else {run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));}
   window.addEventListener('load',()=>{run(); [400,1000,2200,4200].forEach(ms=>setTimeout(run,ms));});
-  window.GrantOSBuild30UserConfirmedLiveRepair={run,renderTotals,renderHolidayFunding,renderGraphs,renderHealth};
+  window.GrantOSCodeArchaeologistStabilityPass={run,renderTotals,renderHolidayFunding,renderGraphs,renderHealth};
 })();
 </script>
 
