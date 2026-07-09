@@ -9821,5 +9821,231 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
 })();
 </script>
 
+
+<style id="build30TotalsGraphsHealthRepairStyle">
+/* Build 3.0 repair: visible monthly totals, restored detailed forecast lines, and restored Finance Health card. */
+#gosBudgetBillsSummaryCard,
+#gosDebtMonthlyTotalCard,
+#v276DebtRepaymentsCard{display:block!important;visibility:visible!important;opacity:1!important;overflow-anchor:none!important;}
+#gosBudgetBillsSummaryCard .gos-total-value,
+#gosDebtMonthlyTotalCard .gos-total-value,
+#v276DebtRepaymentsCard .gos-total-value{font-size:clamp(28px,5vw,42px);font-weight:950;letter-spacing:-.03em;margin-top:8px;}
+#gosBudgetBillsSummaryCard .gos-total-sub,
+#gosDebtMonthlyTotalCard .gos-total-sub{color:#a9c3df;line-height:1.35;margin-top:6px;}
+#dashboard .dashboard-cards #financeHealth{display:block!important;visibility:visible!important;}
+.gos-repair-graph-wrap{width:100%;margin-top:8px;}
+.gos-repair-graph-summary{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 0;}
+.gos-repair-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border-radius:999px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.55);color:#dbeafe;font-size:12px;line-height:1.1;}
+.gos-repair-linegraph{border:1px solid rgba(148,163,184,.18);background:rgba(2,6,23,.30);border-radius:16px;padding:10px;overflow:hidden;}
+.gos-repair-linegraph svg{display:block;width:100%;height:245px;overflow:visible;}
+.gos-repair-linegraph .axis{fill:#9fb3c8;font-size:12px;font-weight:800;}
+.gos-repair-linegraph .month{fill:#cbd5e1;font-size:11px;font-weight:800;}
+.gos-repair-linegraph .value{fill:#f8fafc;font-size:11px;font-weight:900;paint-order:stroke;stroke:rgba(2,6,23,.85);stroke-width:3px;}
+.gos-repair-linegraph .gridline{stroke:rgba(148,163,184,.20);stroke-width:1;}
+.gos-repair-linegraph .zero{stroke:rgba(248,113,113,.55);stroke-dasharray:5 5;stroke-width:2;}
+.gos-repair-linegraph .target{stroke:rgba(34,197,94,.55);stroke-dasharray:6 5;stroke-width:2;}
+.gos-repair-linegraph polyline{stroke:currentColor;stroke-width:5;fill:none;color:var(--blue);}
+.gos-repair-linegraph circle{fill:var(--amber);stroke:rgba(15,23,42,.95);stroke-width:3;}
+.gos-repair-graph-table{margin-top:10px;max-height:245px;overflow:auto;border-radius:14px;border:1px solid rgba(148,163,184,.14);}
+.gos-repair-graph-table table{width:100%;border-collapse:collapse;min-width:520px;}
+.gos-repair-graph-table th,.gos-repair-graph-table td{padding:8px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;}
+.gos-repair-graph-table th{position:sticky;top:0;background:rgba(15,23,42,.96);z-index:1;}
+@media(max-width:760px){.gos-repair-linegraph svg{height:220px}.gos-repair-graph-table{max-height:210px}.gos-repair-chip{font-size:11px}.gos-repair-linegraph .value{font-size:10px}.gos-repair-linegraph .month{font-size:10px}}
+</style>
+<script id="build30TotalsGraphsHealthRepair">
+(function(){
+  const PATCH='build30TotalsGraphsHealthRepair';
+  let timer=null;
+  const num=v=>{ const n=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; };
+  const money=v=>'£'+num(v).toLocaleString('en-GB',{maximumFractionDigits:2});
+  const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  function stateRows(key){ try{ return (typeof state!=='undefined' && Array.isArray(state[key])) ? state[key] : []; }catch(e){ return []; } }
+  function sectionGrid(sel){ return document.querySelector(sel+' .grid') || document.querySelector(sel); }
+  function cardByHeading(sectionSel, patterns){
+    const sec=document.querySelector(sectionSel); if(!sec) return null;
+    const pats=(Array.isArray(patterns)?patterns:[patterns]).map(p=>p instanceof RegExp?p:new RegExp('^'+String(p).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'));
+    return Array.from(sec.querySelectorAll('.card,.v25527-summary-card')).find(card=>{
+      const h=card.querySelector('h3'); const t=norm(h&&h.textContent);
+      return pats.some(p=>p.test(t));
+    }) || null;
+  }
+  function ensureCard(id, sectionSel, heading, afterCard){
+    let card=document.getElementById(id);
+    if(!card){ card=cardByHeading(sectionSel, heading); if(card) card.id=id; }
+    if(!card){
+      card=document.createElement('div'); card.id=id; card.className='card full';
+      const grid=sectionGrid(sectionSel); if(afterCard && afterCard.parentElement) afterCard.insertAdjacentElement('afterend',card); else if(grid) grid.appendChild(card);
+    }
+    card.classList.add('card'); card.style.display='block'; card.style.visibility='visible'; card.style.opacity='1';
+    return card;
+  }
+  function billTotal(){ return stateRows('fixed').reduce((s,r)=>s+num(r&&r[1]),0); }
+  function debtMonthlyTotal(){
+    return stateRows('debts').reduce((s,d)=>{
+      const bal=Math.max(0,num(d&&d[1]));
+      const monthly=Math.max(0,num(d&&d[2]));
+      return s + (bal>0 ? monthly : 0);
+    },0);
+  }
+  function totalDebt(){ return stateRows('debts').reduce((s,d)=>s+Math.max(0,num(d&&d[1])),0); }
+  function activeDebtCount(){ return stateRows('debts').filter(d=>Math.max(0,num(d&&d[1]))>0).length; }
+  function renderTotals(){
+    try{
+      const fixedCard=cardByHeading('#budget',[/^monthly fixed costs/i,/^monthly fixed costs \/ bills/i]);
+      const billCard=ensureCard('gosBudgetBillsSummaryCard','#budget','Monthly Bill Total',fixedCard);
+      billCard.className='card full gos-budget-bills-summary-card';
+      billCard.innerHTML='<h3>Monthly Bill Total</h3><p class="note">Live total of the bills entered in Monthly Fixed Costs / Bills.</p><div class="gos-total-value">'+money(billTotal())+'</div><div class="gos-total-sub">'+stateRows('fixed').length+' bill line(s) included.</div>';
+    }catch(e){ console.warn(PATCH,'bill total',e); }
+    try{
+      const tracker=cardByHeading('#debts',/^debt tracker$/i);
+      const debtCard=ensureCard('gosDebtMonthlyTotalCard','#debts',[/^monthly debt total$/i,/^debt repayments$/i,/^debt repayments from debt tracker$/i],tracker);
+      debtCard.className='card full v276-debt-summary-card';
+      debtCard.innerHTML='<h3>Monthly Debt Total</h3><p class="note">Live total of monthly repayments from active debts in Debt Tracker.</p><div class="gos-total-value">'+money(debtMonthlyTotal())+'</div><div class="gos-total-sub">'+activeDebtCount()+' active debt(s), '+money(totalDebt())+' remaining.</div>';
+      const old=document.getElementById('v276DebtRepaymentsCard');
+      if(old && old!==debtCard) old.remove();
+    }catch(e){ console.warn(PATCH,'debt total',e); }
+  }
+  function monthLabel(d){ return d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}); }
+  function addMonths(d,n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
+  function oneOffDueInMonth(due, monthDate){
+    if(!due) return 0;
+    const raw=String(due).trim(); if(!raw || /flexible/i.test(raw)) return 0;
+    let dt=new Date(raw);
+    if(isNaN(dt.getTime())){
+      const months={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11};
+      let m=raw.match(/(\d{1,2})[\s\-\/]+(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[\s\-\/]+(\d{2,4})/i) || raw.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[\s\-\/]+(\d{2,4})/i);
+      if(m){
+        if(m.length===4){ let y=num(m[3]); if(y<100)y+=2000; dt=new Date(y,months[m[2].slice(0,3).toLowerCase()],num(m[1])||1); }
+        else { let y=num(m[2]); if(y<100)y+=2000; dt=new Date(y,months[m[1].slice(0,3).toLowerCase()],1); }
+      }
+    }
+    return !isNaN(dt.getTime()) && dt.getFullYear()===monthDate.getFullYear() && dt.getMonth()===monthDate.getMonth();
+  }
+  function bankNow(){
+    try{ if(window.Calc && typeof Calc.bankPosition==='function') return num(Calc.bankPosition()); }catch(e){}
+    try{ return num(state.firstDirectBalance)+num(state.monzoBalance)-num(state.firstDirectOverdraft)-num(state.monzoOverdraft); }catch(e){ return 0; }
+  }
+  function forecastRows(){
+    const months=Math.max(3, Math.min(24, (window.ForecastRangeV24&&ForecastRangeV24.get)?num(ForecastRangeV24.get()):6 || 6));
+    let base=[];
+    try{ if(window.ForecastV21 && typeof ForecastV21.monthlySeries==='function'){ base=ForecastV21.monthlySeries(months)||[]; } }catch(e){ base=[]; }
+    const wage=num((typeof state!=='undefined'&&state.wage)||0);
+    const fixed=billTotal();
+    const debtPay=debtMonthlyTotal();
+    const living=num((typeof state!=='undefined'&&state.weeklyBudget)||0)*4;
+    const monthlySurplus=wage-fixed-debtPay-living;
+    let bank=bankNow();
+    let debt=totalDebt();
+    let emergency=num((typeof state!=='undefined'&&state.emergencyFund)||0);
+    const start=new Date(); start.setDate(1);
+    const rows=[];
+    for(let i=0;i<months;i++){
+      const d=addMonths(start,i);
+      const baseRow=base[i]||{};
+      const oneOff=stateRows('debts').filter(x=>/one[-\s]?off|bnpl|currys/i.test(String(x&&x[4]||'')+' '+String(x&&x[0]||'')) && oneOffDueInMonth((x&&x[5])||(x&&x[3]),d)).reduce((s,x)=>s+Math.max(0,num(x&&x[1])),0);
+      if(i>0){
+        bank += monthlySurplus - oneOff;
+        debt = Math.max(0, debt - debtPay - oneOff);
+        emergency = Math.max(0, emergency + Math.max(0, monthlySurplus));
+      }
+      const bDebt = baseRow.debt!=null ? num(baseRow.debt) : debt;
+      const bBank = baseRow.bank!=null ? num(baseRow.bank) : (baseRow.balance!=null ? num(baseRow.balance) : (baseRow.forecastBalance!=null ? num(baseRow.forecastBalance) : bank));
+      rows.push({month:baseRow.month||monthLabel(d), debt:Math.max(0,bDebt), bank:bBank, emergency:Math.max(0, emergency), oneOff});
+    }
+    return rows;
+  }
+  function shortMoney(v){
+    v=num(v); const sign=v<0?'-':''; const a=Math.abs(v);
+    if(a>=1000) return sign+'£'+(a/1000).toFixed(a%1000===0?0:1)+'k';
+    return sign+'£'+Math.round(a);
+  }
+  function renderLine(id, rows, key, title, opts){
+    const el=document.getElementById(id); if(!el) return;
+    opts=opts||{};
+    const vals=rows.map(r=>num(r[key]));
+    if(!vals.length){ el.innerHTML='<p class="note">No forecast data available yet.</p>'; return; }
+    const includeZero=opts.zero || vals.some(v=>v<0);
+    const target=opts.target;
+    let min=Math.min(...vals, includeZero?0:vals[0]);
+    let max=Math.max(...vals, includeZero?0:vals[0], target!=null?num(target):vals[0], 1);
+    if(min===max){ min=Math.min(0,min-1); max=max+1; }
+    const span=Math.max(1,max-min), w=720,h=250,padL=58,padR=24,padT=26,padB=44;
+    const xFor=i=>padL+(rows.length===1?0:(i/(rows.length-1))*(w-padL-padR));
+    const yFor=v=>padT+((max-num(v))/span)*(h-padT-padB);
+    const pts=rows.map((r,i)=>({x:xFor(i),y:yFor(r[key]),v:num(r[key]),month:r.month}));
+    const poly=pts.map(p=>p.x+','+p.y).join(' ');
+    const ticks=[max, min+span/2, min];
+    const zeroY=yFor(0), targetY=target!=null?yFor(target):null;
+    const labels=pts.map((p,i)=> (i===0 || i===pts.length-1 || rows.length<=6) ? '<text x="'+p.x+'" y="'+(h-14)+'" text-anchor="middle" class="month">'+esc(p.month)+'</text>' : '').join('');
+    const dots=pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="6"><title>'+esc(p.month)+': '+esc(money(p.v))+'</title></circle><text x="'+p.x+'" y="'+Math.max(14,p.y-10)+'" text-anchor="middle" class="value">'+esc(shortMoney(p.v))+'</text>').join('');
+    const table='<div class="gos-repair-graph-table"><table><tr><th>Month</th><th>'+esc(title)+'</th></tr>'+rows.map(r=>'<tr><td>'+esc(r.month)+'</td><td>'+money(r[key])+'</td></tr>').join('')+'</table></div>';
+    el.innerHTML='<div class="gos-repair-graph-wrap"><div class="gos-repair-graph-summary">'+(opts.summary||'')+'</div><div class="gos-repair-linegraph"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+ticks.map(v=>'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+yFor(v)+'" y2="'+yFor(v)+'" class="gridline"></line><text x="8" y="'+(yFor(v)+4)+'" class="axis">'+esc(shortMoney(v))+'</text>').join('')+(includeZero?'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+zeroY+'" y2="'+zeroY+'" class="zero"></line>':'')+(target!=null?'<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+targetY+'" y2="'+targetY+'" class="target"></line><text x="'+padL+'" y="'+Math.max(14,targetY-7)+'" class="axis">Target</text>':'')+'<polyline points="'+poly+'"></polyline>'+dots+labels+'</svg></div>'+table+'</div>';
+  }
+  function ensureGraphCard(heading,id){
+    const grid=sectionGrid('#graphs'); if(!grid) return;
+    let card=cardByHeading('#graphs',heading);
+    if(!card){ card=document.createElement('div'); card.className='card wide'; card.innerHTML='<h3>'+esc(heading)+'</h3><div id="'+esc(id)+'"></div>'; grid.appendChild(card); }
+    let body=document.getElementById(id); if(!body){ body=document.createElement('div'); body.id=id; card.appendChild(body); }
+    card.style.display='block'; body.style.display='block'; body.style.minHeight='280px';
+  }
+  function renderGraphs(){
+    try{
+      ensureGraphCard('Debt Balance Forecast','debtForecastGraph');
+      ensureGraphCard('Bank Position Forecast','bankForecastGraph');
+      ensureGraphCard('Emergency Fund Progress','emergencyGraph');
+      const rows=forecastRows(); if(!rows.length) return;
+      const last=rows[rows.length-1];
+      renderLine('debtForecastGraph',rows,'debt','Debt balance',{zero:true,summary:'<span class="gos-repair-chip"><strong>Current:</strong> '+money(rows[0].debt)+'</span><span class="gos-repair-chip"><strong>Selected end:</strong> '+money(last.debt)+'</span><span class="gos-repair-chip"><strong>Monthly debt total:</strong> '+money(debtMonthlyTotal())+'</span>'});
+      renderLine('bankForecastGraph',rows,'bank','Bank position',{zero:true,summary:'<span class="gos-repair-chip"><strong>Starts:</strong> '+money(rows[0].bank)+'</span><span class="gos-repair-chip"><strong>Selected end:</strong> '+money(last.bank)+'</span><span class="gos-repair-chip"><strong>Bills:</strong> '+money(billTotal())+'</span>'});
+      renderLine('emergencyGraph',rows,'emergency','Emergency fund',{zero:true,target:(typeof state!=='undefined'?num(state.emergencyTarget||1000):1000),summary:'<span class="gos-repair-chip"><strong>Saved now:</strong> '+money(rows[0].emergency)+'</span><span class="gos-repair-chip"><strong>Selected end:</strong> '+money(last.emergency)+'</span><span class="gos-repair-chip"><strong>Target:</strong> '+money(typeof state!=='undefined'?state.emergencyTarget||1000:1000)+'</span>'});
+    }catch(e){ console.warn(PATCH,'graphs',e); }
+  }
+  function ensureFinanceHealthCard(){
+    try{
+      const cards=document.querySelector('#dashboard .dashboard-cards'); if(!cards) return;
+      let value=document.getElementById('financeHealth');
+      let card=value && (value.closest('.card')||value.parentElement);
+      if(!card){
+        card=document.createElement('div'); card.className='card stat-card accent-purple';
+        card.innerHTML='<div class="stat-head"><div class="stat-icon">📈</div><h3>Finance Health Score</h3></div><div id="financeHealth" class="big value-soft value-warning">0/100</div><div class="note" id="financeHealthNote">Main pressure points: overdraft, debt, savings and upcoming funding needs.</div>';
+        value=card.querySelector('#financeHealth');
+      }
+      if(card.parentElement!==cards) cards.appendChild(card);
+      card.classList.add('stat-card','accent-purple'); card.style.display='block'; card.style.visibility='visible'; card.style.opacity='1';
+      let head=card.querySelector('h3'); if(head) head.textContent='Finance Health Score';
+      if(!document.getElementById('financeHealthNote')){ const note=document.createElement('div'); note.id='financeHealthNote'; note.className='note'; note.textContent='Main pressure points: overdraft, debt, savings and upcoming funding needs.'; card.appendChild(note); }
+      try{ if(window.HealthV21 && typeof HealthV21.render==='function') HealthV21.render(); }
+      catch(e){ if(value) value.textContent='0/100'; }
+    }catch(e){ console.warn(PATCH,'health',e); }
+  }
+  function patchRenderers(){
+    try{
+      if(window.UI && UI.show && !UI.show.__gosTotalsGraphsHealthRepair){
+        const old=UI.show.bind(UI);
+        UI.show=function(id,btn){ const r=old(id,btn); setTimeout(run,50); if(id==='graphs') [80,250,700,1400].forEach(ms=>setTimeout(renderGraphs,ms)); return r; };
+        UI.show.__gosTotalsGraphsHealthRepair=true;
+      }
+    }catch(e){}
+    try{
+      if(window.GraphsV21 && GraphsV21.render && !GraphsV21.render.__gosTotalsGraphsHealthRepair){
+        const oldG=GraphsV21.render.bind(GraphsV21);
+        GraphsV21.render=function(){ try{ oldG(); }catch(e){ console.warn(PATCH,'old graph render',e); } renderGraphs(); };
+        GraphsV21.render.__gosTotalsGraphsHealthRepair=true;
+      }
+    }catch(e){}
+  }
+  function run(){ patchRenderers(); renderTotals(); ensureFinanceHealthCard(); if(document.querySelector('#graphs.active')) renderGraphs(); }
+  function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||180); }
+  document.addEventListener('input',()=>schedule(240),true);
+  document.addEventListener('change',()=>schedule(240),true);
+  document.addEventListener('click',()=>schedule(240),true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));});
+  else {run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));}
+  window.addEventListener('load',()=>{run(); [400,1000,2200,4200].forEach(ms=>setTimeout(run,ms));});
+  window.GrantOSBuild30TotalsGraphsHealthRepair={run,renderTotals,renderGraphs,ensureFinanceHealthCard};
+})();
+</script>
+
 </body>
 </html>

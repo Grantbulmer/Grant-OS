@@ -1,7 +1,7 @@
 {
   "name": "Grant OS Main Build 3.0",
   "short_name": "Grant OS",
-  "start_url": "./?v=main-build-3-0-stability-ui-graphs-fix",
+  "start_url": "./?v=main-build-3-0-totals-graphs-health-fix",
   "scope": "./",
   "display": "standalone",
   "background_color": "#071021",
