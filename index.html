@@ -7311,7 +7311,7 @@ StableInputV254.patch();
   }
   window.GrantOSDateAwareV284={
     estimate, renderSpareCard, forceLinkedAccountsTable,
-    updateBill(i,k,v){ migrateData(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; if(k===3) state.fixed[i][3]=v==='yes'?'yes':'no'; try{ if(window.Data) Data.save(); }catch(e){} renderSpareCard(); },
+    updateBill(i,k,v){ migrateData(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; if(k===3) state.fixed[i][3]=v==='yes'?'yes':'no'; try{ if(window.Data) Data.save(); }catch(e){} },
     removeBill(i){ if(confirm('Remove this bill?')){ migrateData(); state.fixed.splice(i,1); try{ if(window.Data) Data.save(); }catch(e){} safeRender(); } },
     updateDebt(i,k,v){ migrateData(); if(!state.debts[i]) return; state.debts[i][k]=([1,2,6].includes(k))?n(v):v; if(k===8) state.debts[i][8]=v==='yes'?'yes':'no'; try{ if(window.Data) Data.save(); }catch(e){} renderSpareCard(); },
     updateAccount(i){ const accounts=readAccounts(); const a=accounts[i]; if(!a) return; const bal=document.getElementById('v25531AccBal_'+i)||document.getElementById('v274AccBal_'+i); const od=document.getElementById('v25531AccOd_'+i)||document.getElementById('v274AccOd_'+i); const lim=document.getElementById('v25531AccLimit_'+i)||document.getElementById('v274AccLimit_'+i); const inc=document.getElementById('v25531AccInclude_'+i)||document.getElementById('v274AccInclude_'+i); a.balance=Math.max(0,n(bal&&bal.value))-Math.max(0,n(od&&od.value)); a.limit=Math.max(0,n(lim&&lim.value)); a.includeOverdraftForSpend=(inc&&inc.value==='yes'&&a.limit>0)?'yes':'no'; writeAccounts(accounts); renderSpareCard(); },
@@ -7519,7 +7519,7 @@ StableInputV254.patch();
   }
   window.GrantOSDateOnlyV283={
     estimate, renderSpareCard, renderBillsTable, renderBillsMobile, renderDebtTable, renderDebtsMobile, boot,
-    updateBill(i,k,v){ migrateData(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; state.fixed[i][3]='no'; try{if(window.Data)Data.save();}catch(e){} renderSpareCard(); },
+    updateBill(i,k,v){ migrateData(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; state.fixed[i][3]='no'; try{if(window.Data)Data.save();}catch(e){} },
     removeBill(i){ if(confirm('Remove this bill?')){ migrateData(); state.fixed.splice(i,1); try{if(window.Data)Data.save();}catch(e){} safeRender(); } },
     updateDebt(i,k,v){ migrateData(); if(!state.debts[i]) return; state.debts[i][k]=([1,2,6].includes(k))?n(v):v; state.debts[i][8]='no'; try{if(window.Data)Data.save();}catch(e){} renderSpareCard(); },
     removeDebt(i){ if(confirm('Remove this debt?')){ migrateData(); state.debts.splice(Number(i),1); try{if(window.Data)Data.save();}catch(e){} safeRender(); } },
@@ -7703,11 +7703,11 @@ StableInputV254.patch();
     }catch(err){ console.warn('Grant OS due-date spare render',err); }
   }
   function renderBills(){
-    try{ migrate(); const t=document.getElementById('fixedCostsTable'); if(!t) return; t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th><th>Status</th><th>Remove</th></tr>'+(state.fixed||[]).map((r,i)=>{ const st=statusMonthly(r[2]); return `<tr><td><input value="${esc(r[0])}" oninput="GrantOSDueDateV2835.updateBill(${i},0,this.value)"></td><td><input type="number" value="${n(r[1])}" oninput="GrantOSDueDateV2835.updateBill(${i},1,this.value)"></td><td><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDueDateV2835.updateBill(${i},2,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></td><td><span class="v283-date-status v283-${esc(st.cls)}">${esc(st.status)}</span></td><td><button type="button" class="danger" onclick="GrantOSDueDateV2835.removeBill(${i})">Remove</button></td></tr>`; }).join(''); const old=document.getElementById('v283BillDateTools'); if(old) old.remove(); let note=document.getElementById('v283DateOnlyBillNote'); if(!note){note=document.createElement('div'); note.id='v283DateOnlyBillNote'; note.className='v283-date-tools'; t.insertAdjacentElement('afterend',note);} note.innerHTML='<span>Bills use the monthly due day automatically. Dates already passed are treated as already handled; only items still due before payday reduce True Spare.</span>'; }
+    try{ migrate(); const t=document.getElementById('fixedCostsTable'); if(!t) return; t.innerHTML='<tr><th>Bill</th><th>Amount</th><th>Due day</th><th>Status</th><th>Remove</th></tr>'+(state.fixed||[]).map((r,i)=>{ const st=statusMonthly(r[2]); return `<tr><td><input value="${esc(r[0])}" oninput="GrantOSDueDateV2835.updateBill(${i},0,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></td><td><input type="number" value="${n(r[1])}" oninput="GrantOSDueDateV2835.updateBill(${i},1,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></td><td><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDueDateV2835.updateBill(${i},2,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></td><td><span class="v283-date-status v283-${esc(st.cls)}">${esc(st.status)}</span></td><td><button type="button" class="danger" onclick="GrantOSDueDateV2835.removeBill(${i})">Remove</button></td></tr>`; }).join(''); const old=document.getElementById('v283BillDateTools'); if(old) old.remove(); let note=document.getElementById('v283DateOnlyBillNote'); if(!note){note=document.createElement('div'); note.id='v283DateOnlyBillNote'; note.className='v283-date-tools'; t.insertAdjacentElement('afterend',note);} note.innerHTML='<span>Bills use the monthly due day automatically. Dates already passed are treated as already handled; only items still due before payday reduce True Spare.</span>'; }
     catch(e){ console.warn('Grant OS bills final render',e); }
   }
   function renderBillsMobile(){
-    try{ const t=document.getElementById('fixedCostsTable'); if(!t) return; let box=document.getElementById('v274FixedCostsMobile'); if(!box){box=document.createElement('div'); box.id='v274FixedCostsMobile'; box.className='v274-mobile-editor'; t.insertAdjacentElement('afterend',box);} box.innerHTML=(state.fixed||[]).length?(state.fixed||[]).map((r,i)=>{ const st=statusMonthly(r[2]); return `<div class="v274-mobile-card"><div class="v274-mobile-title">${esc(r[0]||'Bill')}<span class="v274-mobile-sub">${esc(st.status)}</span></div><div class="v274-mobile-grid"><label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="GrantOSDueDateV2835.updateBill(${i},0,this.value)"></label><label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="GrantOSDueDateV2835.updateBill(${i},1,this.value)"></label><label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDueDateV2835.updateBill(${i},2,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></label></div><div class="v274-mobile-actions"><button class="danger" type="button" onclick="GrantOSDueDateV2835.removeBill(${i})">Remove</button></div></div>`; }).join(''):'<div class="v274-mobile-empty">No bills yet. Tap Add bill to create one.</div>'; }catch(e){}
+    try{ const t=document.getElementById('fixedCostsTable'); if(!t) return; let box=document.getElementById('v274FixedCostsMobile'); if(!box){box=document.createElement('div'); box.id='v274FixedCostsMobile'; box.className='v274-mobile-editor'; t.insertAdjacentElement('afterend',box);} box.innerHTML=(state.fixed||[]).length?(state.fixed||[]).map((r,i)=>{ const st=statusMonthly(r[2]); return `<div class="v274-mobile-card"><div class="v274-mobile-title">${esc(r[0]||'Bill')}<span class="v274-mobile-sub">${esc(st.status)}</span></div><div class="v274-mobile-grid"><label class="v274-mobile-field"><span>Bill</span><input value="${esc(r[0])}" oninput="GrantOSDueDateV2835.updateBill(${i},0,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></label><label class="v274-mobile-field"><span>Amount</span><input type="number" value="${n(r[1])}" oninput="GrantOSDueDateV2835.updateBill(${i},1,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></label><label class="v274-mobile-field"><span>Due day</span><input inputmode="numeric" placeholder="1-31" value="${esc(r[2]||'')}" oninput="GrantOSDueDateV2835.updateBill(${i},2,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"></label></div><div class="v274-mobile-actions"><button class="danger" type="button" onclick="GrantOSDueDateV2835.removeBill(${i})">Remove</button></div></div>`; }).join(''):'<div class="v274-mobile-empty">No bills yet. Tap Add bill to create one.</div>'; }catch(e){}
   }
   function renderDebts(){
     try{ migrate(); const t=document.getElementById('debtTable'); if(!t) return; t.innerHTML='<tr><th>Debt</th><th>Balance</th><th>Monthly</th><th>Finish</th><th>Type</th><th>Due date</th><th>Status</th><th>Priority</th><th>Remove</th></tr>'+(state.debts||[]).map((r,i)=>{ const st=debtStatus(r), due=debtDueValue(r); return `<tr><td><input value="${esc(r[0])}" oninput="GrantOSDueDateV2835.updateDebt(${i},0,this.value)"></td><td><input type="number" value="${n(r[1])}" oninput="GrantOSDueDateV2835.updateDebt(${i},1,this.value)"></td><td><input type="number" value="${n(r[2])}" oninput="GrantOSDueDateV2835.updateDebt(${i},2,this.value)"></td><td><input value="${esc(r[3]||'')}" oninput="GrantOSDueDateV2835.updateDebt(${i},3,this.value)"></td><td><select onchange="GrantOSDueDateV2835.updateDebt(${i},4,this.value);GrantOSDueDateV2835.finalRefresh()"><option ${r[4]==='Regular'?'selected':''}>Regular</option><option ${r[4]==='One-off'?'selected':''}>One-off</option><option ${r[4]==='Flexible'?'selected':''}>Flexible</option></select></td><td><input placeholder="1-31 or YYYY-MM-DD" value="${esc(due)}" oninput="GrantOSDueDateV2835.updateDebt(${i},5,this.value)" onblur="GrantOSDueDateV2835.finalRefresh()"><div class="v283-date-note">Regular: day of month. One-off: exact date.</div></td><td><span class="v283-date-status v283-${esc(st.cls)}">${esc(st.status)}</span></td><td><input type="number" value="${n(r[6]||i+1)}" oninput="GrantOSDueDateV2835.updateDebt(${i},6,this.value)"></td><td><button class="danger" type="button" onclick="GrantOSDueDateV2835.removeDebt(${i})">Remove</button></td></tr>`; }).join(''); const old=document.getElementById('v283DebtDateTools'); if(old) old.remove(); let note=document.getElementById('v283DateOnlyDebtNote'); if(!note){note=document.createElement('div'); note.id='v283DateOnlyDebtNote'; note.className='v283-date-tools'; t.insertAdjacentElement('afterend',note);} note.innerHTML='<span>Debts now use one Due date field. Regular/Flexible debts use the day of the month; One-off/BNPL debts use the exact due date.</span>'; }
@@ -7719,7 +7719,7 @@ StableInputV254.patch();
   function renderHealth(){ try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){} }
   function renderLive(){ renderSpare(); renderHealth(); try{ if(window.Timeline&&Timeline.render) Timeline.render(); }catch(e){} }
   function finalRefresh(){ clearTimeout(window.__gosDueDateFinalTimer); window.__gosDueDateFinalTimer=setTimeout(()=>{ migrate(); renderBills(); renderBillsMobile(); renderDebts(); renderDebtsMobile(); renderLive(); save(); },60); }
-  function updateBill(i,k,v){ migrate(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; state.fixed[i][3]='no'; save(); renderLive(); }
+  function updateBill(i,k,v){ migrate(); if(!state.fixed[i]) return; state.fixed[i][k]=(k===1)?n(v):v; state.fixed[i][3]='no'; save(); }
   function updateDebt(i,k,v){ migrate(); if(!state.debts[i]) return; state.debts[i][k]=([1,2,6].includes(k))?n(v):v; if(k===5) state.debts[i][7]=''; state.debts[i][8]='no'; save(); renderLive(); }
   function removeBill(i){ if(confirm('Remove this bill?')){ migrate(); state.fixed.splice(Number(i),1); save(); finalRefresh(); } }
   function removeDebt(i){ if(confirm('Remove this debt?')){ migrate(); state.debts.splice(Number(i),1); save(); finalRefresh(); } }
@@ -7734,8 +7734,8 @@ StableInputV254.patch();
   function boot(){ patch(); finalRefresh(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',boot);
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#budget,#debt')) setTimeout(renderLive,30); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#budget,#debt')) setTimeout(finalRefresh,30); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#budget,#debt')) setTimeout(renderLive,30); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#budget,#debt')) setTimeout(finalRefresh,30); },true);
   [100,300,800,1600,3200,6200].forEach(ms=>setTimeout(boot,ms));
 })();
 </script>
@@ -7785,8 +7785,8 @@ StableInputV254.patch();
   function setVersion(){ try{ document.title='Grant OS '+VERSION; }catch(e){} try{ document.querySelectorAll('header .pill,.version,.version-label,#versionLabel,#appVersion,[data-version]').forEach(el=>{ el.textContent=VERSION; }); }catch(e){} }
   function refresh(){ setVersion(); try{ if(window.HealthV21&&HealthV21.render) HealthV21.render(); }catch(e){} }
   let t=null; function queue(ms=60){ clearTimeout(t); t=setTimeout(refresh,ms); }
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debts,#fixedCostsTable,#debtTable,#v274BudgetAccountsMobile,#dynamicBudgetAccountsTable')) queue(50); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debts,#fixedCostsTable,#debtTable,#v274BudgetAccountsMobile,#dynamicBudgetAccountsTable')) queue(50); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debts,#fixedCostsTable,#debtTable,#v274BudgetAccountsMobile,#dynamicBudgetAccountsTable')) queue(50); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#budget,#accounts,#debts,#fixedCostsTable,#debtTable,#v274BudgetAccountsMobile,#dynamicBudgetAccountsTable')) queue(50); },true);
   document.addEventListener('toggle',function(e){ if(e.target&&e.target.id==='gosHealthBreakdown') queue(30); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{refresh(); setTimeout(refresh,250); setTimeout(refresh,1000);}); else {refresh(); setTimeout(refresh,250); setTimeout(refresh,1000);} 
   window.addEventListener('load',()=>{refresh(); setTimeout(refresh,500);});
@@ -8026,8 +8026,8 @@ StableInputV254.patch();
     clearTimeout(lightTimer); lightTimer=setTimeout(refreshLight,45);
     if(full){ clearTimeout(fullTimer); fullTimer=setTimeout(refreshViewsWhenSafe,160); }
   }
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,false); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,true); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,false); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,true); },true);
   document.addEventListener('blur',function(e){ if(e.target&&e.target.closest&&e.target.closest(SYNC_SELECTOR)) queue(e.target,true); },true);
   function wrap(obj,name,afterFull){
     try{ if(!obj||!obj[name]||obj[name].__crossViewSync) return; const old=obj[name].bind(obj); obj[name]=function(){ const r=old.apply(this,arguments); queue(null,!!afterFull); return r; }; obj[name].__crossViewSync=true; }catch(e){}
@@ -8164,8 +8164,8 @@ StableInputV254.patch();
   function boot(){ addCSS(); wrapDashboard(); render(); setTimeout(render,150); setTimeout(render,600); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',boot);
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) setTimeout(render,80); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) setTimeout(render,120); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) setTimeout(render,80); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile')) setTimeout(render,120); },true);
   window.GrantOSCashflowWarningCard={VERSION,render,estimate};
 })();
 </script>
@@ -8949,8 +8949,8 @@ body.gos-is-scrolling #nextPriority{transition:none!important;animation:none!imp
   document.addEventListener('scroll',freezeScrollLayout,{passive:true,capture:true});
   document.addEventListener('touchmove',freezeScrollLayout,{passive:true});
   document.addEventListener('wheel',freezeScrollLayout,{passive:true});
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),160); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),180); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),160); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#debt,#debtTable,#v274DebtMobile,#budget,#fixedCostsTable,#v274FixedCostsMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(()=>renderAll(true),180); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',()=>{boot();setTimeout(()=>renderAll(true),700);});
   window.GrantOSBuild301={VERSION,buildActions,topAction,renderAll,getHelperTips,staticHelperTips,helperDetail};
@@ -9223,8 +9223,8 @@ body.gos-perf-scrolling #grantOSHelperBtn{animation:none!important;}
   window.addEventListener('scroll',beginScroll,{capture:true,passive:true});
   window.addEventListener('touchmove',beginScroll,{capture:true,passive:true});
   window.addEventListener('wheel',beginScroll,{capture:true,passive:true});
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#app')) scheduleRender(260); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#app')) scheduleRender(260); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#app')) scheduleRender(260); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#app')) scheduleRender(260); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',()=>{boot(); setTimeout(()=>stabiliseNow(true),800);});
   window.GrantOSPerformanceV302={VERSION,stabiliseNow,beginScroll,endScroll,getActions};
@@ -9429,8 +9429,8 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     try{ if(window.GrantOSBuild301){ GrantOSBuild301.buildActions=buildActions; GrantOSBuild301.topAction=function(){return buildActions()[0];}; } }catch(e){}
   }
   function boot(){ patch(); renderAll(); [160,500,1200,2500].forEach(ms=>setTimeout(()=>{patch(); refreshLive();},ms)); }
-  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#holidays,#holidayTable,#v274HolidayMobile,#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(refreshLive,120); },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#holidays,#holidayTable,#v274HolidayMobile,#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(refreshLive,150); },true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#holidays,#holidayTable,#v274HolidayMobile,#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(refreshLive,120); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#holidays,#holidayTable,#v274HolidayMobile,#budget,#fixedCostsTable,#debtTable,#v274FixedCostsMobile,#v274DebtMobile,#v25531LinkedAccountsTable,#v274AccountsMobile')) setTimeout(refreshLive,150); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot(); window.addEventListener('load',boot);
   window.GrantOSHolidaySync={VERSION,update,add,remove,renderAll,refreshAll:renderAll,refreshLive,holidayStatus,holidayDueBeforePayday,safeCalc,estimateWithHoliday,buildActions};
 })();
@@ -9669,9 +9669,9 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     if(document.querySelector('#relocation.active')){ try{ Relocation.render(); }catch(e){} }
   }
   function schedule(ms){ clearTimeout(timer); timer=setTimeout(run,ms||200); }
-  document.addEventListener('input',()=>schedule(200),true);
-  document.addEventListener('change',()=>schedule(220),true);
-  document.addEventListener('click',()=>schedule(240),true);
+  document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; schedule(200); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; schedule(220); },true);
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; schedule(240); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));});
   else {run(); [250,700,1500,3000].forEach(ms=>setTimeout(run,ms));}
   window.addEventListener('load',()=>{run(); [400,1000,2200,4200].forEach(ms=>setTimeout(run,ms));});
@@ -9913,10 +9913,11 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
   }
   function scheduleRun(ms){ clearTimeout(runTimer); runTimer=setTimeout(run,ms||140); }
   document.addEventListener('input',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; 
     if(e.target && e.target.closest && e.target.closest('#accounts,#budget,#debts,#holidays,#relocation')){ scheduleStableSpare(20); scheduleRun(170); }
   },true);
-  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#accounts,#budget,#debts,#holidays,#relocation')){ scheduleStableSpare(20); scheduleRun(180); } },true);
-  document.addEventListener('click',function(){ scheduleRun(180); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; if(e.target&&e.target.closest&&e.target.closest('#accounts,#budget,#debts,#holidays,#relocation')){ scheduleStableSpare(20); scheduleRun(180); } },true);
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; scheduleRun(180); },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{run(); [150,450,1000,2200,4200].forEach(ms=>setTimeout(run,ms));});
   else { run(); [150,450,1000,2200,4200].forEach(ms=>setTimeout(run,ms)); }
   window.addEventListener('load',()=>{run(); [300,900,1800,3600].forEach(ms=>setTimeout(run,ms));});
@@ -10069,12 +10070,15 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
   }
   function run(){ wrapRenderers(); forceBillsDropdown(); stableSpareNow(); attachStableSpareObserver(); }
   document.addEventListener('input',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; 
     if(e.target && e.target.closest && e.target.closest('#accounts,#budget')){ stableSpareNow(); scheduleStable(50); }
   },true);
   document.addEventListener('change',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return; 
     if(e.target && e.target.closest && e.target.closest('#accounts,#budget')){ stableSpareNow(); scheduleStable(70); }
   },true);
   document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown')) return;
     if(e.target && e.target.closest && e.target.closest('#budget')) scheduleStable(90);
   },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{ run(); [100,350,900,1800,3600].forEach(ms=>setTimeout(run,ms)); });
@@ -10288,7 +10292,7 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
   function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return isFinite(x)?x:0; }
   function isField(el){ return !!(el && el.matches && el.matches(FIELD_SELECTOR)); }
   function inBills(el){ return !!(el && el.closest && el.closest(BILL_SCOPE)); }
-  function activeBills(){ const a=document.activeElement; return (isField(a)&&inBills(a)) || (Date.now()-lastInputAt<450); }
+  function activeBills(){ const a=document.activeElement; return !!(isField(a)&&inBills(a)); }
   function rememberScroll(){ try{ lastScrollX=window.scrollX||0; lastScrollY=window.scrollY||0; }catch(e){} }
   function restoreScroll(){ try{ window.scrollTo(lastScrollX,lastScrollY); }catch(e){} }
   function restoreSoon(){ setTimeout(restoreScroll,0); setTimeout(restoreScroll,50); setTimeout(restoreScroll,140); }
@@ -10416,7 +10420,6 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     writeBillFromField(t);
     // Let the active field keep focus; older bubbling listeners are what caused table rebuilds while typing.
     try{ e.stopImmediatePropagation(); }catch(x){}
-    lightRefresh();
   }
   document.addEventListener('input',captureBillInput,true);
   document.addEventListener('change',function(e){
@@ -10424,14 +10427,74 @@ body.gos-perf-scrolling #holidayTable,body.gos-perf-scrolling #holidayControlTab
     if(!isField(t) || !inBills(t)) return;
     lastInputAt=Date.now(); rememberScroll(); patchBillApis(); writeBillFromField(t);
     try{ e.stopImmediatePropagation(); }catch(x){}
-    lightRefresh(); fullRefreshWhenSafe();
+    fullRefreshWhenSafe();
   },true);
   document.addEventListener('focusin',function(e){ if(isField(e.target)&&inBills(e.target)){ lastInputAt=Date.now(); rememberScroll(); patchBillApis(); restoreSoon(); } },true);
-  document.addEventListener('focusout',function(e){ if(isField(e.target)&&inBills(e.target)){ writeBillFromField(e.target); lastInputAt=0; fullRefreshWhenSafe(); } },true);
+  document.addEventListener('focusout',function(e){ if(isField(e.target)&&inBills(e.target)){ writeBillFromField(e.target); lastInputAt=0; setTimeout(function(){ fullRefreshWhenSafe(); },40); } },true);
   function boot(){ patchBillApis(); clearTimeout(bootTimer); bootTimer=setTimeout(patchBillApis,250); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   window.addEventListener('load',function(){ boot(); [400,1200,2600].forEach(ms=>setTimeout(boot,ms)); });
   window.GrantOSBillInputStabilityFix={version:PATCH,patch:patchBillApis};
+})();
+</script>
+
+
+<style id="build30BillKeyboardStabilityFinalGuardStyle">
+/* Build 3.0 bill keyboard stability final guard: stops Monthly Fixed Costs / Bills inputs being rebuilt mid-typing. */
+#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown{overflow-anchor:none!important;}
+#fixedCostsTable input,#v274FixedCostsMobile input{font-variant-numeric:tabular-nums!important;min-height:46px!important;box-sizing:border-box!important;}
+body.gos-bill-editing #fixedCostsTable,
+body.gos-bill-editing #v274FixedCostsMobile,
+body.gos-bill-editing #gosBudgetBillsMainDropdown{contain:layout!important;}
+</style>
+<script id="build30BillKeyboardStabilityFinalGuardScript">
+(function(){
+  const PATCH='build30-bill-keyboard-stability-final-guard';
+  const BILL_SCOPE='#fixedCostsTable,#v274FixedCostsMobile,#gosBudgetBillsMainDropdown';
+  const FIELD='input,textarea,select';
+  let timer=null, scrollX=0, scrollY=0;
+  function inBill(el){ return !!(el&&el.closest&&el.closest(BILL_SCOPE)); }
+  function isField(el){ return !!(el&&el.matches&&el.matches(FIELD)); }
+  function activeBill(){ const a=document.activeElement; return !!(isField(a)&&inBill(a)); }
+  function n(v){ const x=Number(String(v??'').replace(/[^0-9.-]/g,'')); return Number.isFinite(x)?x:0; }
+  function save(){ try{ if(window.Data&&Data.save) Data.save(); }catch(e){} }
+  function remember(){ try{scrollX=window.scrollX||0;scrollY=window.scrollY||0;}catch(e){} }
+  function restore(){ try{window.scrollTo(scrollX,scrollY);}catch(e){} }
+  function rowIndex(el){
+    try{ const tr=el.closest('#fixedCostsTable tr'); if(tr&&tr.parentElement) return Math.max(0,Array.prototype.indexOf.call(tr.parentElement.children,tr)-1); }catch(e){}
+    try{ const card=el.closest('#v274FixedCostsMobile .v274-mobile-card'); if(card&&card.parentElement) return Array.from(card.parentElement.querySelectorAll(':scope > .v274-mobile-card')).indexOf(card); }catch(e){}
+    return -1;
+  }
+  function key(el){
+    try{ const td=el.closest('#fixedCostsTable td'); if(td&&td.parentElement) return Array.prototype.indexOf.call(td.parentElement.children,td); }catch(e){}
+    try{ const txt=((el.closest('label')||{}).textContent||'').toLowerCase(); if(txt.includes('amount')) return 1; if(txt.includes('due')) return 2; return 0; }catch(e){return 0;}
+  }
+  function write(el){
+    try{
+      if(!window.state) return;
+      if(!Array.isArray(state.fixed)) state.fixed=[];
+      const i=rowIndex(el), k=key(el); if(i<0||!state.fixed[i]) return;
+      if(!Array.isArray(state.fixed[i])) state.fixed[i]=['New bill',0,'','no'];
+      state.fixed[i][k]=(k===1)?n(el.value):el.value;
+      if(k===0||k===1||k===2) state.fixed[i][3]='no';
+      save();
+    }catch(e){ console.warn(PATCH,'write',e); }
+  }
+  function patchRenderers(){
+    [['Budget','render'],['App','render'],['App','saveAndRender'],['MobileV274','renderAll'],['GrantOSDueDateV2835','renderBills'],['GrantOSDueDateV2835','renderBillsMobile'],['GrantOSDueDateV2835','finalRefresh'],['GrantOSDateOnlyV283','renderBillsTable'],['GrantOSDateOnlyV283','renderBillsMobile'],['GrantOSDateOnlyV283','commit']].forEach(function(pair){
+      try{ const obj=window[pair[0]], name=pair[1]; if(!obj||typeof obj[name]!=='function'||obj[name].__billKeyboardFinalGuard) return; const old=obj[name].bind(obj); obj[name]=function(){ if(activeBill()){ save(); return; } return old.apply(obj,arguments); }; obj[name].__billKeyboardFinalGuard=true; }catch(e){}
+    });
+    try{ if(window.GrantOSDueDateV2835&&typeof GrantOSDueDateV2835.updateBill==='function'&&!GrantOSDueDateV2835.updateBill.__billKeyboardFinalGuard){ const old=GrantOSDueDateV2835.updateBill.bind(GrantOSDueDateV2835); GrantOSDueDateV2835.updateBill=function(i,k,v){ if(activeBill()){ try{ if(!Array.isArray(state.fixed)) state.fixed=[]; if(state.fixed[i]){ state.fixed[i][k]=(k===1)?n(v):v; if(k===0||k===1||k===2) state.fixed[i][3]='no'; save(); } }catch(e){} return true; } return old(i,k,v); }; GrantOSDueDateV2835.updateBill.__billKeyboardFinalGuard=true; } }catch(e){}
+  }
+  function finalRefresh(){ clearTimeout(timer); timer=setTimeout(function(){ if(activeBill()) return; save(); try{ if(window.GrantOSDueDateV2835&&GrantOSDueDateV2835.finalRefresh) GrantOSDueDateV2835.finalRefresh(); else if(window.Budget&&Budget.render) Budget.render(); }catch(e){} try{ if(window.GrantOSCodeArchaeologistStabilityPass&&GrantOSCodeArchaeologistStabilityPass.run) GrantOSCodeArchaeologistStabilityPass.run(); }catch(e){} restore(); },90); }
+  document.addEventListener('focusin',function(e){ if(isField(e.target)&&inBill(e.target)){ document.body.classList.add('gos-bill-editing'); remember(); patchRenderers(); } },true);
+  document.addEventListener('input',function(e){ if(isField(e.target)&&inBill(e.target)){ remember(); patchRenderers(); write(e.target); try{e.stopImmediatePropagation();}catch(x){} setTimeout(restore,0); } },true);
+  document.addEventListener('change',function(e){ if(isField(e.target)&&inBill(e.target)){ remember(); patchRenderers(); write(e.target); try{e.stopImmediatePropagation();}catch(x){} finalRefresh(); } },true);
+  document.addEventListener('focusout',function(e){ if(isField(e.target)&&inBill(e.target)){ write(e.target); document.body.classList.remove('gos-bill-editing'); finalRefresh(); } },true);
+  function boot(){patchRenderers();}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.addEventListener('load',function(){boot(); [300,900,1800].forEach(ms=>setTimeout(boot,ms));});
+  window.GrantOSBillKeyboardStabilityFinalGuard={version:PATCH,patch:patchRenderers};
 })();
 </script>
 
